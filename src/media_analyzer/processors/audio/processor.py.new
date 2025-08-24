@@ -33,13 +33,12 @@ class AudioProcessor:
             ValueError: If file format is not supported
         """
         path = Path(file_path)
+        if not path.exists():
+            raise FileNotFoundError(f"Audio file not found: {path}")
             
         suffix = path.suffix[1:].lower() if path.suffix else ""
         if suffix not in self.SUPPORTED_FORMATS:
             raise ValueError(f"Unsupported audio format: {path.suffix}")
-            
-        if not path.exists():
-            raise FileNotFoundError(f"Audio file not found: {path}")
             
         return path
 
