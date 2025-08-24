@@ -4,20 +4,6 @@ This directory contains boilerplate templates that AI agents can use to quickly 
 
 ## Directory Structure
 
-```
-templates/
-├── README.md                           # This file
-├── operation_template.py               # Template for new mathematical operations
-├── plugin_template.py                  # Template for new plugins
-├── cli_command_template.py             # Template for new CLI commands
-├── test_template.py                    # Template for comprehensive tests
-├── error_class_template.py             # Template for custom error classes
-├── validator_template.py               # Template for input validators
-├── formatter_template.py               # Template for output formatters
-└── integration_template.py             # Template for component integration
-
-```
-
 ## How to Use These Templates
 
 ### For AI Agents
