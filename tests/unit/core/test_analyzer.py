@@ -36,3 +36,45 @@ def test_process_file_invalid_format(tmp_path):
     analyzer = Analyzer()
     with pytest.raises(ValueError):
         analyzer.process_file(str(invalid_file))
+
+
+def test_successful_transcription(test_audio_file):
+    """Test successful transcription of an audio file."""
+    analyzer = Analyzer()
+    result = analyzer.process_file(test_audio_file)
+    
+    assert isinstance(result, TranscriptionResult)
+    assert "test audio file" in result.full_text.lower()
+    assert "speech recognition" in result.full_text.lower()
+    assert result.summary != ""
+    assert result.confidence > 0.0
+    assert "duration" in result.metadata
+
+
+def test_transcription_with_options(test_audio_file):
+    """Test transcription with custom options."""
+    options = {
+        "max_summary_length": 100,
+        "min_confidence": 0.8,
+        "language": "en"
+    }
+    
+    analyzer = Analyzer()
+    result = analyzer.process_file(test_audio_file, options)
+    
+    assert isinstance(result, TranscriptionResult)
+    assert len(result.summary.split()) <= 100
+    assert result.metadata.get("language") == "en"
+    assert "test audio file" in result.full_text.lower()
+
+
+@pytest.mark.parametrize("audio_format", ["wav", "mp3"])
+def test_supported_formats(test_audio_file, audio_format):
+    """Test that analyzer supports different audio formats."""
+    # Use the actual audio files we created
+    test_file = test_audio_file.parent / f"sample.{audio_format}"
+    
+    analyzer = Analyzer()
+    result = analyzer.process_file(str(test_file))
+    assert isinstance(result, TranscriptionResult)
+    assert "duration" in result.metadata
