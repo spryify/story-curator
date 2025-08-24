@@ -37,18 +37,16 @@ def cli():
 @click.option('--format', '-f', type=click.Choice(['text', 'json']), default='text', help='Output format (text or json)')
 @click.option('--verbose', '-v', is_flag=True, help='Show detailed processing information')
 def transcribe(
-    file: str,
-    language: str,
-    summary_length: int,
-    output: Optional[str],
-    format: Literal['text', 'json'],
-    verbose: bool
-):
+def transcribe(file: str, language: str, summary_length: int, output: Optional[str], format: Literal['text', 'json'], verbose: bool):
     """
     Transcribe an audio file and generate a summary.
     
+    Supported audio formats: MP3, M4A, AAC, WAV
+    
     Example:
-        media-analyzer audio transcribe speech.wav --language en --summary-length 500 --format json
+        media-analyzer audio transcribe speech.mp3 --language en --summary-length 500 --format json
+        media-analyzer audio transcribe recording.m4a --language fr --output result.json
+        media-analyzer audio transcribe podcast.aac --verbose
     """
     try:
         # Initialize analyzer

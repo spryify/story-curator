@@ -42,7 +42,7 @@ So that I can diagnose and fix issues efficiently
 ## Functional Requirements
 
 ### Core Functionality
-1. **Audio File Input**: System must accept audio files in WAV and MP3 formats
+1. **Audio File Input**: System must accept common audio formats (MP3, M4A, AAC, WAV)
 2. **Text Extraction**: Convert spoken content to text using speech recognition
 3. **Text Summarization**: Generate concise summaries of extracted text
 4. **Output Generation**: Provide both full transcription and summary in text format
@@ -50,7 +50,7 @@ So that I can diagnose and fix issues efficiently
 
 ### Input/Output Specifications
 - **Inputs**: 
-  - Audio files (WAV, MP3)
+  - Audio files (MP3, M4A, AAC, WAV)
   - Optional parameters for summarization length
 - **Outputs**:
   - Full text transcription (TXT/JSON)
@@ -118,10 +118,24 @@ So that I can diagnose and fix issues efficiently
 
 ### Data Model
 ```python
+class AudioFormat:
+    """Supported audio formats and their properties"""
+    MP3 = "mp3"
+    M4A = "m4a"
+    AAC = "aac"
+    WAV = "wav"
+    
+    @staticmethod
+    def is_supported(format: str) -> bool:
+        """Check if the format is supported"""
+        pass
+
 class AudioInput:
     file_path: str
-    format: str
+    format: AudioFormat
     duration: float
+    sample_rate: int
+    channels: int
     
 class TranscriptionResult:
     full_text: str

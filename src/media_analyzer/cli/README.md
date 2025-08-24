@@ -2,6 +2,14 @@
 
 This package contains the command-line interface modules for the media-analyzer application.
 
+## Supported Formats
+
+The audio analyzer supports the following audio formats:
+- MP3 (.mp3) - MPEG Layer-3 Audio
+- M4A (.m4a) - MPEG-4 Audio
+- AAC (.aac) - Advanced Audio Coding
+- WAV (.wav) - Waveform Audio File Format
+
 ## Structure
 
 - `audio.py` - Contains the CLI commands for audio file processing
@@ -17,8 +25,11 @@ After installing the package, you can use the CLI as follows:
 # Get help
 media-analyzer --help
 
-# Transcribe an audio file
-media-analyzer transcribe path/to/audio.wav --language en
+# Transcribe different audio formats
+media-analyzer transcribe podcast.mp3 --language en
+media-analyzer transcribe recording.m4a --language fr
+media-analyzer transcribe audio.aac --language es
+media-analyzer transcribe speech.wav --language en
 
 # Transcribe with custom summary length and save to file
 media-analyzer transcribe speech.wav -l en -s 500 -o output.txt
