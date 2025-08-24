@@ -3,8 +3,9 @@ Command line interface for audio analysis operations.
 """
 
 import sys
+import json
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Literal, Dict, Any
 
 import click
 from rich.console import Console
@@ -33,13 +34,21 @@ def cli():
 @click.option('--language', '-l', default='en', help='Language of the audio (e.g., en, es, fr)')
 @click.option('--summary-length', '-s', default=1000, type=int, help='Maximum length of the summary')
 @click.option('--output', '-o', type=click.Path(), help='Output file for the transcription')
+@click.option('--format', '-f', type=click.Choice(['text', 'json']), default='text', help='Output format (text or json)')
 @click.option('--verbose', '-v', is_flag=True, help='Show detailed processing information')
-def transcribe(file: str, language: str, summary_length: int, output: Optional[str], verbose: bool):
+def transcribe(
+    file: str,
+    language: str,
+    summary_length: int,
+    output: Optional[str],
+    format: Literal['text', 'json'],
+    verbose: bool
+):
     """
     Transcribe an audio file and generate a summary.
     
     Example:
-        media-analyzer audio transcribe speech.wav --language en --summary-length 500
+        media-analyzer audio transcribe speech.wav --language en --summary-length 500 --format json
     """
     try:
         # Initialize analyzer
@@ -60,45 +69,68 @@ def transcribe(file: str, language: str, summary_length: int, output: Optional[s
             if verbose:
                 status.update("[bold blue]Generating output...")
             
-            # Create output text
-            output_text = [
-                "📝 [bold]Transcription Result[/bold]",
-                "",
-                "[bold blue]Full Transcription:[/bold blue]",
-                result.full_text,
-                "",
-                "[bold green]Summary:[/bold green]",
-                result.summary,
-                "",
-                "[bold yellow]Metadata:[/bold yellow]",
-                f"• Confidence: {result.confidence:.2%}",
-                f"• Duration: {result.metadata['duration']:.2f} seconds",
-                f"• Processing Time: {result.metadata['processing_time']:.2f} seconds",
-                f"• Language: {result.metadata['language']}",
-                f"• Sample Rate: {result.metadata['sample_rate']} Hz",
-                f"• Channels: {result.metadata['channels']}"
-            ]
+            # Prepare output data
+            if format == 'json':
+                output_data: Dict[str, Any] = {
+                    "transcription": {
+                        "full_text": result.full_text,
+                        "summary": result.summary,
+                    },
+                    "metadata": {
+                        "confidence": round(result.confidence, 4),
+                        "duration": round(result.metadata['duration'], 2),
+                        "processing_time": round(result.metadata['processing_time'], 2),
+                        "language": result.metadata['language'],
+                        "sample_rate": result.metadata['sample_rate'],
+                        "channels": result.metadata['channels']
+                    }
+                }
+            else:  # text format
+                output_text = [
+                    "📝 [bold]Transcription Result[/bold]",
+                    "",
+                    "[bold blue]Full Transcription:[/bold blue]",
+                    result.full_text,
+                    "",
+                    "[bold green]Summary:[/bold green]",
+                    result.summary,
+                    "",
+                    "[bold yellow]Metadata:[/bold yellow]",
+                    f"• Confidence: {result.confidence:.2%}",
+                    f"• Duration: {result.metadata['duration']:.2f} seconds",
+                    f"• Processing Time: {result.metadata['processing_time']:.2f} seconds",
+                    f"• Language: {result.metadata['language']}",
+                    f"• Sample Rate: {result.metadata['sample_rate']} Hz",
+                    f"• Channels: {result.metadata['channels']}"
+                ]
             
             # Output handling
             if output:
                 # Save to file
                 output_path = Path(output)
                 with output_path.open('w', encoding='utf-8') as f:
-                    # Write plain text version
-                    f.write(f"Transcription Result\n\n")
-                    f.write(f"Full Transcription:\n{result.full_text}\n\n")
-                    f.write(f"Summary:\n{result.summary}\n\n")
-                    f.write("Metadata:\n")
-                    f.write(f"Confidence: {result.confidence:.2%}\n")
-                    f.write(f"Duration: {result.metadata['duration']:.2f} seconds\n")
-                    f.write(f"Processing Time: {result.metadata['processing_time']:.2f} seconds\n")
-                    f.write(f"Language: {result.metadata['language']}\n")
-                    f.write(f"Sample Rate: {result.metadata['sample_rate']} Hz\n")
-                    f.write(f"Channels: {result.metadata['channels']}\n")
+                    if format == 'json':
+                        json.dump(output_data, f, indent=2, ensure_ascii=False)
+                    else:
+                        # Write plain text version
+                        f.write(f"Transcription Result\n\n")
+                        f.write(f"Full Transcription:\n{result.full_text}\n\n")
+                        f.write(f"Summary:\n{result.summary}\n\n")
+                        f.write("Metadata:\n")
+                        f.write(f"Confidence: {result.confidence:.2%}\n")
+                        f.write(f"Duration: {result.metadata['duration']:.2f} seconds\n")
+                        f.write(f"Processing Time: {result.metadata['processing_time']:.2f} seconds\n")
+                        f.write(f"Language: {result.metadata['language']}\n")
+                        f.write(f"Sample Rate: {result.metadata['sample_rate']} Hz\n")
+                        f.write(f"Channels: {result.metadata['channels']}\n")
                 print_success(f"Results saved to: {output}")
             else:
-                # Print to console with rich formatting
-                console.print("\n".join(output_text))
+                # Print to console
+                if format == 'json':
+                    console.print_json(data=output_data)
+                else:
+                    # Print with rich formatting
+                    console.print("\n".join(output_text))
             
             print_success("\n✨ Analysis complete!")
             

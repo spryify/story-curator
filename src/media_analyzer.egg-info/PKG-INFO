@@ -12,6 +12,8 @@ Requires-Dist: spacy>=3.7.2
 Requires-Dist: tqdm>=4.66.1
 Requires-Dist: python-dotenv>=1.0.0
 Requires-Dist: typing-extensions>=4.8.0
+Requires-Dist: click>=8.0.0
+Requires-Dist: rich>=10.0.0
 Provides-Extra: dev
 Requires-Dist: pytest>=7.4.0; extra == "dev"
 Requires-Dist: pytest-cov>=4.1.0; extra == "dev"
