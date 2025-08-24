@@ -78,3 +78,49 @@ def test_supported_formats(test_audio_file, audio_format):
     result = analyzer.process_file(str(test_file))
     assert isinstance(result, TranscriptionResult)
     assert "duration" in result.metadata
+
+
+def test_analyzer_error_handling(test_audio_file):
+    """Test that analyzer properly handles and logs errors."""
+    analyzer = Analyzer()
+    
+    # Test with invalid language option
+    with pytest.raises(ValidationError) as exc_info:
+        analyzer.process_file(test_audio_file, {"language": "invalid"})
+    assert "Invalid language" in str(exc_info.value)
+    
+    # Test with invalid max_summary_length
+    with pytest.raises(ValidationError) as exc_info:
+        analyzer.process_file(test_audio_file, {"max_summary_length": -1})
+    assert "Invalid summary length" in str(exc_info.value)
+
+
+def test_analyzer_performance_metrics(test_audio_file):
+    """Test that analyzer captures performance metrics."""
+    analyzer = Analyzer()
+    result = analyzer.process_file(test_audio_file)
+    
+    # Verify performance metrics in metadata
+    assert "processing_time" in result.metadata
+    assert isinstance(result.metadata["processing_time"], float)
+    assert result.metadata["processing_time"] > 0
+    
+    # Verify audio metadata
+    assert "sample_rate" in result.metadata
+    assert "channels" in result.metadata
+    assert "duration" in result.metadata
+
+
+def test_analyzer_security_validation(test_audio_file):
+    """Test that analyzer validates inputs for security."""
+    analyzer = Analyzer()
+    
+    # Test with potentially malicious file path
+    with pytest.raises(ValidationError) as exc_info:
+        analyzer.process_file("../../../etc/passwd")
+    assert "Invalid file path" in str(exc_info.value)
+    
+    # Test with oversized input
+    with pytest.raises(ValidationError) as exc_info:
+        analyzer.process_file(test_audio_file, {"max_summary_length": 1000000})
+    assert "Invalid summary length" in str(exc_info.value)
