@@ -43,11 +43,19 @@ The Media Content Analyzer is an intelligent Python-based system designed to ana
 ## Project Structure
 ```
 media-apps/
-├── src/               # Source code
-├── tests/             # Test suites
-├── docs/              # Documentation
-│   ├── architecture/  # System architecture
-│   ├── requirements/  # Feature specifications
+├── src/                    # Source code
+│   └── media_analyzer/
+│       ├── cli/           # Command-line interface modules
+│       │   ├── audio.py   # Audio processing commands
+│       │   └── README.md  # CLI documentation
+│       ├── core/          # Core system components
+│       ├── processors/    # Media processing modules
+│       ├── models/        # Data models and schemas
+│       └── utils/         # Utility functions
+├── tests/                 # Test suites
+├── docs/                  # Documentation
+│   ├── architecture/      # System architecture
+│   ├── requirements/      # Feature specifications
 │   └── api/          # API documentation
 ├── examples/          # Usage examples
 └── scripts/          # Development scripts

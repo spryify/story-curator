@@ -33,6 +33,8 @@ media_analyzer/
 ├── models/             # Data models and schemas
 ├── utils/             # Utility functions
 └── cli/               # Command-line interface
+    ├── audio.py     # Audio processing commands
+    └── README.md    # CLI usage documentation
 ```
 
 ## Architectural Principles
@@ -84,6 +86,21 @@ media_analyzer/
    - File writing
    - Progress reporting
    - Error handling
+
+5. **CLI Components**
+   - Command Groups:
+     - Audio processing commands (`cli.audio`)
+   - Features:
+     - Rich terminal formatting
+     - Progress indicators
+     - Error handling with clear messages
+     - File output options
+     - Verbosity controls
+   - Design:
+     - Modular command organization
+     - Consistent interface patterns
+     - Comprehensive help documentation
+     - Extensible command structure
 
 ## Design Patterns
 
