@@ -1,0 +1,9 @@
+# Core dependencies
+SpeechRecognition>=3.10.0  # Speech recognition capabilities
+openai-whisper>=1.0.0     # For accurate speech recognition
+pydub>=0.25.1            # Audio file processing
+nltk>=3.8.1              # Text processing and summarization
+spacy>=3.7.2             # NLP tasks and text processing
+tqdm>=4.66.1             # Progress bars
+python-dotenv>=1.0.0     # Environment variable management
+typing-extensions>=4.8.0  # Type hinting support

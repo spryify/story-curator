@@ -1,0 +1,10 @@
+# Development dependencies
+pytest>=7.4.0            # Testing framework
+pytest-cov>=4.1.0        # Test coverage reporting
+black>=23.7.0            # Code formatting
+isort>=5.12.0           # Import sorting
+mypy>=1.5.1             # Type checking
+pylint>=2.17.5          # Code linting
+pre-commit>=3.3.3       # Git hooks
+sphinx>=7.1.2           # Documentation generator
+sphinx-rtd-theme>=1.3.0 # Documentation theme
