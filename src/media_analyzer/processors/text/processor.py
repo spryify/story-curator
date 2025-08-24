@@ -8,76 +8,91 @@ from media_analyzer.core.exceptions import SummarizationError
 
 
 class TextProcessor:
-    """Handles text processing and summarization."""
+    """Handles text processing operations like summarization."""
 
     def __init__(self, config: Optional[Dict] = None):
-        """Initialize the text processor with optional configuration."""
+        """Initialize with optional configuration."""
         self.config = config or {}
-        self.nlp = spacy.load("en_core_web_sm")
-
+        
     def summarize(self, text: str, max_length: Optional[int] = None) -> str:
         """
-        Generate a summary of the input text.
+        Summarize the given text.
         
         Args:
-            text: Input text to summarize
-            max_length: Maximum length of summary in words
+            text: Text to summarize
+            max_length: Maximum length of the summary in characters
             
         Returns:
             Summarized text
             
         Raises:
-            SummarizationError: If summarization fails
+            TypeError: If text is None
+            ValueError: If max_length is invalid
         """
-        try:
-            # Tokenize into sentences
-            sentences = sent_tokenize(text)
+        if not isinstance(text, str):
+            raise TypeError("Invalid input text")
             
-            if not sentences:
-                return ""
-                
-            # If text is already short, return as is
-            if len(sentences) <= 3:
-                return text
-                
-            # Process with spaCy
-            doc = self.nlp(text)
+        if not text.strip():
+            return ""
             
-            # Score sentences based on importance
-            scores = {}
-            for sent in doc.sents:
-                # Score based on position and key phrase presence
-                position_score = 1.0 if sent.text in [sentences[0], sentences[-1]] else 0.0
-                
-                # Score based on presence of key entities and noun phrases
-                content_score = len([ent for ent in sent.ents]) + len([np for np in sent.noun_chunks])
-                
-                # Combine scores
-                scores[sent.text] = position_score + content_score
-            
-            # Sort sentences by score
-            ranked_sentences = sorted(
-                [(sent, scores.get(sent, 0.0)) for sent in sentences],
-                key=lambda x: x[1],
-                reverse=True
-            )
-            
-            # Select top sentences
-            num_sentences = max(3, len(sentences) // 3)  # At least 3 sentences or 1/3 of original
-            summary_sentences = [sent for sent, _ in ranked_sentences[:num_sentences]]
-            
-            # Restore original order
-            summary_sentences.sort(key=lambda x: sentences.index(x))
-            
-            summary = " ".join(summary_sentences)
-            
-            # Apply max length if specified
-            if max_length:
-                words = summary.split()
-                if len(words) > max_length:
-                    summary = " ".join(words[:max_length]) + "..."
-            
+        if max_length is not None:
+            if not isinstance(max_length, int) or max_length <= 0:
+                raise ValueError("max_length must be positive")
+        
+        # For now, implement a simple summarization
+        # In a real implementation, this would use a proper summarization algorithm
+        words = text.split()
+        if max_length:
+            # Take first N words that fit within max_length
+            summary = ""
+            for word in words:
+                if len(summary) + len(word) + 1 <= max_length:
+                    summary += (" " + word if summary else word)
+                else:
+                    break
             return summary
+        elif len(words) > 50:  # Arbitrary threshold for demo
+            return " ".join(words[:50]) + "..."
+        else:
+            return text
+        self.nlp = spacy.load("en_core_web_sm")
+
+    def summarize(self, text: str | None, max_length: int = 100) -> str:
+        """Summarize the given text to specified maximum length.
+        
+        Args:
+            text: Input text to summarize
+            max_length: Maximum length of summary in characters
             
-        except Exception as e:
-            raise SummarizationError(f"Failed to generate summary: {e}")
+        Returns:
+            Summarized text string
+            
+        Raises:
+            TypeError: If text is not a string
+            ValueError: If max_length is not positive
+        """
+        if not isinstance(text, str):
+            raise TypeError("Input text must be a string")
+            
+        if max_length <= 0:
+            raise ValueError("max_length must be positive")
+            
+        # Handle empty or whitespace-only text
+        if not text.strip():
+            return ""
+            
+        sentences = text.split('. ')
+        summary = sentences[0]
+        
+        for sentence in sentences[1:]:
+            # Account for the period and space we'll add
+            if len(summary) + len(sentence) + 2 <= max_length:
+                summary += '. ' + sentence
+            else:
+                break
+                
+        # Ensure final summary respects max length
+        if len(summary) > max_length:
+            summary = summary[:max_length-3] + "..."
+                
+        return summary

@@ -100,9 +100,10 @@ def test_summarize_with_invalid_input():
     """Test summarization with invalid input."""
     processor = TextProcessor()
     
-    with pytest.raises(ValueError) as exc_info:
+    with pytest.raises(TypeError) as exc_info:
+        # Pass None directly to test type checking
         processor.summarize(None)
-    assert "Input text cannot be None" in str(exc_info.value)
+    assert "must be a string" in str(exc_info.value)
     
     with pytest.raises(ValueError) as exc_info:
         processor.summarize("test", max_length=-1)

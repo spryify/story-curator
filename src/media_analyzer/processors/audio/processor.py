@@ -1,7 +1,8 @@
 """Audio processing module for handling audio file operations."""
 
 from pathlib import Path
-from typing import Optional, Dict, Union
+from tempfile import NamedTemporaryFile
+from typing import Optional, Dict, Union, Any
 
 import whisper
 from pydub import AudioSegment
@@ -61,52 +62,113 @@ class AudioProcessor:
         except Exception as e:
             raise AudioProcessingError(f"Failed to load audio file: {e}")
 
-    def extract_text(self, audio_data: AudioSegment, options: Optional[Dict] = None) -> Dict:
-        """
-        Extract text from audio data using speech recognition.
-        
+    def extract_text(self, audio_file: Union[Path, AudioSegment], options: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """Extract text from audio file using Whisper.
+
         Args:
-            audio_data: AudioSegment containing the audio
-            options: Optional parameters for recognition
-            
+            audio_file: Path to audio file or AudioSegment to transcribe
+            options: Optional configuration for transcription:
+                language: Language code
+                word_timestamps: Whether to include word timestamps
+                task: Transcription task ('transcribe' or 'translate')
+
         Returns:
-            Dictionary containing:
-                - text: The transcribed text
-                - confidence: Confidence score (0-1)
-                - metadata: Additional recognition metadata
-                
-        Raises:
-            AudioProcessingError: If text extraction fails
-        """
-        options = options or {}
-        temp_wav = Path("temp.wav")
-        
-        try:
-            # Export to WAV for speech recognition
-            audio_data.export(str(temp_wav), format="wav")
+            A dictionary containing the transcribed text and metadata:
+                text: The transcribed text
+                language: Detected language code
+                segments: List of transcription segments with timestamps
             
-            # Use Whisper for transcription
-            result = self.model.transcribe(
-                str(temp_wav),
-                language=options.get("language", "en"),
-                fp16=False
-            )
+        Raises:
+            AudioProcessingError: If transcription fails or returns invalid format
+            ValueError: If invalid options are provided
+        """
+        try:
+            model = whisper.load_model("base.en")  # Use English model for better accuracy
+            # Initialize with English-specific options
+            transcribe_kwargs = {
+                "language": "en",  # Force English language
+                "task": "transcribe",  # Force transcription task
+                "fp16": False  # Force FP32 since FP16 isn't supported on CPU
+            }
+            
+            # Update with provided options
+            if options:
+                # Convert option values to proper types
+                if "language" in options:
+                    transcribe_kwargs["language"] = str(options["language"])
+                if "word_timestamps" in options:
+                    transcribe_kwargs["word_timestamps"] = bool(options["word_timestamps"])
+                if "task" in options:
+                    transcribe_kwargs["task"] = str(options["task"])
+                    
+            # Convert to a temporary WAV file
+            with NamedTemporaryFile(suffix=".wav") as temp_file:
+                print("Preprocessing audio...")
+                # Preprocess audio to match whisper's requirements (16000 Hz, mono)
+                audio = audio_file if isinstance(audio_file, AudioSegment) else AudioSegment.from_file(str(audio_file))
+                print(f"Input audio: {len(audio)/1000}s, {audio.frame_rate}Hz, {audio.channels} channel(s)")
+                audio = audio.set_frame_rate(16000).set_channels(1)
+                print(f"Processed audio: {len(audio)/1000}s, {audio.frame_rate}Hz, {audio.channels} channel(s)")
+                audio.export(temp_file.name, format="wav")
+                
+                print(f"Transcribing audio with {transcribe_kwargs}...")
+                result = model.transcribe(temp_file.name, **transcribe_kwargs)
+            
+            # Handle different return types from whisper
+            text = result.get("text", "")
+            if isinstance(text, list):
+                text = " ".join(str(t) for t in text)
+            elif not isinstance(text, str):
+                raise AudioProcessingError("Failed to extract text: Transcription returned invalid format")
+                
+            # Calculate overall confidence from segment log probabilities
+            # Get and type check segments
+            segments = result.get("segments", [])
+            if not isinstance(segments, list):
+                segments = []
+                
+            # Calculate confidence from segments
+            confidence = 0.0
+            try:
+                valid_segments = []
+                for segment in segments:
+                    if isinstance(segment, dict) and 'avg_logprob' in segment:
+                        try:
+                            logprob = float(segment['avg_logprob'])
+                            valid_segments.append(logprob)
+                        except (TypeError, ValueError):
+                            continue
+                
+                if valid_segments:
+                    avg_logprob = sum(valid_segments) / len(valid_segments)
+                    confidence = min(1.0, max(0.0, 1 + avg_logprob))
+            except Exception as e:
+                print(f"Warning: Failed to calculate confidence: {e}")
+                
+            # Prepare metadata
+            metadata = {
+                "language": result.get("language", "en"),
+                "model": "base.en",
+                "task": transcribe_kwargs.get("task", "transcribe"),
+                "duration": len(audio) / 1000.0  # Convert from ms to seconds
+            }
             
             response = {
-                "text": result["text"],
-                "confidence": 0.9,  # Whisper typically has good accuracy
-                "metadata": {
-                    "duration": len(audio_data) / 1000.0,  # Convert to seconds
-                    "language": options.get("language", "en"),
-                    "segments": []
-                }
+                "text": text,
+                "language": metadata["language"],
+                "segments": segments,
+                "confidence": confidence,
+                "metadata": metadata
             }
+            print(f"Response: {response}")
             return response
             
+        except ValueError as e:
+            print(f"ValueError: {e}")
+            raise ValueError(str(e)) from e
         except Exception as e:
-            raise AudioProcessingError(f"Failed to extract text: {e}")
-        finally:
-            temp_wav.unlink(missing_ok=True)
+            print(f"Error during transcription: {e}")
+            raise AudioProcessingError(f"Failed to extract text: {str(e)}") from e
 
     def get_audio_info(self, audio_data: AudioSegment) -> Dict:
         """

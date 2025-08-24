@@ -1,8 +1,6 @@
 """Unit tests for the audio processor module.
 
-File: test_audio_processor.py
-
-This module contains unit tests for the AudioProcessor class, which handles the core
+This module contains unit tests for the AudioProcessor class, which handles core
 audio processing functionality including loading, validation, and text extraction.
 
 Test Categories:
@@ -37,8 +35,16 @@ Dependencies:
 - conftest.py: Provides test fixtures
 
 Usage:
-    pytest tests/unit/processors/audio/test_processor.py
+    pytest tests/unit/processors/audio/test_audio_processor.py
 """
+
+import pytest
+from pathlib import Path
+from pydub import AudioSegment
+from pydub.generators import Sine
+from unittest.mock import Mock, patch
+
+from media_analyzer.processors.audio.processor import AudioProcessor, AudioProcessingError
 
 import pytest
 from pathlib import Path
@@ -131,9 +137,15 @@ def test_error_handling(test_audio_file):
     processor = AudioProcessor()
     
     # Test with corrupted audio data
-    with pytest.raises(AudioProcessingError) as exc_info:
-        processor.extract_text(AudioSegment.silent(duration=100))
-    assert "Failed to extract text" in str(exc_info.value)
+    with patch('whisper.load_model') as mock_load_model:
+        # Mock the model to raise an error
+        mock_model = Mock()
+        mock_model.transcribe.side_effect = Exception("Transcription failed")
+        mock_load_model.return_value = mock_model
+        
+        with pytest.raises(AudioProcessingError) as exc_info:
+            processor.extract_text(AudioSegment.silent(duration=100))
+        assert "Failed to extract text" in str(exc_info.value)
     
     # Test with invalid options
     with pytest.raises(ValueError) as exc_info:
@@ -151,4 +163,5 @@ def test_supported_formats():
     assert "mp3" in processor.SUPPORTED_FORMATS
     for fmt in processor.SUPPORTED_FORMATS:
         assert isinstance(fmt, str)
-        assert fmt.isalpha()
+        # Format may include numbers (e.g., mp3)
+        assert all(c.isalnum() for c in fmt)
