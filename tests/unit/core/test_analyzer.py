@@ -1,4 +1,41 @@
-"""Unit tests for the core analyzer module."""
+"""Unit tests for the core analyzer module.
+
+This module contains unit tests for the Analyzer class, which serves as the main interface
+for the audio analysis functionality. The tests cover:
+
+Test Categories:
+1. Initialization and Configuration
+   - Default initialization
+   - Configuration handling
+
+2. File Processing
+   - File path validation
+   - Format validation
+   - Error handling for invalid files
+
+3. Transcription Features
+   - Basic transcription
+   - Options handling
+   - Format support
+
+4. Error Handling
+   - Invalid language options
+   - Invalid summary length
+   - File not found
+   - Invalid format
+
+5. Performance and Security
+   - Performance metrics collection
+   - Path traversal prevention
+   - Input validation
+
+Test Dependencies:
+- conftest.py: Provides test_audio_file and test_config fixtures
+- test data files: sample.wav and sample.mp3 in tests/data/
+
+Usage:
+    pytest tests/unit/core/test_analyzer.py
+"""
 
 import pytest
 from pathlib import Path

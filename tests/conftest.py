@@ -15,7 +15,17 @@ def test_audio_file():
 def test_config():
     """Return test configuration."""
     return {
-        "max_audio_duration": 3600,  # 1 hour
-        "supported_formats": ["wav", "mp3"],
-        "summary_max_length": 500,
+        "audio": {
+            "model": "base",
+            "device": "cpu",
+            "sample_rate": 16000,
+            "chunk_size": 30,
+            "supported_formats": ["wav", "mp3"],
+            "max_duration": 3600  # 1 hour
+        },
+        "text": {
+            "max_summary_length": 1000,
+            "min_confidence": 0.8,
+            "language": "en"
+        }
     }
