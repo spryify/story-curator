@@ -19,7 +19,14 @@ setup(
         "tqdm>=4.66.1",
         "python-dotenv>=1.0.0",
         "typing-extensions>=4.8.0",
+        "click>=8.0.0",
+        "rich>=10.0.0",
     ],
+    entry_points={
+        "console_scripts": [
+            "media-analyzer=media_analyzer.cli.audio:cli",
+        ],
+    },
     extras_require={
         "dev": [
             "pytest>=7.4.0",
