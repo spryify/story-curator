@@ -107,8 +107,16 @@ def test_analyzer_performance_metrics(test_audio_file):
     
     # Verify audio metadata
     assert "sample_rate" in result.metadata
+    assert isinstance(result.metadata["sample_rate"], int)
+    assert result.metadata["sample_rate"] > 0
+    
     assert "channels" in result.metadata
+    assert isinstance(result.metadata["channels"], int)
+    assert result.metadata["channels"] > 0
+    
     assert "duration" in result.metadata
+    assert isinstance(result.metadata["duration"], float)
+    assert result.metadata["duration"] > 0
 
 
 def test_analyzer_security_validation(test_audio_file):

@@ -107,3 +107,19 @@ class AudioProcessor:
         finally:
             # Clean up temporary file
             Path("temp.wav").unlink(missing_ok=True)
+
+    def get_audio_info(self, audio_data: AudioSegment) -> Dict:
+        """
+        Get audio file metadata.
+        
+        Args:
+            audio_data: AudioSegment containing the audio
+            
+        Returns:
+            Dictionary containing audio metadata
+        """
+        return {
+            "sample_rate": audio_data.frame_rate,
+            "channels": audio_data.channels,
+            "duration": len(audio_data) / 1000.0  # Convert to seconds
+        }
