@@ -1,4 +1,4 @@
-# Agent Coding Steps (Enhanced)
+# Agent Coding Steps
 
 This document defines optimized steps for an AI agent to develop code using test-driven development (TDD). The agent implements one focused use case per iteration, with clear validation checkpoints and improved error handling.
 
