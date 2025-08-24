@@ -17,7 +17,8 @@ Key principles used for developing this project:
 - `src/` — Source code
 - `tests/` — Test cases for all features
 - `docs/` — Design docs, test plans, and agentic workflow guides
-- `docs/architecture.md` — Architecture documentation
+  - `architecture.md` — Architecture documentation
+  - `technical_decisions.md` — Detailed explanation of technology choices
 - `CODING_STANDARDS.md` — Coding standards for all code and documentation
 - `agent-coding-steps.md` — Step-by-step guide for agentic development (see below)
 - `PROJECT_OVERVIEW.md` — Detailed project architecture and standards
@@ -26,5 +27,6 @@ Key principles used for developing this project:
 
 - [PROJECT_OVERVIEW.md](PROJECT_OVERVIEW.md) — Application architecture and standards
 - [docs/architecture.md](docs/architecture.md) — Architecture documentation
+- [docs/technical_decisions.md](docs/technical_decisions.md) — Library choices and rationale
 - [agent-coding-steps.md](docs/agent-coding-steps.md) — Practical guide for agentic workflows
 - [GitHub Copilot Documentation](https://docs.github.com/en/copilot)
