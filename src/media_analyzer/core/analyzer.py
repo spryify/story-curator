@@ -14,7 +14,7 @@ from media_analyzer.core.exceptions import ValidationError, AudioProcessingError
 from media_analyzer.core.validator import AudioFileValidator, AudioFormat
 from media_analyzer.processors.text.text_processor import TextProcessor
 from media_analyzer.processors.audio.audio_processor import AudioProcessor
-from media_analyzer.core.models import TranscriptionResult
+from media_analyzer.models.audio import TranscriptionResult
 
 
 class Analyzer:

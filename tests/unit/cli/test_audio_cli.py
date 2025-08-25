@@ -37,7 +37,7 @@ with patch('media_analyzer.core.analyzer.Analyzer'), \
      patch('media_analyzer.processors.audio.audio_processor.AudioProcessor'):
     from media_analyzer.cli.audio import cli, transcribe
 from media_analyzer.core.exceptions import ValidationError
-from media_analyzer.models.data_models import TranscriptionResult
+from media_analyzer.models.audio import TranscriptionResult
 
 
 @pytest.fixture
@@ -61,7 +61,7 @@ def mock_analyzer():
     
     # Set up mock result
     result = Mock(spec=TranscriptionResult)
-    result.full_text = "This is a test transcription"
+    result.text = "This is a test transcription"
     result.summary = "Test summary"
     result.confidence = 0.95
     result.metadata = {
@@ -148,7 +148,7 @@ def test_transcribe_json_output(mock_analyzer_cls, cli_runner, mock_analyzer, tm
     json_output = result.output.split("\n✨")[0]
     data = json.loads(json_output)
     assert "transcription" in data
-    assert data["transcription"]["full_text"] == "This is a test transcription"
+    assert data["transcription"]["text"] == "This is a test transcription"
     assert data["metadata"]["confidence"] == 0.95    # Test JSON output to file
     output_file = tmp_path / "output.json"
     result = cli_runner.invoke(cli, [

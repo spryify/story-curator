@@ -35,7 +35,7 @@ def audio_analyzer():
 
 def create_mock_subject_result(context=None):
     """Create a mock subject result for testing."""
-    from media_analyzer.processors.subject.models import SubjectAnalysisResult, Subject, SubjectType
+    from media_analyzer.models.subject.identification import SubjectAnalysisResult, Subject, SubjectType
     subjects = {
         Subject(
             name="test_subject",
@@ -101,7 +101,7 @@ class TestAudioSubjectIntegration:
             
     def test_context_preservation(self, audio_analyzer, audio_file_path):
         """Test that context is preserved throughout the pipeline."""
-        from media_analyzer.processors.subject.models import Context
+        from media_analyzer.models.subject.identification import Context
         
         # Process audio with context
         context = Context(

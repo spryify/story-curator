@@ -46,7 +46,7 @@ from unittest.mock import Mock, patch
 
 from media_analyzer.processors.audio.audio_processor import AudioProcessor
 from media_analyzer.core.exceptions import AudioProcessingError
-from media_analyzer.processors.audio.models import TranscriptionResult
+from media_analyzer.models.audio import TranscriptionResult
 
 
 def test_audio_processor_initialization():

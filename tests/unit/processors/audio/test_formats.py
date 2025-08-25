@@ -280,7 +280,7 @@ def test_extract_text(sample_wav):
     audio = processor.load_audio(sample_wav)
     result = processor.extract_text(audio)
     
-    from media_analyzer.core.models import TranscriptionResult
+    from media_analyzer.models.audio import TranscriptionResult
     assert isinstance(result, TranscriptionResult)
     assert isinstance(result.text, str)
     assert isinstance(result.confidence, float)

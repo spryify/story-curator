@@ -6,7 +6,7 @@ from pathlib import Path
 
 from media_analyzer.core.analyzer import Analyzer
 from media_analyzer.core.exceptions import ValidationError
-from media_analyzer.models.data_models import TranscriptionResult
+from media_analyzer.models.audio import TranscriptionResult
 
 
 def create_test_file(tmp_path: Path, duration: int = 1000, filename: str = "test.wav") -> Path:
@@ -45,7 +45,7 @@ def test_end_to_end_audio_analysis(tmp_path, test_config):
     
     # Verify the result structure
     assert isinstance(result, TranscriptionResult)
-    assert result.full_text
+    assert result.text
     assert result.summary
     assert result.confidence > 0
     assert result.metadata
@@ -71,7 +71,7 @@ def test_pipeline_with_different_formats(tmp_path):
         
         # Verify basic results
         assert isinstance(result, TranscriptionResult)
-        assert result.full_text
+        assert result.text
         assert result.metadata["duration"] > 0
 
 
@@ -155,7 +155,7 @@ def test_pipeline_concurrent_processing(tmp_path):
             try:
                 result = future.result()
                 assert isinstance(result, TranscriptionResult)
-                assert result.full_text
+                assert result.text
                 assert result.metadata["duration"] > 0
             except Exception as e:
                 pytest.fail(f"Processing failed for {file_path}: {e}")

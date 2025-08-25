@@ -42,7 +42,7 @@ from pathlib import Path
 
 from media_analyzer.core.analyzer import Analyzer
 from media_analyzer.core.exceptions import ValidationError
-from media_analyzer.core.models import TranscriptionResult
+from media_analyzer.models.audio import TranscriptionResult
 
 
 def test_analyzer_initialization():

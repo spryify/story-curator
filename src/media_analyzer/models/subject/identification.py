@@ -1,6 +1,5 @@
-"""
-Subject identification models module.
-"""
+"""Subject identification models."""
+
 from dataclasses import dataclass, field
 from typing import Optional, List, Dict, Any, Set
 from enum import Enum

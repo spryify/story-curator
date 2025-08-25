@@ -10,7 +10,7 @@ from pydub import AudioSegment
 
 from media_analyzer.core.exceptions import AudioProcessingError, ValidationError
 from media_analyzer.core.validator import AudioFileValidator
-from media_analyzer.core.models import TranscriptionResult
+from media_analyzer.models.audio import TranscriptionResult
 
 logger = logging.getLogger(__name__)
 

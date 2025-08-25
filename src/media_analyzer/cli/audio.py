@@ -70,7 +70,7 @@ def transcribe(file: str, language: str, summary_length: int, output: Optional[s
             if format == 'json':
                 output_data: Dict[str, Any] = {
                     "transcription": {
-                        "full_text": result.full_text,
+                        "text": result.text,
                         "summary": result.summary,
                     },
                     "metadata": {
@@ -87,7 +87,7 @@ def transcribe(file: str, language: str, summary_length: int, output: Optional[s
                     "📝 [bold]Transcription Result[/bold]",
                     "",
                     "[bold blue]Full Transcription:[/bold blue]",
-                    result.full_text,
+                    result.text,
                     "",
                     "[bold green]Summary:[/bold green]",
                     result.summary,
@@ -111,7 +111,7 @@ def transcribe(file: str, language: str, summary_length: int, output: Optional[s
                     else:
                         # Write plain text version
                         f.write(f"Transcription Result\n\n")
-                        f.write(f"Full Transcription:\n{result.full_text}\n\n")
+                        f.write(f"Full Transcription:\n{result.text}\n\n")
                         f.write(f"Summary:\n{result.summary}\n\n")
                         f.write("Metadata:\n")
                         f.write(f"Confidence: {result.confidence:.2%}\n")

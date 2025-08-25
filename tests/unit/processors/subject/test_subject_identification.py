@@ -8,7 +8,7 @@ import pytest
 import time
 from typing import Dict, Any
 
-from media_analyzer.processors.subject.models import (
+from media_analyzer.models.subject.identification import (
     Context, SubjectAnalysisResult
 )
 from media_analyzer.processors.subject.subject_identifier import SubjectIdentifier

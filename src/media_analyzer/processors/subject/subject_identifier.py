@@ -6,7 +6,7 @@ import time
 from langdetect import detect_langs
 import psutil
 
-from media_analyzer.processors.subject.models import (
+from media_analyzer.models.subject import (
     Category,
     SubjectMetadata,
     ProcessingMetrics,
