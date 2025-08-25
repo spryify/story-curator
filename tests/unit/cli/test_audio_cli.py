@@ -232,14 +232,16 @@ def test_transcribe_error_handling(mock_analyzer_cls, cli_runner, mock_analyzer,
 
 
 @patch('media_analyzer.cli.audio.Analyzer')
-def test_cli_main():
-    """Test CLI main entry point."""
-    with patch('media_analyzer.cli.audio.cli') as mock_cli:
-        from media_analyzer.cli.audio import main
-        main()
-        mock_cli.assert_called_once()
+@patch('sys.argv', ['media-analyzer'])
+@patch('media_analyzer.cli.audio.cli')
+def test_cli_main_module(mock_cli, _):
+    """Test CLI main entry point when running as module."""
+    from media_analyzer.cli.audio import main
+    main()
+    mock_cli.assert_called_once()
 
 
+@patch('media_analyzer.cli.audio.Analyzer')
 def test_transcribe_output_file(mock_analyzer_cls, cli_runner, mock_analyzer, tmp_path):
     """Test writing transcription to output file.
     
