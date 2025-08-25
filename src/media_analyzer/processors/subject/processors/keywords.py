@@ -35,18 +35,32 @@ class KeywordProcessor:
             'although', 'nevertheless', 'moreover', 'furthermore'
         ])
         
+        # Pre-compile patterns for better performance
+        self.url_email_pattern = re.compile(r'http[s]?://\S+|\S+@\S+')
+        self.punct_pattern = re.compile(r'[^\w\s-]')
+        self.compound_pattern = re.compile(r'\b(?:[A-Za-z]+\s*)+\b')
+        
         # Important compound words that shouldn't be split
         self.important_compounds = {
-            'artificial intelligence': 0.9,
-            'machine learning': 0.9,
-            'cloud computing': 0.9,
-            'technology companies': 0.8,
-            'deep learning': 0.9,
-            'natural language processing': 0.9,
-            'computer vision': 0.9,
-            'neural network': 0.9,
-            'data science': 0.9,
-            'quantum computing': 0.9
+            'artificial intelligence': 0.95,
+            'machine learning': 0.95,
+            'cloud computing': 0.95,
+            'technology companies': 0.9,
+            'deep learning': 0.95,
+            'natural language processing': 0.95,
+            'computer vision': 0.95,
+            'neural network': 0.95,
+            'data science': 0.95,
+            'quantum computing': 0.95,
+            # Add common company names as they're important entities
+            'microsoft': 0.95,
+            'apple': 0.95,
+            'google': 0.95,
+            'amazon': 0.95,
+            'openai': 0.95,
+            'tesla': 0.95,
+            'meta': 0.95,
+            'ibm': 0.95
         }
         
         # Categories and topics with importance scores
@@ -93,7 +107,7 @@ class KeywordProcessor:
 
     def process(self, text: str) -> Dict[str, float]:
         """Process text to extract and score keywords efficiently."""
-        # Clean and prepare text
+        # Clean text but preserve case for proper nouns
         text = self._clean_text(text)
         sentences = sent_tokenize(text)
         
@@ -101,6 +115,7 @@ class KeywordProcessor:
         keywords = {}
         total_words = 0
         max_freq = 0
+        seen_compounds = set()  # Track compounds we've seen to avoid duplicates
         
         # Process sentences with positional weighting
         word_freqs = {}
@@ -182,7 +197,9 @@ class KeywordProcessor:
                 elif word in self.tech_keywords:
                     final_score = min(0.8, final_score + 0.2)
                 elif len(word.split()) > 1:  # Multi-word phrases
-                    final_score = min(0.6, final_score + 0.1)                # Store highest score
+                    final_score = min(0.6, final_score + 0.1)
+                    
+                # Store highest score
                 if word not in keywords or final_score > keywords[word]:
                     keywords[word] = final_score
         
@@ -193,19 +210,22 @@ class KeywordProcessor:
     def _clean_text(self, text: str) -> str:
         """Clean and normalize text efficiently."""
         # Remove URLs and emails
-        text = re.sub(r'http[s]?://\S+|\S+@\S+', '', text)
+        text = self.url_email_pattern.sub('', text)
         
         # Remove punctuation except hyphens in compounds
-        text = re.sub(r'[^\w\s-]', ' ', text)
+        text = self.punct_pattern.sub(' ', text)
         
-        # Normalize whitespace
-        return ' '.join(text.split())
+        # Normalize whitespace and preserve proper case
+        words = text.split()
+        return ' '.join(w if w[0].isupper() else w.lower() for w in words if w)
 
     def _filter_words(self, words: List[str]) -> List[str]:
         """Filter and normalize words with improved compound handling."""
         filtered = []
-        text = ' '.join(words).lower()
+        # Convert to lowercase but keep original case for proper nouns
+        text = ' '.join(words)
         original_text = text
+        lower_text = text.lower()
         
         # Process compounds in order of length (longest first)
         compounds = sorted(
@@ -217,15 +237,31 @@ class KeywordProcessor:
         
         # Extract compounds first
         for compound in compounds:
-            if compound in text:
-                filtered.append(compound)
-                text = text.replace(compound, ' ')
+            if compound.lower() in lower_text:
+                # Find the original case version by looking at word boundaries
+                compound_pattern = rf'\b(?:[A-Za-z]+\s*)+\b'
+                matches = re.finditer(compound_pattern, original_text)
+                for match in matches:
+                    if match.group().lower() == compound.lower():
+                        filtered.append(match.group())
+                        text = text.replace(match.group(), ' ')
+                        lower_text = lower_text.replace(compound.lower(), ' ')
+                        break
+                else:
+                    filtered.append(compound)
+                    lower_text = lower_text.replace(compound.lower(), ' ')
         
         # Extract tech keywords
         for keyword in sorted(self.tech_keywords.keys(), key=len, reverse=True):
-            if keyword.lower() in text:
-                filtered.append(keyword)
-                text = text.replace(keyword.lower(), ' ')
+            if keyword.lower() in lower_text:
+                # Try to find proper case version
+                keyword_pattern = rf'\b{re.escape(keyword)}\b'
+                match = re.search(keyword_pattern, text, re.IGNORECASE)
+                if match:
+                    filtered.append(match.group())
+                else:
+                    filtered.append(keyword)
+                lower_text = re.sub(keyword_pattern, ' ', lower_text, flags=re.IGNORECASE)
         
         # Process remaining words
         remaining_words = text.split()

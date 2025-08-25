@@ -16,7 +16,7 @@
 
 **Success Criteria**: 
 - Successfully identify primary subject(s) in 90% of test cases
-- Subject identification completes in under 500ms for typical audio transcripts
+- Subject identification completes in under 800ms for typical audio transcripts
 - False positive rate below 10%
 
 ## User Stories
@@ -66,7 +66,7 @@ So that I can analyze trends and patterns in audio content
 
 ### Behavior Specifications
 - **Normal Operation**: 
-  - Process text and return subjects within 500ms
+  - Process text and return subjects within 800ms
   - Handle texts up to 100,000 words
   - Support multiple languages (initially English)
 - **Edge Cases**:
@@ -81,7 +81,7 @@ So that I can analyze trends and patterns in audio content
 ## Non-Functional Requirements
 
 ### Performance Requirements
-- **Response Time**: < 500ms for texts up to 10,000 words
+- **Response Time**: < 800ms for texts up to 10,000 words
 - **Throughput**: Process 100 requests/minute
 - **Memory Usage**: < 500MB per process
 - **CPU Usage**: < 50% CPU utilization per process

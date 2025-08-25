@@ -145,10 +145,10 @@ class SubjectIdentifier:
             with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
                 # Use shorter timeouts for each processor and give more time for overhead
                 processor_timeouts = {
-                    "topic": int(0.25 * self.timeout_ms),  # 25% of total time
+                    "topic": int(0.15 * self.timeout_ms),  # 15% of total time
                     "entity": int(0.15 * self.timeout_ms),  # 15% of total time
-                    "keyword": int(0.15 * self.timeout_ms)  # 15% of total time
-                }  # Leaves 45% for overhead and result processing
+                    "keyword": int(0.40 * self.timeout_ms)  # 40% of total time
+                }  # Leaves 30% for overhead and result processing
                 
                 # Submit all processors with their timeouts
                 futures = {
