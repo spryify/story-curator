@@ -377,7 +377,7 @@ class SubjectIdentifier:
             for sample in samples:
                 try:
                     langs = detect_langs(sample.strip())
-                    detected.update(str(lang.lang) for lang in langs if lang.prob > 0.2)
+                    detected.update(str(lang.lang) for lang in langs if lang.prob > 0.05)  # Lower threshold to catch more languages
                     if len(detected) >= 3:  # Exit early if we find enough languages
                         break
                 except:

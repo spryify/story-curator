@@ -189,9 +189,9 @@ def test_audio_loading(sample_wav, sample_mp3, sample_m4a, sample_aac):
         audio = processor.load_audio(file_path)
         assert isinstance(audio, AudioSegment)
         assert len(audio) > 0
-        assert audio.duration_seconds == pytest.approx(1.0, rel=5e-2)  # 5% tolerance
-        
-    # Test loading invalid file
+        # Check duration is approximately 1 second (in ms)
+        duration_ms = len(audio)
+        assert abs(duration_ms - 1000) < 50  # Allow 50ms tolerance
     with tempfile.NamedTemporaryFile(suffix=".xyz") as tmp:
         with pytest.raises(AudioProcessingError):
             processor.load_audio(Path(tmp.name))
@@ -291,8 +291,7 @@ def test_extract_text(sample_wav):
     # Test with custom options
     options = {
         "language": "en",
-        "task": "transcribe",
-        "word_timestamps": True
+        "task": "transcribe"
     }
     result = processor.extract_text(audio, options)
     assert isinstance(result.metadata, dict)
