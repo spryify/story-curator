@@ -12,18 +12,20 @@ def audio_file_path(tmp_path) -> Path:
     from pydub import AudioSegment
     from pydub.generators import Sine
     
-    # Create a test audio file with multiple tones
-    # The silence-tone-silence pattern helps Whisper identify word boundaries
-    segments = [
-        AudioSegment.silent(duration=500),      # 0.5s silence
-        Sine(440).to_audio_segment(duration=300),  # 0.3s A4 note (440 Hz)
-        AudioSegment.silent(duration=500),      # 0.5s silence
-        Sine(880).to_audio_segment(duration=300),  # 0.3s A5 note (880 Hz)
-        AudioSegment.silent(duration=500)       # 0.5s silence
-    ]
-    audio = sum(segments)
+    # Create a test audio file with varying tones
+    # Using longer segments and diverse frequencies to help Whisper identify content
+    segments = []
     
-    # Export with test content
+    # Add segments with different tones and durations
+    frequencies = [440, 880, 220, 660]  # Different frequencies for variety
+    durations = [1000, 800, 1200, 1000]  # Longer durations in milliseconds
+    
+    for freq, dur in zip(frequencies, durations):
+        segments.append(AudioSegment.silent(duration=300))  # Silence between tones
+        segments.append(Sine(freq).to_audio_segment(duration=dur))
+    
+    segments.append(AudioSegment.silent(duration=500))  # Final silence
+    audio = sum(segments)    # Export with test content
     file_path = tmp_path / "test_audio.wav"
     audio.export(str(file_path), format="wav")
     return file_path
