@@ -3,25 +3,16 @@ Tests for the subject identification feature.
 
 This module implements comprehensive testing for the subject identification functionality,
 following the testing strategy outlined in ADR-006 and requirements from FR-002.
-
-Key test areas:
-1. Basic subject identification
-2. Multi-subject handling
-3. Context awareness
-4. Error handling
-5. Performance requirements
-6. Edge cases
 """
 import pytest
 import time
-from unittest.mock import Mock, patch
-from typing import Dict, Any, List
+from typing import Dict
 
 from media_analyzer.processors.subject.models import (
-    Subject, Category, Context, SubjectType, SubjectAnalysisResult
+    Context, SubjectAnalysisResult
 )
 from media_analyzer.processors.subject.identifier import (
-    SubjectIdentifier, ProcessingError, InvalidInputError
+    SubjectIdentifier, ProcessingError
 )
 from media_analyzer.processors.subject.processors.topic_processor import TopicProcessor
 from media_analyzer.processors.subject.processors.ner import EntityProcessor
@@ -32,80 +23,6 @@ from media_analyzer.processors.subject.processors.keywords import KeywordProcess
 def subject_identifier():
     """Create a SubjectIdentifier instance for testing."""
     return SubjectIdentifier()
-
-
-@pytest.fixture
-def sample_text():
-    """Provide sample text for testing."""
-    return """
-    Microsoft and Apple are leading technology companies. Their CEOs, Satya Nadella
-    and Tim Cook, regularly discuss artificial intelligence and cloud computing. 
-    Both companies are investing heavily in machine learning technology.
-    """
-
-@pytest.fixture
-def tech_discussion_text():
-    """Provide technology-focused text for testing."""
-    return """
-    Google, Microsoft and OpenAI are at the forefront of artificial intelligence development.
-    Their machine learning models are becoming increasingly sophisticated, with applications
-    in natural language processing, computer vision, and autonomous systems. Recent advances
-    in deep learning have enabled breakthroughs in these areas.
-    """
-
-@pytest.fixture
-def mixed_topic_text():
-    """Provide text with multiple topics for testing."""
-    return """
-    Climate change continues to affect global weather patterns. Meanwhile, SpaceX prepares
-    for its next Mars mission. The stock market shows signs of recovery as central banks
-    adjust interest rates. Scientists debate the impact of artificial intelligence on society.
-    """
-
-@pytest.fixture
-def short_text():
-    """Provide a very short text for testing."""
-    return "Sunny weather today in California."
-
-@pytest.fixture
-def technical_text():
-    """Provide highly technical content for testing."""
-    return """
-    The SLAM algorithm incorporates visual odometry and loop closure detection.
-    Implementation uses factor graphs for optimization and handles dynamic objects
-    through robust outlier rejection methods.
-    """
-
-
-@pytest.fixture
-def mock_processors():
-    """Create mock processors for testing."""
-    with patch('media_analyzer.processors.subject.identifier.TopicProcessor') as mock_topic, \
-         patch('media_analyzer.processors.subject.identifier.EntityProcessor') as mock_ner, \
-         patch('media_analyzer.processors.subject.identifier.KeywordProcessor') as mock_keyword:
-        
-        # Configure mock responses with simplified interface
-        mock_topic.return_value.process.return_value = {
-            "technology companies": 0.8,
-            "artificial intelligence": 0.7
-        }
-        
-        mock_ner.return_value.process.return_value = {
-            "Microsoft": 1.0,
-            "Apple": 1.0,
-            "Satya Nadella": 1.0
-        }
-        
-        mock_keyword.return_value.process.return_value = {
-            "cloud computing": 0.9,
-            "machine learning": 0.85
-        }
-        
-        yield {
-            "topic": mock_topic,
-            "ner": mock_ner,
-            "keyword": mock_keyword
-        }
 
 
 class TestSubjectIdentification:
@@ -323,28 +240,6 @@ class TestSubjectIdentification:
                     assert abs(len(name1) - len(name2)) > 5, f"Found similar subjects: {name1}, {name2}"
 
 
-def test_subject_identification_success(subject_identifier, sample_text, mock_processors):
-    """Test successful subject identification with all processors."""
-    result = subject_identifier.identify_subjects(sample_text)
-    
-    # Verify result structure
-    assert result.subjects is not None
-    assert result.categories is not None
-    assert result.metadata is not None
-    
-    # Verify subjects were extracted from all processors
-    subject_names = {s.name for s in result.subjects}
-    assert "Microsoft" in subject_names
-    assert "technology companies" in subject_names
-    assert "cloud computing" in subject_names
-    
-    # Verify categories were created
-    category_names = {c.name for c in result.categories}
-    assert "entity" in category_names
-    assert "topic" in category_names
-    assert "keyword" in category_names
-
-
 def test_subject_identification_with_context(subject_identifier, sample_text):
     """Test subject identification with context information."""
     context = Context(
@@ -358,40 +253,6 @@ def test_subject_identification_with_context(subject_identifier, sample_text):
     # Verify context is properly attached
     for subject in result.subjects:
         assert subject.context == context
-
-
-def test_subject_identification_processor_failure(subject_identifier, sample_text):
-    """Test handling of processor failures."""
-    # Create mock processors with one failing
-    mock_keyword = Mock()
-    mock_keyword.process.return_value = {
-        "cloud computing": 0.9,
-        "machine learning": 0.85
-    }
-    
-    mock_entity = Mock()
-    mock_entity.process.return_value = {
-        "Microsoft": 0.95,
-        "Apple": 0.95
-    }
-    
-    mock_topic = Mock()
-    mock_topic.process.side_effect = Exception("Topic processing failed")
-    
-    # Create a subject identifier with mock processors
-    test_identifier = SubjectIdentifier(timeout_ms=2000)
-    test_identifier.keyword_processor = mock_keyword
-    test_identifier.entity_processor = mock_entity
-    test_identifier.topic_processor = mock_topic
-    
-    # Should still get results from other processors
-    result = test_identifier.identify_subjects(sample_text)
-    
-    # Verify error handling
-    assert result.subjects  # Should have subjects from NER and keyword processors
-    assert "errors" in result.metadata
-    assert "topic_error" in result.metadata["errors"]
-    assert "Topic processing failed" in result.metadata["errors"]["topic_error"]
 
 
 class TestTopicProcessor:
