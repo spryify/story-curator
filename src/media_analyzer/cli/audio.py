@@ -36,7 +36,6 @@ def cli():
 @click.option('--output', '-o', type=click.Path(), help='Output file for the transcription')
 @click.option('--format', '-f', type=click.Choice(['text', 'json']), default='text', help='Output format (text or json)')
 @click.option('--verbose', '-v', is_flag=True, help='Show detailed processing information')
-def transcribe(
 def transcribe(file: str, language: str, summary_length: int, output: Optional[str], format: Literal['text', 'json'], verbose: bool):
     """
     Transcribe an audio file and generate a summary.
@@ -141,5 +140,9 @@ def transcribe(file: str, language: str, summary_length: int, output: Optional[s
             console.print_exception()
         sys.exit(1)
 
-if __name__ == '__main__':
+def main():
+    """Entry point for the CLI."""
     cli()
+
+if __name__ == '__main__':
+    main()
