@@ -21,6 +21,7 @@ setup(
         "typing-extensions>=4.8.0",
         "click>=8.0.0",
         "rich>=10.0.0",
+        "ffmpeg-python>=0.2.0",  # For advanced audio format support
     ],
     entry_points={
         "console_scripts": [

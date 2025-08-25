@@ -2,11 +2,16 @@
 Core module containing the main analyzer interface and configuration management.
 """
 
+import os
+import tempfile
 from pathlib import Path
 from typing import Dict, Optional, Union
 import time
 
+import whisper
+
 from media_analyzer.core.exceptions import ValidationError
+from media_analyzer.core.validator import AudioFileValidator, AudioFormat
 from media_analyzer.processors.text.processor import TextProcessor
 from media_analyzer.processors.audio.processor import AudioProcessor
 from media_analyzer.models.data_models import TranscriptionResult
@@ -18,6 +23,7 @@ class Analyzer:
     def __init__(self, config: Optional[Dict] = None):
         """Initialize analyzer with optional configuration."""
         self.config = config or {}
+        self.validator = AudioFileValidator()
         self.audio_processor = AudioProcessor(self.config.get("audio", {}))
         self.text_processor = TextProcessor(self.config.get("text", {}))
 

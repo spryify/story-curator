@@ -5,19 +5,23 @@ from tempfile import NamedTemporaryFile
 from typing import Optional, Dict, Union, Any
 
 import whisper
+import ffmpeg
 from pydub import AudioSegment
+
 from media_analyzer.core.exceptions import AudioProcessingError, ValidationError
+from media_analyzer.core.validator import AudioFileValidator
 
 
 class AudioProcessor:
     """Handles audio file processing and speech recognition."""
 
-    SUPPORTED_FORMATS = {"wav", "mp3"}
+    SUPPORTED_FORMATS = {"wav", "mp3", "m4a", "aac"}
 
     def __init__(self, config: Optional[Dict] = None):
         """Initialize the audio processor with optional configuration."""
         self.config = config or {}
-        self.model = whisper.load_model("tiny")  # Use tiny model for fast testing
+        self.model = whisper.load_model("base")
+        self.validator = AudioFileValidator()
 
     def validate_file(self, file_path: Union[str, Path]) -> Path:
         """
