@@ -25,7 +25,7 @@ from pydub import AudioSegment
 from pydub.generators import Sine
 
 from media_analyzer.core.validator import AudioFileValidator, AudioFormat
-from media_analyzer.processors.audio.processor import AudioProcessor
+from media_analyzer.processors.audio.audio_processor import AudioProcessor
 from media_analyzer.core.exceptions import AudioProcessingError
 
 
@@ -280,15 +280,13 @@ def test_extract_text(sample_wav):
     audio = processor.load_audio(sample_wav)
     result = processor.extract_text(audio)
     
-    assert isinstance(result, dict)
-    assert "text" in result
-    assert isinstance(result["text"], str)
-    assert "confidence" in result
-    assert isinstance(result["confidence"], float)
-    assert 0 <= result["confidence"] <= 1
-    assert "metadata" in result
-    assert "language" in result["metadata"]
-    assert result["metadata"]["language"] == "en"
+    from media_analyzer.core.models import TranscriptionResult
+    assert isinstance(result, TranscriptionResult)
+    assert isinstance(result.text, str)
+    assert isinstance(result.confidence, float)
+    assert 0 <= result.confidence <= 1
+    assert result.metadata is not None
+    assert result.language == "en"
     
     # Test with custom options
     options = {
@@ -297,8 +295,9 @@ def test_extract_text(sample_wav):
         "word_timestamps": True
     }
     result = processor.extract_text(audio, options)
-    assert result["metadata"]["task"] == "transcribe"
-    assert result["metadata"]["language"] == "en"
+    assert isinstance(result.metadata, dict)
+    assert result.metadata.get("task") == "transcribe"
+    assert result.metadata.get("language") == "en"
 
 
 def test_error_handling(test_files_dir):

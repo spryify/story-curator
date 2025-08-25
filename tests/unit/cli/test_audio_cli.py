@@ -33,8 +33,8 @@ for dep in mock_dependencies:
     sys.modules[dep] = MagicMock()
 
 with patch('media_analyzer.core.analyzer.Analyzer'), \
-     patch('media_analyzer.processors.text.processor.TextProcessor'), \
-     patch('media_analyzer.processors.audio.processor.AudioProcessor'):
+     patch('media_analyzer.processors.text.text_processor.TextProcessor'), \
+     patch('media_analyzer.processors.audio.audio_processor.AudioProcessor'):
     from media_analyzer.cli.audio import cli, transcribe
 from media_analyzer.core.exceptions import ValidationError
 from media_analyzer.models.data_models import TranscriptionResult

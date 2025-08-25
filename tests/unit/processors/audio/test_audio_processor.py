@@ -44,13 +44,9 @@ from pydub import AudioSegment
 from pydub.generators import Sine
 from unittest.mock import Mock, patch
 
-from media_analyzer.processors.audio.processor import AudioProcessor, AudioProcessingError
-
-import pytest
-from pathlib import Path
-from pydub import AudioSegment
-
-from media_analyzer.processors.audio.processor import AudioProcessor, AudioProcessingError
+from media_analyzer.processors.audio.audio_processor import AudioProcessor
+from media_analyzer.core.exceptions import AudioProcessingError
+from media_analyzer.processors.audio.models import TranscriptionResult
 
 
 def test_audio_processor_initialization():
@@ -117,19 +113,26 @@ def test_extract_text(test_audio_file):
     
     # Test with default options
     result = processor.extract_text(audio_data)
-    assert isinstance(result, dict)
-    assert "text" in result
-    assert isinstance(result["text"], str)
-    assert len(result["text"]) > 0
-    assert "confidence" in result
-    assert isinstance(result["confidence"], float)
-    assert 0 <= result["confidence"] <= 1
+    assert hasattr(result, 'text')
+    assert isinstance(result.text, str)
+    assert len(result.text) > 0
+    assert hasattr(result, 'segments')
+    assert isinstance(result.segments, list)
+    for segment in result.segments:
+        assert isinstance(segment, dict)
+        assert "text" in segment
+        assert "start" in segment
+        assert "end" in segment
+        assert isinstance(segment["text"], str)
+        assert isinstance(segment["start"], (int, float))
+        assert isinstance(segment["end"], (int, float))
+        assert segment["end"] >= segment["start"]
     
     # Test with custom language
     result = processor.extract_text(audio_data, {"language": "en"})
-    assert result["text"]
-    assert "metadata" in result
-    assert result["metadata"].get("language") == "en"
+    assert result.text
+    assert hasattr(result, 'metadata')
+    assert result.metadata.get("language") == "en"
 
 
 def test_error_handling(test_audio_file):
@@ -137,12 +140,14 @@ def test_error_handling(test_audio_file):
     processor = AudioProcessor()
     
     # Test with corrupted audio data
-    with patch('whisper.load_model') as mock_load_model:
+    with patch('whisper.load_model') as mock_load_model, \
+         patch('numpy.__version__', '1.24.0'):  # Mock numpy version
         # Mock the model to raise an error
         mock_model = Mock()
         mock_model.transcribe.side_effect = Exception("Transcription failed")
         mock_load_model.return_value = mock_model
         
+        # Test that it raises AudioProcessingError
         with pytest.raises(AudioProcessingError) as exc_info:
             processor.extract_text(AudioSegment.silent(duration=100))
         assert "Failed to extract text" in str(exc_info.value)

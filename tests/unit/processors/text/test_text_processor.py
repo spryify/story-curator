@@ -42,7 +42,7 @@ Usage:
 
 import pytest
 
-from media_analyzer.processors.text.processor import TextProcessor
+from media_analyzer.processors.text.text_processor import TextProcessor
 
 
 def test_text_processor_initialization():

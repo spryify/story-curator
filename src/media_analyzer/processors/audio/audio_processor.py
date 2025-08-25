@@ -132,12 +132,17 @@ class AudioProcessor:
                 print(f"Transcribing audio with {transcribe_kwargs}...")
                 result = model.transcribe(temp_file.name, **transcribe_kwargs)
 
-            # Handle different return types from whisper
-            text = result.get("text", "")
-            if isinstance(text, list):
-                text = " ".join(str(t) for t in text)
-            elif not isinstance(text, str):
-                raise AudioProcessingError("Failed to extract text: Transcription returned invalid format")
+            # Handle result from whisper
+            # Newer versions of whisper might return a custom object
+            if hasattr(result, "text"):
+                text = result.text
+            else:
+                text = result.get("text", "")
+                if isinstance(text, list):
+                    text = " ".join(str(t) for t in text)
+            
+            if not text:
+                raise AudioProcessingError("Failed to extract text: No transcription returned")
 
             # Calculate overall confidence from segment log probabilities
             # Get and type check segments
