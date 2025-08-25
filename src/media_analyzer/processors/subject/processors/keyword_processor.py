@@ -5,270 +5,83 @@ import re
 from typing import Dict, Set, List, Tuple, Any
 import string
 from collections import Counter
-from nltk.tokenize import word_tokenize, sent_tokenize
-from nltk.corpus import stopwords
-from nltk.stem import WordNetLemmatizer
-from nltk.util import ngrams
-import nltk
 
-# Download required NLTK data
-try:
-    nltk.data.find('tokenizers/punkt')
-    nltk.data.find('corpora/stopwords')
-    nltk.data.find('corpora/wordnet')
-except LookupError:
-    nltk.download('punkt')
-    nltk.download('stopwords')
-    nltk.download('wordnet')
-    nltk.download('averaged_perceptron_tagger')
 
-from .base import BaseProcessor
-
-class KeywordProcessor(BaseProcessor):
-    """Processes text to extract keywords and technical terms."""
+class KeywordProcessor:
+    """Identifies subjects based on keyword matching."""
     
     def __init__(self):
-        """Initialize processor with stopwords and patterns."""
-        self.lemmatizer = WordNetLemmatizer()
-        self.stop_words = set(stopwords.words('english'))
-        self.stop_words.update([
-            'would', 'could', 'should', 'said', 'says', 'say',
-            'the', 'and', 'or', 'but', 'however', 'therefore', 'consequently',
-            'although', 'nevertheless', 'moreover', 'furthermore'
-        ])
+        """Initialize processor."""
+        # Common stopwords to filter out
+        self.stop_words = {
+            'the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for',
+            'of', 'with', 'by', 'from', 'up', 'about', 'into', 'over',
+            'after', 'is', 'am', 'are', 'was', 'were', 'be', 'been',
+            'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would',
+            'shall', 'should', 'may', 'might', 'must', 'can', 'could',
+            'a', 'an', 'this', 'that', 'these', 'those', 'his', 'hers',
+            'its', 'their', 'our', 'we', 'they', 'them', 'he', 'she',
+            'it', 'i', 'you', 'who', 'which', 'what', 'when', 'where',
+            'why', 'how', 'all', 'any', 'both', 'each', 'few', 'more',
+            'most', 'other', 'some', 'such', 'than', 'however', 'therefore',
+            'consequently'
+        }
         
-        # Pre-compile patterns for better performance
-        self.url_email_pattern = re.compile(r'http[s]?://\S+|\S+@\S+')
-        self.punct_pattern = re.compile(r'[^\w\s-]')
-        self.compound_pattern = re.compile(r'\b(?:[A-Za-z]+\s*)+\b')
-        
-        # Important compound words that shouldn't be split
-        self.important_compounds = {
+        # Important compound words to detect
+        self.compound_phrases = {
             'artificial intelligence': 0.95,
             'machine learning': 0.95,
-            'cloud computing': 0.95,
-            'technology companies': 0.9,
             'deep learning': 0.95,
             'natural language processing': 0.95,
             'computer vision': 0.95,
-            'neural network': 0.95,
-            'data science': 0.95,
-            'quantum computing': 0.95,
-            # Add common company names as they're important entities
-            'microsoft': 0.95,
-            'apple': 0.95,
-            'google': 0.95,
-            'amazon': 0.95,
-            'openai': 0.95,
-            'tesla': 0.95,
-            'meta': 0.95,
-            'ibm': 0.95
+            'neural networks': 0.9,
+            'cloud computing': 0.9,
         }
+            
+    def process(self, text: str, context = None) -> Dict[str, Any]:
+        """Process text and return keyword matches.
         
-        # Categories and topics with importance scores
-        self.categories = {
-            'technology': 0.8, 'science': 0.8, 'business': 0.7, 'finance': 0.7,
-            'economic': 0.7, 'climate': 0.7, 'environment': 0.7, 'health': 0.7,
-            'medical': 0.7, 'political': 0.6, 'space': 0.8, 'aerospace': 0.8,
-            'research': 0.7, 'development': 0.7
-        }
+        Args:
+            text: Text to analyze
+            context: Optional context info
+            
+        Returns:
+            Dict containing results and metadata
+        """
+        text = text.lower()
+        results = {}
         
-        # Compound categories that should be recognized together
-        self.compound_categories = {
-            'climate change': 0.8,
-            'space exploration': 0.8,
-            'space technology': 0.8,
-            'technology companies': 0.8,
-            'financial markets': 0.8,
-            'market analysis': 0.8,
-            'scientific research': 0.8,
-            'aerospace industry': 0.8
-        }
+        # First check for compound phrases
+        for phrase, base_score in self.compound_phrases.items():
+            if phrase in text:
+                results[phrase] = base_score
+                # Remove the phrase from text to avoid double-counting
+                text = text.replace(phrase, '')
         
-        # Tech keywords with importance scores
-        self.tech_keywords = {
-            'AI': 0.9, 'ML': 0.9, 'API': 0.8, 'SDK': 0.8,
-            'REST': 0.8, 'JSON': 0.8, 'HTTP': 0.8,
-            'Python': 0.9, 'JavaScript': 0.9, 'Java': 0.9,
-            'Cloud': 0.8, 'Docker': 0.9, 'Kubernetes': 0.9,
-            'SpaceX': 0.9, 'NASA': 0.9, 'Mars': 0.9,
-            'rocket': 0.8, 'satellite': 0.8, 'orbit': 0.8
-        }
+        # Tokenize remaining text
+        words = text.split()
         
-        # Technical term patterns
-        self.tech_patterns = [
-            r'\b(?:[A-Z][a-z]+\s*){2,}\b',  # CamelCase phrases
-            r'\b[A-Z][a-z]+(?:\d+[a-z]*)+\b',  # Version numbers
-            r'\b[A-Z]{2,}(?:\s*\d*\.?\d+)?\b',  # Acronyms with optional numbers
-            r'\b\w+(?:-\w+)+\b',  # Hyphenated terms
-            r'\b\w+\+\+\b',  # C++, G++
-            r'\b[A-Za-z]+#\b',  # C#
-            r'\b[A-Za-z]+\.js\b',  # Node.js, React.js
-            r'\b[A-Za-z]+\.py\b',  # Python files
-        ]
-
-    def _extract_keywords(self, text: str) -> Set[Tuple[str, float]]:
-        """Extract keywords from text with scores."""
-        # Preprocess text
-        clean_text = self.punct_pattern.sub(' ', self.url_email_pattern.sub('', text.lower()))
+        # Count word frequencies
+        word_counts = Counter(words)
+        total_words = len(words)
         
-        # First, check compound phrases
-        keywords = set()
-        for compound, score in self.important_compounds.items():
-            if compound in clean_text:
-                keywords.add((compound, score))
-                clean_text = clean_text.replace(compound, '')  # Remove matched phrases
+        # Calculate scores based on frequency and repetition
+        for word, count in word_counts.items():
+            if len(word) > 2 and word not in self.stop_words:  # Filter stopwords and short words
+                # Base score from frequency
+                freq_score = count / total_words
+                # Boost score for repetition
+                repetition_boost = min(0.4, (count - 1) * 0.1)  # Up to 0.4 boost for repetition
+                # Combine scores with a base minimum
+                score = min(0.95, 0.3 + freq_score + repetition_boost)
+                results[word] = score
                 
-        # Extract word-level keywords
-        words = word_tokenize(clean_text)
-        words = [w for w in words if w not in self.stop_words and len(w) > 2]
-        
-        # Get frequencies
-        freqs = Counter(words)
-        max_freq = max(freqs.values()) if freqs else 1
-        
-        # Add individual keywords with scores
-        for word, freq in freqs.most_common(20):  # Top 20 most frequent
-            if word.isalnum():  # Only alphanumeric tokens
-                score = 0.5 + (0.3 * freq / max_freq)  # Score between 0.5 and 0.8
-                keywords.add((word, score))
-                
-        return keywords
-
-    def process(self, text: str) -> Dict[str, Any]:
-        """Process text to extract keywords."""
-        self._validate_input(text)
-        
-        # Get raw keywords with scores
-        raw_keywords = self._extract_keywords(text)
-        
-        # Convert to dictionary format
-        results = {k: s for k, s in raw_keywords}
-        
         return {
             "results": results,
-            "metadata": self._get_metadata()
+            "metadata": {
+                "total_words": total_words,
+                "unique_keywords": len(results),
+                "processor_type": "KeywordProcessor",
+                "version": "1.0"
+            }
         }
-
-    def _clean_text(self, text: str) -> str:
-        """Clean and normalize text efficiently."""
-        # Remove URLs and emails
-        text = self.url_email_pattern.sub('', text)
-        
-        # Remove punctuation except hyphens in compounds
-        text = self.punct_pattern.sub(' ', text)
-        
-        # Normalize whitespace and preserve proper case
-        words = text.split()
-        return ' '.join(w if w[0].isupper() else w.lower() for w in words if w)
-
-    def _filter_words(self, words: List[str]) -> List[str]:
-        """Filter and normalize words with improved compound handling."""
-        filtered = []
-        # Convert to lowercase but keep original case for proper nouns
-        text = ' '.join(words)
-        original_text = text
-        lower_text = text.lower()
-        
-        # Process compounds in order of length (longest first)
-        compounds = sorted(
-            list(self.important_compounds.keys()) +
-            list(self.compound_categories.keys()) +
-            list(self.categories.keys()),
-            key=len, reverse=True
-        )
-        
-        # Extract compounds first
-        for compound in compounds:
-            if compound.lower() in lower_text:
-                # Find the original case version by looking at word boundaries
-                compound_pattern = rf'\b(?:[A-Za-z]+\s*)+\b'
-                matches = re.finditer(compound_pattern, original_text)
-                for match in matches:
-                    if match.group().lower() == compound.lower():
-                        filtered.append(match.group())
-                        text = text.replace(match.group(), ' ')
-                        lower_text = lower_text.replace(compound.lower(), ' ')
-                        break
-                else:
-                    filtered.append(compound)
-                    lower_text = lower_text.replace(compound.lower(), ' ')
-        
-        # Extract tech keywords
-        for keyword in sorted(self.tech_keywords.keys(), key=len, reverse=True):
-            if keyword.lower() in lower_text:
-                # Try to find proper case version
-                keyword_pattern = rf'\b{re.escape(keyword)}\b'
-                match = re.search(keyword_pattern, text, re.IGNORECASE)
-                if match:
-                    filtered.append(match.group())
-                else:
-                    filtered.append(keyword)
-                lower_text = re.sub(keyword_pattern, ' ', lower_text, flags=re.IGNORECASE)
-        
-        # Process remaining words
-        remaining_words = text.split()
-        for i, word in enumerate(remaining_words):
-            if len(word) < 3 or word in self.stop_words:
-                continue
-                
-            word = self.lemmatizer.lemmatize(word)
-            if word.isalpha():
-                filtered.append(word)
-                
-                # Look for contextual phrases
-                if i < len(remaining_words) - 1:
-                    next_word = remaining_words[i + 1]
-                    if len(next_word) >= 3 and next_word not in self.stop_words:
-                        phrase = f"{word} {next_word}"
-                        if phrase in original_text:
-                            filtered.append(phrase)
-        
-        return filtered
-
-    def _extract_technical_terms(self, text: str) -> Set[Tuple[str, float]]:
-        """Extract technical terms with optimized scoring."""
-        tech_terms = set()
-        
-        # Check predefined tech keywords first
-        for term, score in self.tech_keywords.items():
-            if re.search(rf'\b{re.escape(term)}\b', text, re.IGNORECASE):
-                tech_terms.add((term, score))
-        
-        # Extract terms using patterns
-        for pattern in self.tech_patterns:
-            matches = re.finditer(pattern, text)
-            for match in matches:
-                term = match.group()
-                if len(term) >= 2 and not term.lower() in self.stop_words:
-                    tech_terms.add((term, 0.7))
-        
-        return tech_terms
-    
-    def _extract_keywords(self, text: str) -> Set[Tuple[str, float]]:
-        """Extract keywords from text with scores."""
-        # Preprocess text
-        clean_text = self.punct_pattern.sub(' ', self.url_email_pattern.sub('', text.lower()))
-        
-        # First, check compound phrases
-        keywords = set()
-        for compound, score in self.important_compounds.items():
-            if compound in clean_text:
-                keywords.add((compound, score))
-                clean_text = clean_text.replace(compound, '')  # Remove matched phrases
-                
-        # Extract word-level keywords
-        words = word_tokenize(clean_text)
-        words = [w for w in words if w not in self.stop_words and len(w) > 2]
-        
-        # Get frequencies
-        freqs = Counter(words)
-        max_freq = max(freqs.values()) if freqs else 1
-        
-        # Add individual keywords with scores
-        for word, freq in freqs.most_common(20):  # Top 20 most frequent
-            if word.isalnum():  # Only alphanumeric tokens
-                score = 0.5 + (0.3 * freq / max_freq)  # Score between 0.5 and 0.8
-                keywords.add((word, score))
-                
-        return keywords

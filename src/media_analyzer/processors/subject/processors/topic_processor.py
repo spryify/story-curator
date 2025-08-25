@@ -3,7 +3,7 @@
 import re
 import math
 from collections import Counter
-from typing import Dict, List
+from typing import Any, Dict, List, Set, Tuple
 
 from media_analyzer.utils.stopwords import STOPWORDS
 from media_analyzer.utils import logger
@@ -20,6 +20,25 @@ class TopicProcessor(BaseProcessor):
         self.max_topics = 5   # Maximum topics to return
         self.max_ngram = 3    # Maximum words in a phrase
         self.min_score = 0.1  # Minimum score threshold
+        
+    def process(self, text: str) -> Dict[str, float]:
+        """Extract topics from text.
+        
+        Args:
+            text (str): Input text to analyze
+            
+        Returns:
+            Dict[str, float]: Mapping of topics to confidence scores
+            
+        Raises:
+            ValueError: If text is empty or too short
+        """
+        # Input validation
+        if not text or not text.strip():
+            raise ValueError("Input text cannot be empty")
+        
+        # Extract topics
+        return self._extract_topics(text)
 
     def extract_phrases(self, text: str) -> List[str]:
         """Extract meaningful phrases from text.
@@ -95,70 +114,49 @@ class TopicProcessor(BaseProcessor):
         score = tf * idf * length_bonus * importance_bonus
         return min(score, 1.0)  # Cap at 1.0
 
-    def process(self, text: str) -> Dict[str, float]:
-        """Process text to extract topics with confidence scores.
-        
-        Args:
-            text (str): Input text to analyze
-            
-        Returns:
-            Dict[str, float]: Dictionary mapping topics to confidence scores
-            
-        Raises:
-            ValueError: If input text is empty
-        """
+    def _extract_topics(self, text: str) -> Dict[str, float]:
+        """Extract topics from text with scores."""
+        # Validate input
         if not text or not text.strip():
-            raise ValueError("Empty text provided for topic extraction")
+            raise ValueError("Input text cannot be empty")
 
-        try:
-            # Clean and normalize input text
-            text = text.strip()
-            if not isinstance(text, str) or not text:
-                logger.warning("Invalid or empty input text")
-                return {}
+        # Extract initial phrases
+        phrases = self.extract_phrases(text)
+        
+        # Count phrase frequencies
+        freq = Counter(phrases)
+        if not freq:
+            return {}
+            
+        # Calculate scores
+        max_freq = max(freq.values())
+        topics = {}
+        
+        for phrase, count in freq.most_common(self.max_topics):
+            # Base score from frequency
+            score = 0.5 + (0.5 * count / max_freq)
+            
+            # Bonus for phrase length
+            length_bonus = min(0.3, len(phrase.split()) * 0.1)
+            
+            # Combine scores
+            final_score = min(1.0, score + length_bonus)
+            
+            if final_score >= self.min_score:
+                topics[phrase] = final_score
                 
-            # Get word count
-            words = text.split()
-            word_count = len(words)
-            
-            # For very short texts, lower the minimum length requirement
-            min_length = min(self.min_length, max(3, word_count // 2))
-            
-            if word_count < min_length:
-                logger.warning(f"Text too short ({word_count} words)")
-                return {}
+        return topics
+                
+        return topics
 
-            # Extract and count phrases
-            phrases = self.extract_phrases(text)
-            if not phrases:
-                logger.warning("No valid phrases found in text")
-                return {}
-            
-            # Calculate scores
-            counts = Counter(phrases)
-            total_words = len(words)
-            max_freq = max(counts.values())
-            
-            # Score all phrases
-            scores = {}
-            for phrase, count in counts.most_common(self.max_topics * 3):
-                score = self.score_phrase(phrase, count, total_words, max_freq)
-                if score > self.min_score:
-                    scores[phrase] = score
-            
-            if not scores:
-                # If no phrases scored above threshold, take the best one
-                phrase, count = counts.most_common(1)[0]
-                score = self.score_phrase(phrase, count, total_words, max_freq)
-                scores[phrase] = score
-            
-            # Return top topics
-            return dict(sorted(
-                scores.items(),
-                key=lambda x: x[1],
-                reverse=True
-            )[:self.max_topics])
-
-        except Exception as e:
-            logger.error(f"Failed to extract topics: {str(e)}")
-            raise  # Re-raise to test error handling
+    def process(self, text: str) -> Dict[str, Any]:
+        """Process text to extract topics."""
+        self._validate_input(text)
+        
+        # Get raw topics with scores
+        raw_topics = self._extract_topics(text)
+        
+        return {
+            "results": raw_topics,
+            "metadata": self._get_metadata()
+        }
