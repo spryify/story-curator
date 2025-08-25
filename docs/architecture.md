@@ -29,7 +29,14 @@ media_analyzer/
 │   └── exceptions.py    # Custom exceptions
 ├── processors/
 │   ├── audio/          # Audio processing modules
-│   └── text/           # Text processing modules
+│   ├── text/           # Text processing modules
+│   └── subject/        # Subject identification modules
+│       ├── identifier.py     # Subject identification
+│       ├── models.py        # Subject/Category models
+│       └── processors/      # Subject processing algorithms
+│           ├── lda.py      # Topic modeling
+│           ├── ner.py      # Named entity recognition
+│           └── keywords.py  # Keyword extraction
 ├── models/             # Data models and schemas
 ├── utils/             # Utility functions
 └── cli/               # Command-line interface

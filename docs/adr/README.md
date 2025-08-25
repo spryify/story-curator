@@ -60,6 +60,12 @@ Each ADR follows a consistent format:
    - Output configuration
    - Performance considerations
 
+8. [ADR-008: Subject Identification Strategy](ADR-008-subject-identification-strategy.md)
+   - Topic modeling approach
+   - Named entity recognition
+   - Keyword extraction
+   - Performance optimization
+
 ## For AI Agents
 
 When working on features, consult these ADRs to understand:
@@ -77,3 +83,4 @@ When working on features, consult these ADRs to understand:
 - **CLI Development**: ADR-004, ADR-003, ADR-007
 - **Testing**: ADR-006, ADR-005
 - **Error Handling**: ADR-003, ADR-007
+- **Text Processing**: ADR-008, ADR-003, ADR-007

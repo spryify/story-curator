@@ -94,6 +94,7 @@ All features must address:
 - **Testing** (ADR-006)
 - **Security** (Input validation, safe error messages)
 - **Performance** (Monitoring and optimization)
+- **Text Processing** (ADR-008)
 
 ## AI Agent Guidelines
 
