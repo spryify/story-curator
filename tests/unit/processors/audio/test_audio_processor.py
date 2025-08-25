@@ -139,19 +139,14 @@ def test_error_handling(test_audio_file):
     """Test error handling in audio processing."""
     processor = AudioProcessor()
     
-    # Test with corrupted audio data
-    with patch('whisper.load_model') as mock_load_model:
-        # Mock the model to return no transcription
-        mock_model = Mock()
-        mock_model.transcribe.return_value = {"text": "", "segments": []}
-        mock_load_model.return_value = mock_model
-
-        # Test that it raises AudioProcessingError
-        with pytest.raises(AudioProcessingError) as exc_info:
-            processor.extract_text(AudioSegment.silent(duration=100))
-        assert "Failed to extract text" in str(exc_info.value)
+    # Test with transcription error
+    mock_model = Mock()
+    mock_model.transcribe.side_effect = RuntimeError("Transcription failed")
+    processor._model = mock_model
     
-    # Test with invalid options
+    with pytest.raises(AudioProcessingError) as exc_info:
+        processor.extract_text(AudioSegment.silent(duration=100))
+    assert "Failed to extract text" in str(exc_info.value)    # Test with invalid options
     with pytest.raises(ValueError) as exc_info:
         processor.extract_text(
             processor.load_audio(test_audio_file),
