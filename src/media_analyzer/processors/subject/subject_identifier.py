@@ -361,23 +361,32 @@ class SubjectIdentifier:
             List of language codes with high confidence
         """
         try:
-            # Fast multilingual detection with sampling
-            max_samples = 3
-            sample_size = 200
+            # Fast multilingual detection with natural splits
             detected = set()
             
-            # Take evenly distributed samples from the text
-            text_length = len(text)
-            if text_length > sample_size:
-                step = text_length // max_samples
-                samples = [text[i:i+sample_size] for i in range(0, text_length-sample_size+1, step)][:max_samples]
-            else:
-                samples = [text]
+            # First try natural paragraph splits
+            paragraphs = [p.strip() for p in text.split('\n') if p.strip()]
+            if not paragraphs:
+                paragraphs = [text]
+            
+            # Add sentence splits for shorter texts
+            if len(paragraphs) < 3:
+                sentences = [s.strip() for s in text.replace('\n', '. ').split('.') if s.strip()]
+                paragraphs.extend(s for s in sentences if len(s) > 30)  # Only add longer sentences
+                
+            # Take unique samples to avoid double-counting
+            seen = set()
+            samples = []
+            for p in paragraphs:
+                if p not in seen and len(p) > 30:  # Only include substantial samples
+                    samples.append(p)
+                    seen.add(p)
+            samples = samples[:5]  # Limit samples to avoid too many API calls
                 
             for sample in samples:
                 try:
                     langs = detect_langs(sample.strip())
-                    detected.update(str(lang.lang) for lang in langs if lang.prob > 0.05)  # Lower threshold to catch more languages
+                    detected.update(str(lang.lang) for lang in langs if lang.prob > 0.01)  # Very low threshold to catch even minor language presence
                     if len(detected) >= 3:  # Exit early if we find enough languages
                         break
                 except:
