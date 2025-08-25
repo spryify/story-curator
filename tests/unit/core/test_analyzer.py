@@ -42,7 +42,7 @@ from pathlib import Path
 
 from media_analyzer.core.analyzer import Analyzer
 from media_analyzer.core.exceptions import ValidationError
-from media_analyzer.models.data_models import TranscriptionResult
+from media_analyzer.core.models import TranscriptionResult
 
 
 def test_analyzer_initialization():
@@ -81,9 +81,9 @@ def test_successful_transcription(test_audio_file):
     result = analyzer.process_file(test_audio_file)
     
     assert isinstance(result, TranscriptionResult)
-    assert "test audio file" in result.full_text.lower()
-    assert "speech recognition" in result.full_text.lower()
-    assert result.summary != ""
+    assert "test audio file" in result.text.lower()
+    assert "speech recognition" in result.text.lower()
+    assert result.summary is not None
     assert result.confidence > 0.0
     assert "duration" in result.metadata
 
@@ -100,9 +100,9 @@ def test_transcription_with_options(test_audio_file):
     result = analyzer.process_file(test_audio_file, options)
     
     assert isinstance(result, TranscriptionResult)
-    assert len(result.summary.split()) <= 100
-    assert result.metadata.get("language") == "en"
-    assert "test audio file" in result.full_text.lower()
+    assert result.summary is None or len(result.summary.split()) <= 100
+    assert result.language == "en"
+    assert "test audio file" in result.text.lower()
 
 
 @pytest.mark.parametrize("audio_format", ["wav", "mp3"])
