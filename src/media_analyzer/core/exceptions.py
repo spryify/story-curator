@@ -23,3 +23,8 @@ class TranscriptionError(MediaAnalyzerError):
 class SummarizationError(MediaAnalyzerError):
     """Raised when text summarization fails."""
     pass
+
+
+class ProcessingError(MediaAnalyzerError):
+    """Raised when general processing fails."""
+    pass

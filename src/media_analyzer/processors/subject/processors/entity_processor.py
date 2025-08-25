@@ -1,8 +1,8 @@
 """Named entity recognition processor for subject identification."""
 
-from typing import Dict, Any
+from typing import Dict, Any, Set, Tuple
 import spacy
-from spacy.language import Language
+from spacy import Language
 import logging
 
 logger = logging.getLogger(__name__)
@@ -22,60 +22,53 @@ class EntityProcessor(BaseProcessor):
         self.nlp.select_pipes(enable=["ner"])
         
         self.min_length = 1  # Minimum words in entity
-        self.known_companies = {
-            "microsoft", "apple", "google", "meta", "amazon",
-            "tesla", "openai", "nvidia", "intel", "ibm"
-        }
-        self.known_people = {
-            "satya nadella", "tim cook", "elon musk", "sam altman",
-            "bill gates", "steve jobs", "sundar pichai"
+        
+        # Define scoring for different entity types
+        self.entity_scores = {
+            'ORG': 0.9,    # Organizations
+            'PERSON': 0.9,  # People
+            'PRODUCT': 0.8, # Products
+            'GPE': 0.8,    # Countries, cities, etc.
+            'WORK_OF_ART': 0.7,  # Titles of books, songs, etc.
+            'EVENT': 0.7,   # Named events
+            'LAW': 0.7,     # Named laws and documents
+            'FAC': 0.6,     # Facilities
+            'LOC': 0.6,     # Non-GPE locations
+            'NORP': 0.6,    # Nationalities, religious/political groups
         }
 
     def process(self, text: str) -> Dict[str, Any]:
-        """Process text to extract named entities with confidence scores.
-        
-        Args:
-            text (str): Input text to process
-            
-        Returns:
-            Dictionary containing:
-                - results: Dict[str, float] mapping entity names to confidence scores
-                - metadata: Processing metadata
-                
-        Raises:
-            ProcessingError: If processing fails
-        """
-        # Validate input using base class method
+        """Process text to extract entities."""
         self._validate_input(text)
-        try:
-            if not text:
-                logger.warning("Empty text provided for entity extraction")
-                return {}
+        
+        # Get raw entities with scores
+        raw_entities = self._extract_entities(text)
+        
+        # Convert to dictionary format
+        results = {k: s for k, s in raw_entities}
+        
+        return {
+            "results": results,
+            "metadata": self._get_metadata()
+        }
+    
+    def _extract_entities(self, text: str) -> Set[Tuple[str, float]]:
+        """Extract named entities from text with scores."""
+        # Process text with spaCy
+        doc = self.nlp(text)
+        
+        # Extract entities with scores
+        entities = set()
+        seen_texts = set()
+        
+        for ent in doc.ents:
+            if ent.text not in seen_texts:
+                # Score based on entity type and length
+                base_score = self.entity_scores.get(ent.label_, 0.5)
+                length_bonus = min(0.2, len(ent.text.split()) * 0.1)  # Bonus for multi-word entities
+                score = min(1.0, base_score + length_bonus)
                 
-            # Process text with spaCy
-            doc = self.nlp(text)
-            
-            # Extract entities with confidence scores
-            entities = {}
-            for ent in doc.ents:
-                name = ent.text.strip()
-                if len(name.split()) >= self.min_length:
-                    # Base confidence score
-                    confidence = 0.8
-                    
-                    # Boost known entities
-                    name_lower = name.lower()
-                    if name_lower in self.known_companies:
-                        confidence = 1.0
-                    elif name_lower in self.known_people:
-                        confidence = 1.0
-                    elif ent.label_ in ["ORG", "PERSON", "GPE"]:
-                        confidence = 0.9
-                    
-                    entities[name] = min(1.0, confidence)
-            
-            return entities
-            
-        except Exception as e:
-            logger.error(f"Failed to extract entities: {str(e)}")
-            return {}
+                entities.add((ent.text, score))
+                seen_texts.add(ent.text)
+                
+        return entities

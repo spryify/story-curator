@@ -10,11 +10,11 @@ import time
 
 import whisper
 
-from media_analyzer.core.exceptions import ValidationError
+from media_analyzer.core.exceptions import ValidationError, AudioProcessingError
 from media_analyzer.core.validator import AudioFileValidator, AudioFormat
-from media_analyzer.processors.text.processor import TextProcessor
-from media_analyzer.processors.audio.processor import AudioProcessor
-from media_analyzer.models.data_models import TranscriptionResult
+from media_analyzer.processors.text.text_processor import TextProcessor
+from media_analyzer.processors.audio.audio_processor import AudioProcessor
+from media_analyzer.core.models import TranscriptionResult
 
 
 class Analyzer:
@@ -106,28 +106,58 @@ class Analyzer:
         audio_info = self.audio_processor.get_audio_info(audio_data)
         
         # Extract text from audio
-        extraction_result = self.audio_processor.extract_text(audio_data, options)
+        extraction_result: TranscriptionResult = self.audio_processor.extract_text(audio_data, options)
         
         # Generate summary
         summary = self.text_processor.summarize(
-            extraction_result["text"],
+            extraction_result.text,
             max_length=options.get("max_summary_length", 1000)
         )
         
         # Add performance metrics
-        metadata = extraction_result.get("metadata", {})
+        metadata = dict(extraction_result.metadata or {})
         metadata.update({
             "processing_time": time.time() - start_time,
             "sample_rate": audio_info["sample_rate"],
             "channels": audio_info["channels"],
             "duration": audio_info["duration"],
-            "language": options.get("language", "en")
+            "language": options.get("language", extraction_result.language or "en")
         })
         
         # Create result object
         return TranscriptionResult(
-            full_text=extraction_result["text"],
-            summary=summary,
-            confidence=extraction_result.get("confidence", 0.0),
-            metadata=metadata
+            text=extraction_result.text,
+            language=extraction_result.language,
+            segments=extraction_result.segments,
+            confidence=extraction_result.confidence,
+            metadata=metadata,
+            summary=summary
         )
+
+
+class AudioAnalyzer(Analyzer):
+    """Audio specific analyzer that provides compatibility with older API."""
+
+    def __init__(self, config: Optional[Dict] = None):
+        """Initialize audio analyzer with optional configuration."""
+        super().__init__(config)
+        self.max_duration = self.config.get("max_duration", 300)  # 5 minutes default
+
+    def process_audio(self, file_path: Union[str, Path], options: Optional[Dict] = None) -> TranscriptionResult:
+        """Process an audio file and return extracted text with metadata.
+        
+        This method provides backwards compatibility with the older API.
+        
+        Args:
+            file_path: Path to the audio file to analyze
+            options: Optional configuration options including:
+                domain: The domain for subject identification
+                language: The language code for transcription
+            
+        Returns:
+            TranscriptionResult containing the extracted text and metadata
+        
+        Raises:
+            AudioProcessingError: If the audio processing fails
+        """
+        return super().process_file(file_path, options)

@@ -198,19 +198,44 @@ class SubjectIdentifier:
                 )
                 categories.add(category)
 
-                # Add subjects
-                for name, confidence in results.items():
-                        # Skip duplicate and similar subjects
-                    if any(self._are_similar_subjects(s.name, name) for s in subjects):
-                        continue
+                # Add subjects from processor results
+                if isinstance(results, dict) and "results" in results:
+                    results_dict = results["results"]
+                else:
+                    results_dict = results
 
-                    subject = Subject(
-                        name=name,
-                        subject_type=getattr(SubjectType, proc_name.upper()),
-                        confidence=confidence,
-                        context=context
-                    )
-                    subjects.add(subject)
+                # Add subjects
+                if isinstance(results_dict, dict):
+                    for name, confidence in results_dict.items():
+                        # Skip duplicate and similar subjects
+                        if any(self._are_similar_subjects(s.name, name) for s in subjects):
+                            continue
+
+                        # Ensure confidence is a float between 0 and 1
+                        if isinstance(confidence, dict) and 'confidence' in confidence:
+                            # If confidence is a dict with confidence key
+                            conf_value = float(str(confidence['confidence']))
+                        elif isinstance(confidence, (int, float)):
+                            # If confidence is already a number
+                            conf_value = float(confidence)
+                        elif isinstance(confidence, str):
+                            # If confidence is a string, try to convert
+                            try:
+                                conf_value = float(confidence)
+                            except ValueError:
+                                conf_value = 0.5  # Default confidence if conversion fails
+                        else:
+                            # Use a default confidence for unknown types
+                            conf_value = 0.5
+                        conf_value = max(0.0, min(1.0, conf_value))
+
+                        subject = Subject(
+                            name=name,
+                            subject_type=getattr(SubjectType, proc_name.upper()),
+                            confidence=conf_value,
+                            context=context
+                        )
+                        subjects.add(subject)
 
             # Calculate metrics
             processing_time = (time.time() - start_time) * 1000

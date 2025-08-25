@@ -2,7 +2,7 @@
 Keyword-based subject identification processor.
 """
 import re
-from typing import Dict, Set, List, Tuple, Any
+from typing import Dict, Set, List, Tuple
 import string
 from collections import Counter
 from nltk.tokenize import word_tokenize, sent_tokenize
@@ -107,48 +107,107 @@ class KeywordProcessor(BaseProcessor):
             r'\b[A-Za-z]+\.py\b',  # Python files
         ]
 
-    def _extract_keywords(self, text: str) -> Set[Tuple[str, float]]:
-        """Extract keywords from text with scores."""
-        # Preprocess text
-        clean_text = self.punct_pattern.sub(' ', self.url_email_pattern.sub('', text.lower()))
+    def process(self, text: str) -> Dict[str, float]:
+        """Process text to extract and score keywords efficiently."""
+        # Clean text but preserve case for proper nouns
+        text = self._clean_text(text)
+        sentences = sent_tokenize(text)
         
-        # First, check compound phrases
-        keywords = set()
-        for compound, score in self.important_compounds.items():
-            if compound in clean_text:
-                keywords.add((compound, score))
-                clean_text = clean_text.replace(compound, '')  # Remove matched phrases
-                
-        # Extract word-level keywords
-        words = word_tokenize(clean_text)
-        words = [w for w in words if w not in self.stop_words and len(w) > 2]
+        # Track all keywords and their scores
+        keywords = {}
+        total_words = 0
+        max_freq = 0
+        seen_compounds = set()  # Track compounds we've seen to avoid duplicates
         
-        # Get frequencies
-        freqs = Counter(words)
-        max_freq = max(freqs.values()) if freqs else 1
-        
-        # Add individual keywords with scores
-        for word, freq in freqs.most_common(20):  # Top 20 most frequent
-            if word.isalnum():  # Only alphanumeric tokens
-                score = 0.5 + (0.3 * freq / max_freq)  # Score between 0.5 and 0.8
-                keywords.add((word, score))
-                
-        return keywords
+        # Process sentences with positional weighting
+        word_freqs = {}
+        for i, sentence in enumerate(sentences):
+            # Weight by position (earlier sentences more important)
+            position_weight = 1.0 - (i / len(sentences)) * 0.3
+            
+                # Get words and filter
+            words = word_tokenize(sentence.lower())
+            filtered_words = self._filter_words(words)
+            
+            # Process ngrams first to catch important compounds
+            for n in range(3, 0, -1):  # Try 3-grams down to 1-grams
+                ngrams_list = list(ngrams(filtered_words, n))
+                for gram in ngrams_list:
+                    compound = ' '.join(gram)
+                    if compound in self.important_compounds:
+                        if compound not in word_freqs:
+                            word_freqs[compound] = 0.0
+                        freq = position_weight * 3  # Higher weight for compounds
+                        word_freqs[compound] += freq
+                        max_freq = max(max_freq, word_freqs[compound])
+                    elif n > 1 and compound in self.compound_categories:
+                        if compound not in word_freqs:
+                            word_freqs[compound] = 0.0
+                        freq = position_weight * 2.5  # Good weight for category compounds
+                        word_freqs[compound] += freq
+                        max_freq = max(max_freq, word_freqs[compound])
+            
+            # Then process individual words
+            for word in filtered_words:
+                if word not in word_freqs:
+                    word_freqs[word] = 0.0
+                freq = position_weight * (2 if word in self.tech_keywords else 1)
+                word_freqs[word] += freq
+                max_freq = max(max_freq, word_freqs[word])
+            
+            total_words += len(filtered_words)
+            
+            # Extract technical terms and important compounds first
+            tech_terms = self._extract_technical_terms(sentence)
+            found_terms = set()
+            for term, score in tech_terms:
+                found_terms.add(term.lower())
+                keywords[term] = score
 
-    def process(self, text: str) -> Dict[str, Any]:
-        """Process text to extract keywords."""
-        self._validate_input(text)
+            # Then check for important compounds and categories
+            lower_sent = sentence.lower()
+            for compound in self.important_compounds.keys():
+                if compound in lower_sent and compound not in found_terms:
+                    keywords[compound] = self.important_compounds[compound]
+                    found_terms.add(compound)
+
+            # Then check compound categories
+            for compound in self.compound_categories.keys():
+                if compound in lower_sent and compound not in found_terms:
+                    keywords[compound] = self.compound_categories[compound]
+                    found_terms.add(compound)
         
-        # Get raw keywords with scores
-        raw_keywords = self._extract_keywords(text)
+        # Score remaining words
+        if total_words > 0:
+            # Sort by frequency and get top 50
+            sorted_words = sorted(word_freqs.items(), key=lambda x: x[1], reverse=True)[:50]
+            for word, freq in sorted_words:
+                if word in self.stop_words or len(word) < 3:
+                    continue
+                    
+                # Base score from frequency
+                base_score = min(0.6, (freq / max_freq) * 0.6)  # Lower base scores
+                final_score = base_score
+
+                # Apply score boosts based on word type
+                if word in self.important_compounds:
+                    final_score = min(0.9, final_score + 0.3)
+                elif word in self.compound_categories:
+                    final_score = min(0.8, final_score + 0.2)
+                elif word in self.categories:
+                    final_score = min(0.7, final_score + 0.1)
+                elif word in self.tech_keywords:
+                    final_score = min(0.8, final_score + 0.2)
+                elif len(word.split()) > 1:  # Multi-word phrases
+                    final_score = min(0.6, final_score + 0.1)
+                    
+                # Store highest score
+                if word not in keywords or final_score > keywords[word]:
+                    keywords[word] = final_score
         
-        # Convert to dictionary format
-        results = {k: s for k, s in raw_keywords}
-        
-        return {
-            "results": results,
-            "metadata": self._get_metadata()
-        }
+        # Filter and return top results
+        keywords = {k: v for k, v in keywords.items() if v >= 0.3}
+        return dict(sorted(keywords.items(), key=lambda x: x[1], reverse=True)[:25])
 
     def _clean_text(self, text: str) -> str:
         """Clean and normalize text efficiently."""
@@ -244,31 +303,3 @@ class KeywordProcessor(BaseProcessor):
                     tech_terms.add((term, 0.7))
         
         return tech_terms
-    
-    def _extract_keywords(self, text: str) -> Set[Tuple[str, float]]:
-        """Extract keywords from text with scores."""
-        # Preprocess text
-        clean_text = self.punct_pattern.sub(' ', self.url_email_pattern.sub('', text.lower()))
-        
-        # First, check compound phrases
-        keywords = set()
-        for compound, score in self.important_compounds.items():
-            if compound in clean_text:
-                keywords.add((compound, score))
-                clean_text = clean_text.replace(compound, '')  # Remove matched phrases
-                
-        # Extract word-level keywords
-        words = word_tokenize(clean_text)
-        words = [w for w in words if w not in self.stop_words and len(w) > 2]
-        
-        # Get frequencies
-        freqs = Counter(words)
-        max_freq = max(freqs.values()) if freqs else 1
-        
-        # Add individual keywords with scores
-        for word, freq in freqs.most_common(20):  # Top 20 most frequent
-            if word.isalnum():  # Only alphanumeric tokens
-                score = 0.5 + (0.3 * freq / max_freq)  # Score between 0.5 and 0.8
-                keywords.add((word, score))
-                
-        return keywords

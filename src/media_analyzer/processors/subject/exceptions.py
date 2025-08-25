@@ -13,7 +13,7 @@ class SubjectProcessingError(ProcessingError):
     pass
 
 
-class InvalidInputError(ProcessingError):
+class InvalidInputError(SubjectProcessingError):
     """Error for invalid input data."""
 
     pass

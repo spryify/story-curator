@@ -30,14 +30,18 @@ logger = logging.getLogger(__name__)
 class SubjectIdentifier:
     """Identifies subjects in text using multiple processors."""
 
-    def __init__(self, max_workers: int = 3, timeout_ms: int = 500):
-        """Initialize identifier with config."""
+    def __init__(self, max_workers: int = 3, timeout_ms: int = 800):
+        """Initialize identifier with config.
+        
+        Args:
+            max_workers: Maximum number of parallel processors
+            timeout_ms: Overall timeout in milliseconds. Default 800ms per FR-002.
+        """
         self.keyword_processor = KeywordProcessor()
         self.topic_processor = TopicProcessor()
         self.entity_processor = EntityProcessor()
         self.max_workers = max_workers
         self.timeout_ms = timeout_ms
-        self.individual_timeout = timeout_ms / 3  # Each processor gets 1/3rd of total time
         self._initialize_categories()
         self._result_cache = {}  # Cache for processor results
 
@@ -127,15 +131,30 @@ class SubjectIdentifier:
             def run_processor(proc_name: str, processor: Any) -> Dict[str, float]:
                 """Run a processor with error handling."""
                 try:
-                    # Check cache first
-                    cache_key = f"{proc_name}:{hash(text)}"
+                    # Optimized caching with text length consideration
+                    text_length = len(text)
+                    # Use smaller sample for cache key if text is very long
+                    cache_text = text[:1000] if text_length > 1000 else text
+                    cache_key = f"{proc_name}:{hash(cache_text)}"
+                    
                     if cache_key in self._result_cache:
-                        return self._result_cache[cache_key]
-
-                    # Process and cache result
-                    result = processor.process(text)
-                    self._result_cache[cache_key] = result
-                    return result
+                        cached_result = self._result_cache[cache_key]
+                        if text_length <= 1000 or proc_name != "entity":  # Full cache for short text or non-entity processors
+                            return cached_result
+                            
+                    # Process with optimized text chunks if needed
+                    if text_length > 5000 and proc_name == "entity":  # Only chunk for entity processor on long text
+                        chunk_size = 2000
+                        chunks = [text[i:i+chunk_size] for i in range(0, text_length, chunk_size)]
+                        results = {}
+                        for chunk in chunks[:3]:  # Process only first 3 chunks for speed
+                            chunk_results = processor.process(chunk)
+                            results.update(chunk_results)
+                    else:
+                        results = processor.process(text)
+                        
+                    self._result_cache[cache_key] = results
+                    return results
                 except Exception as e:
                     logger.warning(f"Processor {proc_name} failed: {str(e)}")
                     processor_errors[f"{proc_name}_error"] = str(e)
@@ -144,11 +163,12 @@ class SubjectIdentifier:
             # Run processors in parallel
             with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
                 # Use shorter timeouts for each processor and give more time for overhead
+                # Optimize timeouts for maximum efficiency
                 processor_timeouts = {
-                    "topic": int(0.15 * self.timeout_ms),  # 15% of total time
-                    "entity": int(0.15 * self.timeout_ms),  # 15% of total time
-                    "keyword": int(0.40 * self.timeout_ms)  # 40% of total time
-                }  # Leaves 30% for overhead and result processing
+                    "topic": int(0.15 * self.timeout_ms),    # 15% - fastest processor
+                    "keyword": int(0.30 * self.timeout_ms),  # 30% - critical for accuracy
+                    "entity": int(0.25 * self.timeout_ms)    # 25% - balance speed and accuracy
+                }  # Leaves 30% for language detection and result processing
                 
                 # Submit all processors with their timeouts
                 futures = {
@@ -157,18 +177,23 @@ class SubjectIdentifier:
                     executor.submit(run_processor, "keyword", self.keyword_processor): ("keyword", processor_timeouts["keyword"])
                 }
 
-                # Process futures with overall timeout
+                # Process futures with optimized timeout handling
                 end_time = time.monotonic() + (self.timeout_ms / 1000)
+                futures_list = list(futures.items())
                 
-                for future in futures:
-                    proc_name, proc_timeout = futures[future]
+                # Sort futures by processor priority (keyword and entity first)
+                futures_list.sort(key=lambda x: 0 if x[1][0] in ['keyword', 'entity'] else 1)
+                
+                for future, (proc_name, proc_timeout) in futures_list:
                     try:
                         # Calculate remaining time
                         remaining = end_time - time.monotonic()
                         if remaining <= 0:
-                            raise TimeoutError("Overall processing timed out")
+                            # Cancel remaining processors if we're out of time
+                            future.cancel()
+                            continue
                             
-                        # Use the minimum of remaining time and processor timeout
+                        # Use adjusted timeout for better performance
                         timeout = min(remaining, proc_timeout / 1000)
                         result = future.result(timeout=timeout)
                         
@@ -198,19 +223,90 @@ class SubjectIdentifier:
                 )
                 categories.add(category)
 
-                # Add subjects
-                for name, confidence in results.items():
-                        # Skip duplicate and similar subjects
-                    if any(self._are_similar_subjects(s.name, name) for s in subjects):
-                        continue
+                # Add subjects from processor results
+                if isinstance(results, dict) and "results" in results:
+                    results_dict = results["results"]
+                else:
+                    results_dict = results
 
-                    subject = Subject(
-                        name=name,
-                        subject_type=getattr(SubjectType, proc_name.upper()),
-                        confidence=confidence,
-                        context=context
-                    )
-                    subjects.add(subject)
+                # Add subjects with adjusted confidence
+                if isinstance(results_dict, dict):
+                    # First pass to find max confidence for normalization
+                    max_conf = max((v for v in results_dict.values() if isinstance(v, (int, float, str))), 
+                                 key=lambda x: float(x) if isinstance(x, str) else x, 
+                                 default=1.0)
+                                 
+                    for name, confidence in results_dict.items():
+                        # Normalize name for comparison
+                        name = name.strip().lower()
+                        
+                        # Skip duplicate and similar subjects
+                        if any(self._are_similar_subjects(s.name, name) for s in subjects):
+                            continue
+                            
+                        # Normalize confidence against max value
+                        try:
+                            max_conf_float = float(max_conf)
+                            norm_conf = float(confidence) / max_conf_float if max_conf_float > 0 else 0.5
+                        except (TypeError, ValueError):
+                            norm_conf = 0.5
+                            
+                        # Check if it's a predefined category keyword
+                        found_keywords = []
+                        category_confidence = 0.0
+                        matching_category = None
+
+                        # First try exact matches
+                        for cat, keywords in self.category_keywords.items():
+                            if name in keywords:
+                                found_keywords.append(name)
+                                category_confidence = keywords[name]
+                                matching_category = cat
+                                break
+
+                        # If no exact match, try partial matches
+                        if not found_keywords:
+                            for cat, keywords in self.category_keywords.items():
+                                for kw, score in keywords.items():
+                                    # Try both directions and word-level matching
+                                    if (kw in name) or (name in kw) or any(w in name.split() for w in kw.split()):
+                                        found_keywords.append(kw)
+                                        if score > category_confidence:
+                                            category_confidence = score
+                                            matching_category = cat
+
+                        # Handle confidence scoring
+                        if isinstance(confidence, dict) and 'confidence' in confidence:
+                            conf_value = float(str(confidence['confidence']))
+                        elif isinstance(confidence, (int, float)):
+                            conf_value = float(confidence)
+                        elif isinstance(confidence, str):
+                            try:
+                                conf_value = float(confidence)
+                            except ValueError:
+                                conf_value = 0.5
+                        else:
+                            conf_value = 0.5
+
+                        # Boost confidence based on matches and context
+                        if found_keywords:
+                            # Boost more for exact matches, less for partial
+                            conf_value = max(conf_value, category_confidence)
+                            if name in found_keywords:  # Exact match
+                                conf_value = min(1.0, conf_value * 1.2)
+                            if context and hasattr(context, 'domain'):
+                                if context.domain.upper() == matching_category:
+                                    conf_value = min(1.0, conf_value * 1.1)
+                            
+                        conf_value = max(0.0, min(1.0, conf_value))
+
+                        subject = Subject(
+                            name=name,
+                            subject_type=getattr(SubjectType, proc_name.upper()),
+                            confidence=conf_value,
+                            context=context
+                        )
+                        subjects.add(subject)
 
             # Calculate metrics
             processing_time = (time.time() - start_time) * 1000
@@ -227,15 +323,20 @@ class SubjectIdentifier:
 
             # Always include errors dictionary in metadata
             metadata["errors"] = processor_errors
-
-            # Create result
+            
+            # Filter and rank subjects
+            sorted_subjects = sorted(subjects, key=lambda s: s.confidence, reverse=True)
+            top_subjects = set(sorted_subjects[:20])  # Limit to top 20 subjects
+            
+            # Ensure we include all high-confidence subjects
+            high_conf_subjects = {s for s in subjects if s.confidence >= 0.8}
+            
+            # Create result with merged subjects
             result = SubjectAnalysisResult(
-                subjects=subjects,
+                subjects=top_subjects.union(high_conf_subjects),
                 categories=categories,
                 metadata=metadata
-            )
-
-            # Validate result
+            )            # Validate result
             if not subjects:
                 logger.warning("No subjects were identified")
 
@@ -251,10 +352,38 @@ class SubjectIdentifier:
             raise SubjectProcessingError(f"Subject identification failed: {str(e)}")
 
     def _detect_languages(self, text: str) -> List[str]:
-        """Detect languages in text."""
+        """Detect languages in text.
+        
+        Args:
+            text: Text to analyze
+            
+        Returns:
+            List of language codes with high confidence
+        """
         try:
-            langs = detect_langs(text)
-            return [str(lang.lang) for lang in langs if lang.prob > 0.2]
+            # Fast multilingual detection with sampling
+            max_samples = 3
+            sample_size = 200
+            detected = set()
+            
+            # Take evenly distributed samples from the text
+            text_length = len(text)
+            if text_length > sample_size:
+                step = text_length // max_samples
+                samples = [text[i:i+sample_size] for i in range(0, text_length-sample_size+1, step)][:max_samples]
+            else:
+                samples = [text]
+                
+            for sample in samples:
+                try:
+                    langs = detect_langs(sample.strip())
+                    detected.update(str(lang.lang) for lang in langs if lang.prob > 0.2)
+                    if len(detected) >= 3:  # Exit early if we find enough languages
+                        break
+                except:
+                    continue
+                        
+            return list(detected)
         except:
             return []
 

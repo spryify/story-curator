@@ -43,7 +43,7 @@ class Subject:
     def __hash__(self):
         """Make Subject hashable."""
         # Context is mutable so we exclude it from the hash
-        return hash((self.name, self.subject_type, self.confidence))
+        return hash((self.name, self.subject_type))
 
 
 @dataclass
