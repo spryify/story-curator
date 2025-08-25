@@ -2,22 +2,26 @@
 Subject identification models module.
 """
 from dataclasses import dataclass, field
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, Set
 from enum import Enum
 
 
 class SubjectType(Enum):
+    """Types of subjects that can be identified."""
     TOPIC = "topic"         # Abstract topics from LDA
     ENTITY = "entity"       # Named entities
     KEYWORD = "keyword"     # Extracted keywords
 
 
-@dataclass
+@dataclass(frozen=True)
 class Category:
-    """Category model for grouping related subjects."""
+    """A subject category."""
+    id: str
     name: str
-    description: str
-    parent: Optional["Category"] = None
+
+    def __hash__(self):
+        """Make Category hashable."""
+        return hash((self.id, self.name))
 
 
 @dataclass
@@ -28,20 +32,41 @@ class Context:
     confidence: float
 
 
-@dataclass
+@dataclass(frozen=True)
 class Subject:
-    """Subject model representing an identified topic or entity."""
+    """An identified subject."""
     name: str
     subject_type: SubjectType
     confidence: float
-    category: Optional[Category] = None
     context: Optional[Context] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
+
+    def __hash__(self):
+        """Make Subject hashable."""
+        # Context is mutable so we exclude it from the hash
+        return hash((self.name, self.subject_type, self.confidence))
+
+
+@dataclass
+class ProcessingMetrics:
+    """Metrics from subject identification."""
+    processing_time_ms: float
+    keyword_count: int
+    text_length: int
+    error_count: int = 0
+
+
+@dataclass
+class SubjectMetadata:
+    """Metadata about identified subjects."""
+    categories: Set[Category]
+    confidence: float
+    processing_time_ms: float
+    metrics: Optional[ProcessingMetrics] = None
 
 
 @dataclass
 class SubjectAnalysisResult:
-    """Results from subject analysis including subjects and metadata."""
-    subjects: List[Subject]
-    categories: List[Category]
-    metadata: Dict[str, Any]
+    """Result of subject identification analysis."""
+    subjects: Set[Subject] = field(default_factory=set)
+    categories: Set[Category] = field(default_factory=set)
+    metadata: Dict[str, Any] = field(default_factory=dict)
