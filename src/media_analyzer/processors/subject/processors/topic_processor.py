@@ -9,7 +9,9 @@ from media_analyzer.utils.stopwords import STOPWORDS
 from media_analyzer.utils import logger
 
 
-class TopicProcessor:
+from .base import BaseProcessor
+
+class TopicProcessor(BaseProcessor):
     """Extract key topics from text using phrase frequency-based scoring."""
 
     def __init__(self):

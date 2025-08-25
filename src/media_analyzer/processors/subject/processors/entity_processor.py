@@ -8,7 +8,9 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class EntityProcessor:
+from .base import BaseProcessor
+
+class EntityProcessor(BaseProcessor):
     """Named entity recognition processor using spaCy."""
 
     def __init__(self):
@@ -29,15 +31,22 @@ class EntityProcessor:
             "bill gates", "steve jobs", "sundar pichai"
         }
 
-    def process(self, text: str) -> Dict[str, float]:
+    def process(self, text: str) -> Dict[str, Any]:
         """Process text to extract named entities with confidence scores.
         
         Args:
-            text (str): Input text to analyze
+            text (str): Input text to process
             
         Returns:
-            Dict[str, float]: Dictionary mapping entity names to confidence scores
+            Dictionary containing:
+                - results: Dict[str, float] mapping entity names to confidence scores
+                - metadata: Processing metadata
+                
+        Raises:
+            ProcessingError: If processing fails
         """
+        # Validate input using base class method
+        self._validate_input(text)
         try:
             if not text:
                 logger.warning("Empty text provided for entity extraction")

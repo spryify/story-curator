@@ -22,7 +22,9 @@ except LookupError:
     nltk.download('wordnet')
     nltk.download('averaged_perceptron_tagger')
 
-class KeywordProcessor:
+from .base import BaseProcessor
+
+class KeywordProcessor(BaseProcessor):
     """Processes text to extract keywords and technical terms."""
     
     def __init__(self):
