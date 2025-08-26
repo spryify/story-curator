@@ -68,32 +68,37 @@ class YotoIconScraper:
         errors: List[str] = []
         
         try:
-            # Get all icon page URLs
-            icon_urls = self._discover_icon_urls()
+            # Get all available categories
+            categories = self._discover_categories()
             
-            total_icons = len(icon_urls)
+            total_icons = 0
             successful_scraped = 0
             
-            for url in icon_urls:
+            for category in categories:
                 try:
-                    icon_data = self._scrape_icon_from_url(url)
-                    if icon_data:
-                        scraped_icons.append(icon_data)
-                        successful_scraped += 1
+                    # Scrape all pages for this category
+                    category_icons = self._scrape_category(category)
+                    scraped_icons.extend(category_icons)
                     
-                    # Be respectful with delays
+                    successful_scraped += len(category_icons)
+                    total_icons += len(category_icons)
+                    
+                    print(f"✅ Scraped {len(category_icons)} icons from category '{category}'")
+                    
+                    # Be respectful with delays between categories
                     time.sleep(self.delay_between_requests)
                     
                 except Exception as e:
-                    error_msg = f"Failed to scrape icon from {url}: {e}"
+                    error_msg = f"Failed to scrape category {category}: {e}"
                     errors.append(error_msg)
+                    print(f"⚠️  {error_msg}")
             
             processing_time = time.time() - start_time
             
             return ScrapingResult(
                 total_icons=total_icons,
                 successful_scraped=successful_scraped,
-                failed_scraped=total_icons - successful_scraped,
+                failed_scraped=0,  # We count successful icons directly
                 errors=errors,
                 processing_time=processing_time,
                 timestamp=datetime.now()
@@ -102,302 +107,190 @@ class YotoIconScraper:
         except Exception as e:
             raise ScrapingError(f"Failed to scrape icons: {e}") from e
     
-    def _discover_icon_urls(self) -> List[str]:
-        """Discover all icon page URLs.
+    def _discover_categories(self) -> List[str]:
+        """Discover all available categories on yotoicons.com.
         
         Returns:
-            List of icon page URLs
+            List of category names
             
         Raises:
             NetworkError: If network request fails
             ScrapingError: If page parsing fails
         """
-        try:
-            response = self._make_request(self.base_url)
-            soup = BeautifulSoup(response.content, 'html.parser')
-            
-            # Find icon links - this will need to be adjusted based on actual site structure
-            icon_urls: Set[str] = set()
-            
-            # Look for common patterns in icon website structures
-            for link in soup.find_all('a', href=True):
-                href = link['href']
-                
-                # Convert relative URLs to absolute
-                full_url = urljoin(self.base_url, href)
-                
-                # Filter for icon-related URLs
-                if self._is_icon_url(full_url):
-                    icon_urls.add(full_url)
-            
-            # Also check for pagination or category pages
-            category_urls = self._find_category_urls(soup)
-            for category_url in category_urls:
-                try:
-                    category_response = self._make_request(category_url)
-                    category_soup = BeautifulSoup(category_response.content, 'html.parser')
-                    
-                    for link in category_soup.find_all('a', href=True):
-                        href = link['href']
-                        full_url = urljoin(self.base_url, href)
-                        
-                        if self._is_icon_url(full_url):
-                            icon_urls.add(full_url)
-                    
-                    time.sleep(self.delay_between_requests)
-                    
-                except Exception as e:
-                    # Log but don't fail completely for category errors
-                    print(f"Warning: Failed to scrape category {category_url}: {e}")
-            
-            return list(icon_urls)
-            
-        except requests.RequestException as e:
-            raise NetworkError(f"Failed to discover icon URLs: {e}") from e
-        except Exception as e:
-            raise ScrapingError(f"Failed to parse icon discovery page: {e}") from e
-    
-    def _find_category_urls(self, soup: BeautifulSoup) -> List[str]:
-        """Find category or pagination URLs.
+        # Known categories from our testing - we can also discover these dynamically
+        # but for now let's use the ones we know work
+        known_categories = [
+            "animals", "food", "weather", "nature", "transport", "people", 
+            "objects", "buildings", "technology", "sports", "music", "health"
+        ]
+        
+        # TODO: Could also discover categories dynamically by parsing the main page
+        # but the known categories approach is more reliable for yotoicons.com
+        return known_categories
+
+    def _scrape_category(self, category: str) -> List[IconData]:
+        """Scrape all icons from a specific category, handling pagination.
         
         Args:
-            soup: BeautifulSoup object of the main page
+            category: Category name to scrape
             
         Returns:
-            List of category/pagination URLs
-        """
-        category_urls: Set[str] = set()
-        
-        # Look for common category/navigation patterns
-        for link in soup.find_all('a', href=True):
-            href = link['href']
-            full_url = urljoin(self.base_url, href)
-            
-            # Common patterns for categories or pages
-            if any(pattern in href.lower() for pattern in ['category', 'tag', 'page', 'icons']):
-                category_urls.add(full_url)
-        
-        return list(category_urls)
-    
-    def _is_icon_url(self, url: str) -> bool:
-        """Check if a URL likely points to an individual icon page.
-        
-        Args:
-            url: URL to check
-            
-        Returns:
-            True if URL appears to be an icon page
-        """
-        parsed = urlparse(url)
-        path = parsed.path.lower()
-        
-        # Skip non-HTML resources
-        if any(ext in path for ext in ['.png', '.jpg', '.jpeg', '.gif', '.svg', '.css', '.js']):
-            return False
-        
-        # Look for patterns that suggest individual icon pages
-        # This will need to be customized based on the actual site structure
-        icon_patterns = ['icon', 'item', 'detail']
-        
-        return any(pattern in path for pattern in icon_patterns)
-    
-    def _scrape_icon_from_url(self, url: str) -> Optional[IconData]:
-        """Scrape icon data from a specific URL.
-        
-        Args:
-            url: URL of the icon page
-            
-        Returns:
-            IconData if successful, None otherwise
+            List of IconData objects for all icons in the category
             
         Raises:
             NetworkError: If network request fails
-            ScrapingError: If parsing fails
+            ScrapingError: If page parsing fails
         """
-        try:
-            response = self._make_request(url)
-            soup = BeautifulSoup(response.content, 'html.parser')
-            
-            # Extract icon information - this will need to be customized
-            # based on the actual HTML structure of yotoicons.com
-            
-            name = self._extract_icon_name(soup, url)
-            image_url = self._extract_image_url(soup, url)
-            description = self._extract_description(soup)
-            tags = self._extract_tags(soup)
-            category = self._extract_category(soup)
-            
-            if not name or not image_url:
-                return None
-            
-            return IconData(
-                name=name,
-                url=url,
-                image_url=image_url,
-                description=description,
-                tags=tags,
-                category=category,
-                metadata={'scraped_at': datetime.now().isoformat()}
-            )
-            
-        except requests.RequestException as e:
-            raise NetworkError(f"Failed to fetch icon page {url}: {e}") from e
-        except Exception as e:
-            raise ScrapingError(f"Failed to parse icon page {url}: {e}") from e
-    
-    def _extract_icon_name(self, soup: BeautifulSoup, url: str) -> Optional[str]:
-        """Extract icon name from page.
+        all_icons: List[IconData] = []
+        page = 1
+        
+        while True:
+            try:
+                # Build category URL with pagination
+                category_url = f"{self.base_url}/icons?tag={category}&page={page}"
+                print(f"🔍 Scraping {category_url}")
+                
+                response = self._make_request(category_url)
+                soup = BeautifulSoup(response.content, 'html.parser')
+                
+                # Extract all icon image URLs from this page
+                page_icons = self._extract_icons_from_page(soup, category, category_url)
+                
+                if not page_icons:
+                    # No icons found on this page, we've reached the end
+                    break
+                
+                all_icons.extend(page_icons)
+                print(f"   📦 Found {len(page_icons)} icons on page {page}")
+                
+                # Check if there's a next page
+                if not self._has_next_page(soup):
+                    break
+                    
+                page += 1
+                
+                # Be respectful with delays between pages
+                time.sleep(self.delay_between_requests)
+                
+            except Exception as e:
+                print(f"⚠️  Error scraping page {page} of category {category}: {e}")
+                break
+        
+        return all_icons
+
+    def _extract_icons_from_page(self, soup: BeautifulSoup, category: str, page_url: str) -> List[IconData]:
+        """Extract all icon data from a category page.
         
         Args:
-            soup: BeautifulSoup object
-            url: Page URL for fallback name
+            soup: BeautifulSoup object of the category page
+            category: Category name
+            page_url: URL of the page being scraped
+            
+        Returns:
+            List of IconData objects
+        """
+        icons: List[IconData] = []
+        
+        # Find all images that are uploaded icons
+        images = soup.find_all('img')
+        
+        for img in images:
+            try:
+                src = img.get('src') if hasattr(img, 'get') else None
+                if not src or not isinstance(src, str):
+                    continue
+                
+                # Look for uploaded icon images (the real icons)
+                if 'uploads/' in src and any(ext in src for ext in ['.png', '.jpg', '.svg']):
+                    # Make URL absolute
+                    if src.startswith('/'):
+                        image_url = f"{self.base_url}{src}"
+                    elif not src.startswith('http'):
+                        image_url = f"{self.base_url}/{src.lstrip('/')}"
+                    else:
+                        image_url = src
+                    
+                    # Extract metadata from the image context
+                    name = self._extract_icon_name_from_img(img, image_url)
+                    tags = [category]  # At minimum, the category is a tag
+                    
+                    # Try to get additional tags from alt text or surrounding context
+                    alt_text = img.get('alt', '') if hasattr(img, 'get') else ''
+                    if alt_text and isinstance(alt_text, str) and alt_text != name:
+                        # Parse alt text for additional keywords
+                        alt_keywords = [word.strip() for word in alt_text.lower().split() if len(word) > 2]
+                        tags.extend(alt_keywords)
+                    
+                    icon_data = IconData(
+                        name=name,
+                        url=page_url,  # The category page URL
+                        image_url=image_url,
+                        description=f"Icon from {category} category",
+                        tags=list(set(tags)),  # Remove duplicates
+                        category=category,
+                        metadata={
+                            'scraped_at': datetime.now().isoformat(),
+                            'source_page': page_url,
+                            'category': category
+                        }
+                    )
+                    
+                    icons.append(icon_data)
+                    
+            except Exception as e:
+                print(f"   ⚠️  Error processing image: {e}")
+                continue
+        
+        return icons
+
+    def _extract_icon_name_from_img(self, img_tag, image_url: str) -> str:
+        """Extract icon name from image tag or URL.
+        
+        Args:
+            img_tag: BeautifulSoup img tag
+            image_url: Image URL
             
         Returns:
             Icon name
         """
-        # Try multiple strategies to find the name
+        # Try alt text first
+        alt = img_tag.get('alt', '') if hasattr(img_tag, 'get') else ''
+        if alt and isinstance(alt, str) and alt.strip():
+            return alt.strip()
         
-        # Strategy 1: Title tag
-        title_tag = soup.find('title')
-        if title_tag and title_tag.text:
-            title = title_tag.text.strip()
-            # Clean up common title patterns
-            for pattern in [' - Yoto Icons', ' | Yoto Icons', 'Yoto Icons - ']:
-                title = title.replace(pattern, '')
-            if title:
-                return title
+        # Try title attribute
+        title = img_tag.get('title', '') if hasattr(img_tag, 'get') else ''
+        if title and isinstance(title, str) and title.strip():
+            return title.strip()
         
-        # Strategy 2: H1 tag
-        h1_tag = soup.find('h1')
-        if h1_tag and h1_tag.text:
-            return h1_tag.text.strip()
-        
-        # Strategy 3: Meta property
-        meta_title = soup.find('meta', property='og:title')
-        if meta_title and meta_title.get('content'):
-            return meta_title['content'].strip()
-        
-        # Fallback: Extract from URL
-        path_parts = urlparse(url).path.split('/')
-        if path_parts:
-            return path_parts[-1].replace('-', ' ').replace('_', ' ').title()
-        
-        return None
-    
-    def _extract_image_url(self, soup: BeautifulSoup, page_url: str) -> Optional[str]:
-        """Extract icon image URL.
+        # Extract from filename
+        try:
+            filename = image_url.split('/')[-1]
+            name = filename.split('.')[0]  # Remove extension
+            # Convert number to more readable format
+            if name.isdigit():
+                return f"Icon {name}"
+            return name.replace('_', ' ').replace('-', ' ').title()
+        except:
+            return "Unnamed Icon"
+
+    def _has_next_page(self, soup: BeautifulSoup) -> bool:
+        """Check if there's a next page in pagination.
         
         Args:
-            soup: BeautifulSoup object
-            page_url: Page URL for making relative URLs absolute
+            soup: BeautifulSoup object of the current page
             
         Returns:
-            Image URL
+            True if there's a next page
         """
-        # Try multiple strategies to find the image
+        # Look for pagination section
+        pagination = soup.find('section', {'id': 'pagination'})
+        if not pagination:
+            return False
         
-        # Strategy 1: Open Graph image
-        og_image = soup.find('meta', property='og:image')
-        if og_image and og_image.get('content'):
-            return urljoin(page_url, og_image['content'])
-        
-        # Strategy 2: Main image with common classes/IDs
-        for selector in ['img.icon', 'img.main-image', '#main-image', '.icon-image img']:
-            img = soup.select_one(selector)
-            if img and img.get('src'):
-                return urljoin(page_url, img['src'])
-        
-        # Strategy 3: First image that looks like an icon
-        for img in soup.find_all('img'):
-            src = img.get('src', '')
-            alt = img.get('alt', '').lower()
-            
-            if src and ('icon' in src.lower() or 'icon' in alt):
-                return urljoin(page_url, src)
-        
-        return None
-    
-    def _extract_description(self, soup: BeautifulSoup) -> Optional[str]:
-        """Extract icon description.
-        
-        Args:
-            soup: BeautifulSoup object
-            
-        Returns:
-            Description text
-        """
-        # Try meta description first
-        meta_desc = soup.find('meta', attrs={'name': 'description'})
-        if meta_desc and meta_desc.get('content'):
-            return meta_desc['content'].strip()
-        
-        # Try Open Graph description
-        og_desc = soup.find('meta', property='og:description')
-        if og_desc and og_desc.get('content'):
-            return og_desc['content'].strip()
-        
-        # Try common description selectors
-        for selector in ['.description', '.icon-description', 'p']:
-            element = soup.select_one(selector)
-            if element and element.text:
-                text = element.text.strip()
-                if len(text) > 10:  # Avoid very short text
-                    return text
-        
-        return None
-    
-    def _extract_tags(self, soup: BeautifulSoup) -> List[str]:
-        """Extract tags/keywords.
-        
-        Args:
-            soup: BeautifulSoup object
-            
-        Returns:
-            List of tags
-        """
-        tags: Set[str] = set()
-        
-        # Meta keywords
-        meta_keywords = soup.find('meta', attrs={'name': 'keywords'})
-        if meta_keywords and meta_keywords.get('content'):
-            keywords = [k.strip() for k in meta_keywords['content'].split(',')]
-            tags.update(keywords)
-        
-        # Tags in common containers
-        for selector in ['.tags', '.keywords', '.categories']:
-            container = soup.select_one(selector)
-            if container:
-                for link in container.find_all('a'):
-                    if link.text:
-                        tags.add(link.text.strip())
-        
-        return list(tags)
-    
-    def _extract_category(self, soup: BeautifulSoup) -> Optional[str]:
-        """Extract category information.
-        
-        Args:
-            soup: BeautifulSoup object
-            
-        Returns:
-            Category name
-        """
-        # Try breadcrumbs
-        breadcrumbs = soup.select('.breadcrumb a, .breadcrumbs a, nav a')
-        if breadcrumbs and len(breadcrumbs) > 1:
-            # Usually the category is the second-to-last breadcrumb
-            return breadcrumbs[-2].text.strip()
-        
-        # Try category-specific selectors
-        for selector in ['.category', '.icon-category', '[data-category]']:
-            element = soup.select_one(selector)
-            if element:
-                if element.text:
-                    return element.text.strip()
-                if element.get('data-category'):
-                    return element['data-category']
-        
-        return None
+        # Look for next page link - using CSS selector is more reliable
+        next_link = soup.select_one('#pagination a#next_page')
+        return next_link is not None
     
     def _make_request(self, url: str) -> requests.Response:
         """Make HTTP request with error handling.
@@ -417,7 +310,7 @@ class YotoIconScraper:
             return response
         except requests.RequestException as e:
             raise NetworkError(f"HTTP request failed for {url}: {e}") from e
-    
+
     def close(self):
         """Clean up resources."""
         self.session.close()
