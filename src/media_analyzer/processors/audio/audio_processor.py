@@ -23,7 +23,7 @@ class AudioProcessor:
     def __init__(self, config: Optional[Dict] = None):
         """Initialize the audio processor with optional configuration."""
         self.config = config or {}
-        self._model = None
+        self._model: Optional[Any] = None  # Type hint for model
         self.validator = AudioFileValidator()
 
     @property
@@ -100,8 +100,12 @@ class AudioProcessor:
             ValueError: If invalid options are provided
         """
         try:
-            model = whisper.load_model("base.en")  # Use English model for better accuracy
-            # Initialize with English-specific options
+            # Use the lazy-loaded model property instead of creating a new one
+            model = self.model
+            if not model:
+                raise AudioProcessingError("Whisper model not initialized")
+
+            # Initialize with default options
             transcribe_kwargs = {
                 "language": "en",  # Force English language
                 "task": "transcribe",  # Force transcription task
@@ -112,13 +116,24 @@ class AudioProcessor:
             if options:
                 # Convert option values to proper types
                 if "language" in options:
-                    transcribe_kwargs["language"] = str(options["language"])
+                    language = str(options["language"])
+                    if language != "en":
+                        raise ValueError(f"Unsupported language: {language}")
+                    transcribe_kwargs["language"] = language
                 if "word_timestamps" in options:
                     transcribe_kwargs["word_timestamps"] = bool(options["word_timestamps"])
                 if "task" in options:
-                    transcribe_kwargs["task"] = str(options["task"])
+                    task = str(options["task"])
+                    if task not in {"transcribe", "translate"}:
+                        raise ValueError(f"Unsupported task: {task}")
+                    transcribe_kwargs["task"] = task
 
-            # Convert to a temporary WAV file
+            # Convert to audio segment
+            try:
+                audio_data = audio_file if isinstance(audio_file, AudioSegment) else AudioSegment.from_file(str(audio_file))
+            except Exception as e:
+                raise AudioProcessingError(f"Failed to load audio file: {str(e)}") from e
+   
             with NamedTemporaryFile(suffix=".wav") as temp_file:
                 print("Preprocessing audio...")
                 # Preprocess audio to match whisper's requirements (16000 Hz, mono)

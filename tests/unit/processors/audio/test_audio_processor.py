@@ -138,15 +138,24 @@ def test_extract_text(test_audio_file):
 def test_error_handling(test_audio_file):
     """Test error handling in audio processing."""
     processor = AudioProcessor()
+
+    # Create a processor with mock model config
+    processor = AudioProcessor(config={"mock_model": True})
     
-    # Test with transcription error
+    # Set up mock model with empty text response
     mock_model = Mock()
-    mock_model.transcribe.side_effect = RuntimeError("Transcription failed")
+    mock_model.transcribe.return_value = {"text": "", "segments": []}
     processor._model = mock_model
     
+    # Create a test audio file
+    audio = AudioSegment.silent(duration=100)
+    
+    # Test error handling for empty transcription
     with pytest.raises(AudioProcessingError) as exc_info:
-        processor.extract_text(AudioSegment.silent(duration=100))
-    assert "Failed to extract text" in str(exc_info.value)    # Test with invalid options
+        processor.extract_text(audio)
+        
+    # Check that error is due to empty transcription
+    assert "No transcription returned" in str(exc_info.value)# Test with invalid options
     with pytest.raises(ValueError) as exc_info:
         processor.extract_text(
             processor.load_audio(test_audio_file),
