@@ -191,11 +191,21 @@ class YotoIconScraper:
         """
         icons: List[IconData] = []
         
-        # Find all images that are uploaded icons
-        images = soup.find_all('img')
+        # Find all icon divs with onclick attributes - this contains the rich metadata
+        icon_divs = soup.find_all('div', class_='icon')
         
-        for img in images:
+        for icon_div in icon_divs:
             try:
+                # Extract onclick metadata first
+                onclick_data = self._extract_onclick_metadata(icon_div)
+                if not onclick_data:
+                    continue
+                
+                # Find the image within this icon div
+                img = icon_div.find('img')
+                if not img:
+                    continue
+                    
                 src = img.get('src') if hasattr(img, 'get') else None
                 if not src or not isinstance(src, str):
                     continue
@@ -210,38 +220,133 @@ class YotoIconScraper:
                     else:
                         image_url = src
                     
-                    # Extract metadata from the image context
-                    name = self._extract_icon_name_from_img(img, image_url)
-                    tags = [category]  # At minimum, the category is a tag
+                    # Use rich metadata from onclick attribute
+                    icon_id = onclick_data.get('icon_id', '')
+                    primary_tag = onclick_data.get('primary_tag', '')
+                    secondary_tag = onclick_data.get('secondary_tag', '')
+                    artist = onclick_data.get('artist', '')
+                    artist_id = onclick_data.get('artist_id', '')
                     
-                    # Try to get additional tags from alt text or surrounding context
-                    alt_text = img.get('alt', '') if hasattr(img, 'get') else ''
-                    if alt_text and isinstance(alt_text, str) and alt_text != name:
-                        # Parse alt text for additional keywords
-                        alt_keywords = [word.strip() for word in alt_text.lower().split() if len(word) > 2]
-                        tags.extend(alt_keywords)
+                    # Build comprehensive name from available data
+                    name = self._build_icon_name(primary_tag, secondary_tag, icon_id)
+                    
+                    # Build comprehensive tags list
+                    tags = [category]  # Always include category
+                    if primary_tag and primary_tag not in tags:
+                        tags.append(primary_tag)
+                    if secondary_tag and secondary_tag not in tags:
+                        tags.append(secondary_tag)
+                    
+                    # Build description with available context
+                    description_parts = []
+                    if primary_tag:
+                        description_parts.append(primary_tag)
+                    if secondary_tag and secondary_tag != primary_tag:
+                        description_parts.append(secondary_tag)
+                    description = f"{', '.join(description_parts)} icon from {category} category" if description_parts else f"Icon from {category} category"
+                    
+                    # Build metadata with all extracted information
+                    metadata = {
+                        'scraped_at': datetime.now().isoformat(),
+                        'source_page': page_url,
+                        'category': category,
+                        'icon_id': icon_id,
+                        'primary_tag': primary_tag,
+                        'secondary_tag': secondary_tag,
+                        'artist': artist,
+                        'artist_id': artist_id
+                    }
                     
                     icon_data = IconData(
                         name=name,
                         url=page_url,  # The category page URL
                         image_url=image_url,
-                        description=f"Icon from {category} category",
+                        description=description,
                         tags=list(set(tags)),  # Remove duplicates
                         category=category,
-                        metadata={
-                            'scraped_at': datetime.now().isoformat(),
-                            'source_page': page_url,
-                            'category': category
-                        }
+                        metadata=metadata
                     )
                     
                     icons.append(icon_data)
                     
             except Exception as e:
-                print(f"   ⚠️  Error processing image: {e}")
+                print(f"   ⚠️  Error processing icon div: {e}")
                 continue
         
         return icons
+
+    def _extract_onclick_metadata(self, icon_div) -> dict:
+        """Extract metadata from onclick attribute of icon div.
+        
+        Args:
+            icon_div: BeautifulSoup div element with class='icon'
+            
+        Returns:
+            Dictionary with extracted metadata
+        """
+        onclick = icon_div.get('onclick') if hasattr(icon_div, 'get') else None
+        if not onclick or not isinstance(onclick, str):
+            return {}
+        
+        try:
+            # Parse onclick like: populate_icon_modal('278', 'animals', 'dinosaur', 't-rex', 'pangolinpaw', '1914');
+            # Extract parameters between quotes
+            import re
+            matches = re.findall(r"'([^']*)'", onclick)
+            
+            if len(matches) >= 6:
+                return {
+                    'icon_id': matches[0],
+                    'category': matches[1], 
+                    'primary_tag': matches[2],
+                    'secondary_tag': matches[3],
+                    'artist': matches[4],
+                    'artist_id': matches[5]
+                }
+            elif len(matches) >= 4:
+                return {
+                    'icon_id': matches[0],
+                    'category': matches[1],
+                    'primary_tag': matches[2], 
+                    'secondary_tag': matches[3],
+                    'artist': '',
+                    'artist_id': ''
+                }
+            else:
+                return {}
+                
+        except Exception as e:
+            print(f"   ⚠️  Error parsing onclick: {onclick[:100]}... - {e}")
+            return {}
+
+    def _build_icon_name(self, primary_tag: str, secondary_tag: str, icon_id: str) -> str:
+        """Build a meaningful icon name from available metadata.
+        
+        Args:
+            primary_tag: Primary tag (e.g., 'dinosaur')
+            secondary_tag: Secondary tag (e.g., 't-rex')
+            icon_id: Icon ID (e.g., '278')
+            
+        Returns:
+            Human-readable icon name
+        """
+        name_parts = []
+        
+        if primary_tag and primary_tag.strip():
+            name_parts.append(primary_tag.strip().title())
+            
+        if secondary_tag and secondary_tag.strip() and secondary_tag != primary_tag:
+            name_parts.append(secondary_tag.strip().title())
+        
+        if name_parts:
+            name = ' '.join(name_parts)
+            # Add icon ID for uniqueness if needed
+            if icon_id:
+                name = f"{name} (#{icon_id})"
+            return name
+        else:
+            # Fallback to icon ID
+            return f"Icon {icon_id}" if icon_id else "Unnamed Icon"
 
     def _extract_icon_name_from_img(self, img_tag, image_url: str) -> str:
         """Extract icon name from image tag or URL.
