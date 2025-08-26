@@ -143,3 +143,44 @@ def sample_aac(tmp_path, sample_speech):
     # Cleanup
     if file_path.exists():
         file_path.unlink()
+
+
+@pytest.fixture
+def story_speech_options():
+    """Return speech options optimized for children's stories."""
+    return {
+        "voice": "Samantha",  # Clear, friendly voice
+        "rate": 170,  # Slightly slower for clarity
+        "sample_rate": 16000,
+        "channels": 1
+    }
+
+
+@pytest.fixture
+def sample_story_wav(tmp_path, story_speech_options):
+    """Create a sample children's story WAV file for testing.
+    
+    Creates an audio file with a short children's story snippet that includes:
+    - Character dialog
+    - Narrative elements
+    - Simple story structure
+    
+    Args:
+        tmp_path: Temporary directory from pytest
+        story_speech_options: Speech generation options
+        
+    Returns:
+        Path: Path to generated WAV file
+    """
+    story_text = (
+        "Once upon a time, there was a little rabbit named Hoppy. "
+        "'I love to hop and play!' said Hoppy. "
+        "One day, Hoppy met a wise old owl in the forest. "
+        "'Be careful where you hop,' warned the owl. "
+        "Hoppy smiled and thanked the owl for the good advice."
+    )
+    
+    file_path = tmp_path / "story_test.wav"
+    audio = generate_speech_audio(story_text, **story_speech_options)
+    audio.export(str(file_path), format="wav")
+    return file_path

@@ -173,3 +173,77 @@ def test_supported_formats():
         assert isinstance(fmt, str)
         # Format may include numbers (e.g., mp3)
         assert all(c.isalnum() for c in fmt)
+
+
+def test_story_text_extraction(sample_story_wav):
+    """Test text extraction from children's story audio.
+    
+    Tests that the processor can accurately handle:
+    - Story narrative structure
+    - Character dialogue
+    - Story-specific vocabulary
+    """
+    processor = AudioProcessor()
+    audio_data = processor.load_audio(sample_story_wav)
+    
+    result = processor.extract_text(audio_data)
+    
+    # Verify basic transcription
+    assert isinstance(result.text, str)
+    assert len(result.text) > 0
+    
+    # Check for key story elements in the text
+    text = result.text.lower()
+    assert "once upon a time" in text, "Story opening not detected"
+    assert "hoppy" in text, "Main character name not detected"
+    assert "owl" in text, "Supporting character not detected"
+    
+    # Check segments for dialogue structure
+    segments = result.segments
+    assert len(segments) > 0, "No segments detected"
+    
+    # Look for dialogue markers in segments
+    dialogue_found = False
+    for segment in segments:
+        if any(marker in segment["text"].lower() 
+               for marker in ["'", "said", "warned"]):
+            dialogue_found = True
+            break
+    assert dialogue_found, "No dialogue detected in segments"
+
+
+def test_story_audio_quality(sample_story_wav, story_speech_options):
+    """Test audio quality checks for children's story content.
+    
+    Verifies that the audio meets quality requirements for:
+    - Sample rate appropriate for clear speech
+    - Channel configuration
+    - Speech rate appropriate for children's content
+    """
+    processor = AudioProcessor()
+    audio_data = processor.load_audio(sample_story_wav)
+    info = processor.get_audio_info(audio_data)
+    
+    # Verify audio properties match story requirements
+    assert info["sample_rate"] == story_speech_options["sample_rate"], \
+        "Incorrect sample rate for story audio"
+    assert info["channels"] == story_speech_options["channels"], \
+        "Incorrect channel count for story audio"
+    
+    # Check duration is appropriate for the story content
+    assert 5.0 <= info["duration"] <= 30.0, \
+        f"Story duration {info['duration']}s outside expected range"
+    
+    # Process audio and check segment lengths
+    result = processor.extract_text(audio_data)
+    
+    # Calculate average segment duration
+    segment_durations = [
+        seg["end"] - seg["start"] 
+        for seg in result.segments
+    ]
+    avg_duration = sum(segment_durations) / len(segment_durations)
+    
+    # Story segments should be appropriate length for children's comprehension
+    assert 1.0 <= avg_duration <= 5.0, \
+        f"Average segment duration {avg_duration}s not suitable for children's content"
