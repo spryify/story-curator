@@ -8,12 +8,12 @@ This directory contains focused, reusable prompts for AI agents working on this 
 
 ```
 prompts/
-├── README.md                          # This file
-├── feature-implementation.md          # Main implementation prompt
-├── tdd-implementation.md             # TDD-specific prompt
-├── code-review.md                    # Code review prompt (future)
-├── documentation-update.md           # Documentation prompt (future)
-└── templates/                        # Prompt templates (future)
+├── README.md                               # This file
+├── feature-implementation-prompt.md        # Main implementation prompt
+├── tdd-implementation-prompt.md            # TDD-specific prompt
+├── code-review.md                          # Code review prompt (future)
+├── documentation-update.md                 # Documentation prompt (future)
+└── templates/                              # Prompt templates (future)
 ```
 
 ## 🚀 Usage

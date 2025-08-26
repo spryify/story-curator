@@ -10,10 +10,10 @@ This directory contains comprehensive documentation specifically designed for AI
 - **[development-workflow.md](development-workflow.md)** - Complete AI agent development process
 - **[tdd-workflow.md](tdd-workflow.md)** - Test-Driven Development methodology for AI agents
 
-### Implementation Guidance
+<!-- ### Implementation Guidance
 - **[feature-implementation.md](feature-implementation.md)** - How to implement specific types of features
 - **[testing-checklist.md](testing-checklist.md)** - Comprehensive testing requirements
-- **[quality-gates.md](quality-gates.md)** - Code quality standards and validation
+- **[quality-gates.md](quality-gates.md)** - Code quality standards and validation -->
 
 ## 🚀 Quick Start for AI Agents
 
