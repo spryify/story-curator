@@ -1,8 +1,12 @@
 """Integration tests for the audio analysis pipeline."""
 
 import os
-import pytest
+import numpy as np
 from pathlib import Path
+from scipy import signal
+import pytest
+import io
+import wave
 
 from media_analyzer.core.analyzer import Analyzer
 from media_analyzer.core.exceptions import ValidationError
@@ -10,25 +14,52 @@ from media_analyzer.models.audio import TranscriptionResult
 
 
 def create_test_file(tmp_path: Path, duration: int = 1000, filename: str = "test.wav") -> Path:
-    """Helper function to create a test audio file.
+    """Create a test audio file using macOS text-to-speech.
     
     Args:
         tmp_path: Directory to create the file in
-        duration: Duration of the audio in milliseconds
+        duration: Duration in milliseconds (approximate)
         filename: Name of the file to create
-    
+        
     Returns:
         Path to the created audio file
     """
+    import subprocess
     from pydub import AudioSegment
-    from pydub.generators import Sine
     
-    # Create a simple audio file with a sine wave
-    sine = Sine(440)  # 440 Hz sine wave
-    audio = sine.to_audio_segment(duration=duration)  # 1 second
+    # Create temp AIFF file (macOS say command output)
+    temp_aiff = str(tmp_path / "temp.aiff")
     
+    # Generate test text based on duration, with proper speech timing
+    # Use shorter phrases for more precise timing control
+    base_phrase = "testing one two three"  # Takes roughly 1 second at 200 wpm
+    # Calculate number of phrases needed, accounting for the speaking rate
+    words_per_phrase = 4
+    words_per_minute = 200  # From the say command rate
+    words_per_second = words_per_minute / 60
+    seconds_per_phrase = words_per_phrase / words_per_second
+    num_phrases = max(1, round((duration / 1000.0) / seconds_per_phrase))
+    phrases = [base_phrase] * num_phrases
+    text = ". ".join(phrases) + "."  # Add periods for natural pauses
+    
+    # Use macOS say command to generate speech with fast but natural rate
+    # Note: 200 words per minute is a natural fast speaking rate
+    subprocess.run(["say", "-r", "200", "-v", "Samantha", "-o", temp_aiff, text], check=True)
+    
+    # Convert to AudioSegment and adjust format
+    audio = AudioSegment.from_file(temp_aiff, format="aiff")
+    
+    # Convert to proper format for Whisper
+    audio = audio.set_frame_rate(16000).set_channels(1)
+    
+    # Export to desired format
     file_path = tmp_path / filename
-    audio.export(str(file_path), format=filename.split(".")[-1])
+    audio.export(str(file_path), format=filename.split('.')[-1])
+    
+    # Clean up temp file
+    import os
+    os.unlink(temp_aiff)
+    
     return file_path
 
 
@@ -112,7 +143,7 @@ def test_pipeline_performance(tmp_path):
     analyzer = Analyzer()
     
     # Test with different durations
-    durations = [1000, 5000]  # 1 second, 5 seconds
+    durations = [10000, 20000]  # 10 seconds, 20 seconds
     
     for duration in durations:
         # Create audio file of specified duration
@@ -127,7 +158,11 @@ def test_pipeline_performance(tmp_path):
         
         # Basic performance checks
         assert result.metadata["processing_time"] > 0
-        assert result.metadata["duration"] == duration / 1000.0  # Convert ms to seconds
+        # Verify duration is within expected range, allowing 50% variance
+        expected_duration = duration / 1000.0  # Convert ms to seconds
+        actual_duration = result.metadata["duration"]
+        # Allow for wider variance since TTS timing can vary significantly
+        assert 0.5 * expected_duration <= actual_duration <= 1.5 * expected_duration
 
 
 def test_pipeline_concurrent_processing(tmp_path):
