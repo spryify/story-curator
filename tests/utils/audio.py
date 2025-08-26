@@ -108,3 +108,53 @@ def export_audio(
     """
     audio.export(str(output_path), format=format, **kwargs)
     return output_path
+
+
+def create_timed_speech_file(
+    path: Path,
+    duration: int = 1000,
+    text: Optional[str] = None,
+    filename: str = "test.wav",
+) -> Path:
+    """Create a test audio file with specified duration using text-to-speech.
+    
+    Args:
+        path: Directory to create the file in
+        duration: Duration in milliseconds (approximate)
+        text: Text to speak. If None, will generate test text based on duration
+        filename: Name of the file to create
+        
+    Returns:
+        Path to the created audio file
+        
+    Example:
+        >>> # Create a 2-second WAV file
+        >>> file_path = create_timed_speech_file(tmp_path, duration=2000)
+        >>> # Create an MP3 file with specific text
+        >>> file_path = create_timed_speech_file(
+        ...     tmp_path,
+        ...     text="Hello world",
+        ...     filename="test.mp3"
+        ... )
+    """
+    # If no text provided, generate text based on duration
+    if text is None:
+        # Use shorter phrases for more precise timing control
+        base_phrase = "testing one two three"  # Takes roughly 1 second at 200 wpm
+        # Calculate number of phrases needed, accounting for the speaking rate
+        words_per_phrase = 4
+        words_per_minute = 200  # From the say command rate
+        words_per_second = words_per_minute / 60
+        seconds_per_phrase = words_per_phrase / words_per_second
+        num_phrases = max(1, round((duration / 1000.0) / seconds_per_phrase))
+        phrases = [base_phrase] * num_phrases
+        text = ". ".join(phrases) + "."  # Add periods for natural pauses
+
+    # Generate the audio segment
+    audio = create_speech_audio(text)
+    
+    # Export to desired format
+    file_path = path / filename
+    audio.export(str(file_path), format=filename.split('.')[-1])
+    
+    return file_path

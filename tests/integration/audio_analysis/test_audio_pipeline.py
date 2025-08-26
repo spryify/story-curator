@@ -11,56 +11,7 @@ import wave
 from media_analyzer.core.analyzer import Analyzer
 from media_analyzer.core.exceptions import ValidationError
 from media_analyzer.models.audio import TranscriptionResult
-
-
-def create_test_file(tmp_path: Path, duration: int = 1000, filename: str = "test.wav") -> Path:
-    """Create a test audio file using macOS text-to-speech.
-    
-    Args:
-        tmp_path: Directory to create the file in
-        duration: Duration in milliseconds (approximate)
-        filename: Name of the file to create
-        
-    Returns:
-        Path to the created audio file
-    """
-    import subprocess
-    from pydub import AudioSegment
-    
-    # Create temp AIFF file (macOS say command output)
-    temp_aiff = str(tmp_path / "temp.aiff")
-    
-    # Generate test text based on duration, with proper speech timing
-    # Use shorter phrases for more precise timing control
-    base_phrase = "testing one two three"  # Takes roughly 1 second at 200 wpm
-    # Calculate number of phrases needed, accounting for the speaking rate
-    words_per_phrase = 4
-    words_per_minute = 200  # From the say command rate
-    words_per_second = words_per_minute / 60
-    seconds_per_phrase = words_per_phrase / words_per_second
-    num_phrases = max(1, round((duration / 1000.0) / seconds_per_phrase))
-    phrases = [base_phrase] * num_phrases
-    text = ". ".join(phrases) + "."  # Add periods for natural pauses
-    
-    # Use macOS say command to generate speech with fast but natural rate
-    # Note: 200 words per minute is a natural fast speaking rate
-    subprocess.run(["say", "-r", "200", "-v", "Samantha", "-o", temp_aiff, text], check=True)
-    
-    # Convert to AudioSegment and adjust format
-    audio = AudioSegment.from_file(temp_aiff, format="aiff")
-    
-    # Convert to proper format for Whisper
-    audio = audio.set_frame_rate(16000).set_channels(1)
-    
-    # Export to desired format
-    file_path = tmp_path / filename
-    audio.export(str(file_path), format=filename.split('.')[-1])
-    
-    # Clean up temp file
-    import os
-    os.unlink(temp_aiff)
-    
-    return file_path
+from tests.utils.audio import create_timed_speech_file
 
 
 @pytest.fixture
@@ -74,7 +25,7 @@ class TestAudioPipeline:
     def test_end_to_end_audio_analysis(self, audio_analyzer, tmp_path, test_config):
         """Test the complete audio analysis pipeline."""
         # Create a test audio file
-        test_file = create_test_file(tmp_path)
+        test_file = create_timed_speech_file(tmp_path)
         
         # Process the file with default options
         result = audio_analyzer.process_file(test_file)
@@ -97,7 +48,7 @@ class TestAudioPipeline:
         """Test the pipeline with different audio formats."""
         for fmt in ["wav", "mp3"]:
             # Create test file in the current format
-            test_file = create_test_file(tmp_path, filename=f"test.{fmt}")
+            test_file = create_timed_speech_file(tmp_path, filename=f"test.{fmt}")
             
             # Process the file
             result = audio_analyzer.process_file(test_file)
@@ -109,7 +60,7 @@ class TestAudioPipeline:
 
     def test_pipeline_with_various_languages(self, audio_analyzer, tmp_path):
         """Test the pipeline with different language settings."""
-        test_file = create_test_file(tmp_path)
+        test_file = create_timed_speech_file(tmp_path)
         
         # Test valid language
         result = audio_analyzer.process_file(test_file, {"language": "en"})
@@ -134,7 +85,7 @@ class TestAudioPipeline:
             audio_analyzer.process_file(invalid_file)
         
         # Test with invalid options
-        test_file = create_test_file(tmp_path)
+        test_file = create_timed_speech_file(tmp_path)
         with pytest.raises(ValidationError):
             audio_analyzer.process_file(test_file, {"language": "invalid"})
 
@@ -145,7 +96,7 @@ class TestAudioPipeline:
         
         for duration in durations:
             # Create audio file of specified duration
-            file_path = create_test_file(
+            file_path = create_timed_speech_file(
                 tmp_path,
                 duration=duration,
                 filename=f"test_{duration}ms.wav"
@@ -168,7 +119,7 @@ class TestAudioPipeline:
         
         # Create multiple test files
         test_files = [
-            create_test_file(tmp_path, filename=f"test{i}.wav")
+            create_timed_speech_file(tmp_path, filename=f"test{i}.wav")
             for i in range(3)
         ]
         
