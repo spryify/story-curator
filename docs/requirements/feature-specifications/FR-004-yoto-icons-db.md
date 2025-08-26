@@ -112,7 +112,7 @@ So that I can reuse official icons when they match my content
 - **Related ADRs**: 
   - ADR-003 (Error Handling)
   - ADR-005 (Type Safety)
-  - ADR-010 (Database Design)
+  - ADR-009 (Database Design)
 
 ### Component Design
 - **New Components**:
