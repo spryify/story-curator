@@ -8,26 +8,40 @@ from media_analyzer.processors.subject.subject_identifier import SubjectIdentifi
 
 @pytest.fixture
 def audio_file_path(tmp_path) -> Path:
-    """Create a temporary audio file for testing."""
+    """Create a temporary audio file for testing using TTS.
+    
+    Args:
+        tmp_path: Directory to create the file in
+        
+    Returns:
+        Path to the created audio file
+    """
+    import subprocess
     from pydub import AudioSegment
-    from pydub.generators import Sine
     
-    # Create a test audio file with varying tones
-    # Using longer segments and diverse frequencies to help Whisper identify content
-    segments = []
+    # Create temp AIFF file (macOS say command output)
+    temp_aiff = str(tmp_path / "temp.aiff")
     
-    # Add segments with different tones and durations
-    frequencies = [440, 880, 220, 660]  # Different frequencies for variety
-    durations = [1000, 800, 1200, 1000]  # Longer durations in milliseconds
+    # Create test text that includes technology-related content for subject identification
+    text = "This is a test recording about machine learning and artificial intelligence. " \
+           "Neural networks and deep learning are transforming technology. " \
+           "Data science and algorithms help us understand complex patterns."
     
-    for freq, dur in zip(frequencies, durations):
-        segments.append(AudioSegment.silent(duration=300))  # Silence between tones
-        segments.append(Sine(freq).to_audio_segment(duration=dur))
+    # Use macOS say command with natural speaking rate
+    subprocess.run(["say", "-r", "200", "-v", "Samantha", "-o", temp_aiff, text], check=True)
     
-    segments.append(AudioSegment.silent(duration=500))  # Final silence
-    audio = sum(segments)    # Export with test content
+    # Convert to proper format for processing
+    audio = AudioSegment.from_file(temp_aiff, format="aiff")
+    audio = audio.set_frame_rate(16000).set_channels(1)
+    
+    # Export to WAV format
     file_path = tmp_path / "test_audio.wav"
     audio.export(str(file_path), format="wav")
+    
+    # Clean up temp file
+    import os
+    os.unlink(temp_aiff)
+    
     return file_path
 
 @pytest.fixture
