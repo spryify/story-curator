@@ -1,6 +1,6 @@
-# Media Content Analyzer
+# Story Curator
 
-The project is a media analyzer, using documentation-first, test-driven, agent-supervised development.
+The project is a curator and analyzer of children's stories, using documentation-first, test-driven, agent-supervised development. This project was developed using Microsoft Visual Studio Code, assisted by GitHub Copilot with Claude Sonnet 4 as the underlying model.
 
 ## Project Overview
 

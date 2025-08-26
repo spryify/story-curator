@@ -17,7 +17,7 @@ def run_command(command, description):
             command.split(),
             capture_output=True,
             text=True,
-            cwd="/Users/saparya/Documents/Projects/story-curator"
+            cwd="story-curator"
         )
         
         print("STDOUT:")
