@@ -27,12 +27,21 @@ class IconModel(Base):
     name = Column(String(255), nullable=False, index=True)
     url = Column(String(500), nullable=False, unique=True)
     image_url = Column(String(500), nullable=False)
-    tags = Column(ARRAY(String), nullable=False, default=list)
+    tags = Column(ARRAY(String), nullable=False, default=lambda: [])
     description = Column(Text)
     category = Column(String(100))
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
-    icon_metadata = Column(JSONB, default=dict)
+    icon_metadata = Column(JSONB, default=lambda: {})
+    
+    def __init__(self, **kwargs):
+        """Initialize IconModel with proper defaults."""
+        # Set defaults for mutable types
+        if 'tags' not in kwargs:
+            kwargs['tags'] = []
+        if 'icon_metadata' not in kwargs:
+            kwargs['icon_metadata'] = {}
+        super().__init__(**kwargs)
     
     # Create indexes for search performance
     __table_args__ = (

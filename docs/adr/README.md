@@ -66,6 +66,12 @@ Each ADR follows a consistent format:
    - Keyword extraction
    - Performance optimization
 
+9. [ADR-009: Database Design](ADR-009-database-design.md)
+   - PostgreSQL schema design
+   - Indexing strategy
+   - Data modeling
+   - Performance optimization
+
 ## For AI Agents
 
 When working on features, consult these ADRs to understand:
@@ -75,12 +81,14 @@ When working on features, consult these ADRs to understand:
 - **How to ensure type safety** (ADR-005)
 - **How to write tests** (ADR-006)
 - **How to add logging** (ADR-007)
+- **How to design databases** (ADR-009)
 
 ## Quick Reference by Component
 
 - **Core Operations**: ADR-001, ADR-003, ADR-005
 - **Plugin Development**: ADR-002, ADR-003, ADR-006
 - **CLI Development**: ADR-004, ADR-003, ADR-007
+- **Database Design**: ADR-009, ADR-003, ADR-005
 - **Testing**: ADR-006, ADR-005
 - **Error Handling**: ADR-003, ADR-007
 - **Text Processing**: ADR-008, ADR-003, ADR-007

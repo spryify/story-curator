@@ -1,0 +1,111 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "story-curator"
+version = "0.1.0"
+description = "Story Curator - Audio analysis and icon management tools"
+readme = "README.md"
+requires-python = ">=3.9"
+authors = [
+    {name = "Story Curator Team", email = "dev@story-curator.com"},
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+
+dependencies = [
+    "SpeechRecognition>=3.10.0",
+    "openai-whisper>=1.0.0",
+    "pydub>=0.25.1",
+    "nltk>=3.8.1",
+    "spacy>=3.7.2",
+    "tqdm>=4.66.1",
+    "python-dotenv>=1.0.0",
+    "typing-extensions>=4.8.0",
+    "langdetect>=1.0.9",
+    "psutil>=5.9.8",
+    "SQLAlchemy>=2.0.0",
+    "psycopg2-binary>=2.9.7",
+    "alembic>=1.12.0",
+    "beautifulsoup4>=4.12.2",
+    "requests>=2.31.0",
+    "lxml>=4.9.3",
+    "vcrpy>=5.1.0",
+    "gensim>=4.3.2",
+    "scikit-learn>=1.3.1",
+    "networkx>=3.1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-cov>=4.1.0",
+    "pytest-mock>=3.11.1",
+    "black",
+    "flake8",
+    "mypy",
+    "isort",
+]
+
+[project.scripts]
+media-analyzer = "media_analyzer.cli.main:main"
+icon-curator = "icon_curator.cli.main:main"
+
+[project.urls]
+Homepage = "https://github.com/story-curator/story-curator"
+"Bug Reports" = "https://github.com/story-curator/story-curator/issues"
+"Source" = "https://github.com/story-curator/story-curator"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-dir]
+"" = "src"
+
+[tool.black]
+line-length = 88
+target-version = ['py39', 'py310', 'py311']
+include = '\.pyi?$'
+extend-exclude = '''
+# A regex preceded by ^/ will apply only to files in the root of the project.
+^/migrations/
+'''
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+line_length = 88
+
+[tool.mypy]
+python_version = "3.9"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+no_implicit_optional = true
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+addopts = "-ra -q --strict-markers --strict-config"
+testpaths = [
+    "tests",
+]
+pythonpath = [
+    "src",
+]

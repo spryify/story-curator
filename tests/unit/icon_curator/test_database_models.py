@@ -61,7 +61,7 @@ class TestIconModel:
         assert model.tags == []  # Default empty list
         assert model.description is None
         assert model.category is None
-        assert model.metadata == {}  # Default empty dict
+        assert model.icon_metadata == {}  # Default empty dict
         assert model.created_at is None  # Will be set by database
         assert model.updated_at is None  # Will be set by database
     

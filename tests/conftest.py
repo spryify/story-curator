@@ -1,18 +1,13 @@
 """Test configuration and fixtures."""
 
 import pytest
+import os
 from pathlib import Path
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 
 # Define test data directory
 TEST_DATA_DIR = Path(__file__).parent / "data"
-AUDIO_DATA_DIR = TEST_DATA_DIR / "audio"
-
-def pytest_configure():
-    """Configure pytest."""
-    # Ensure test data directories exist
-    AUDIO_DATA_DIR.mkdir(parents=True, exist_ok=True)
-
-# Move audio files under a dedicated audio subdirectory
 AUDIO_DATA_DIR = TEST_DATA_DIR / "audio"
 
 def pytest_configure():
@@ -38,6 +33,29 @@ def test_config():
             "language": "en"
         }
     }
+
+@pytest.fixture
+def test_db_engine():
+    """Create PostgreSQL test database engine."""
+    # Use environment variable or default test database URL
+    test_db_url = os.getenv(
+        "TEST_DATABASE_URL", 
+        "postgresql://postgres:password@localhost:5432/icon_curator_test"
+    )
+    engine = create_engine(test_db_url, echo=False)
+    yield engine
+    engine.dispose()
+
+@pytest.fixture
+def test_db_session(test_db_engine):
+    """Create a test database session."""
+    TestSession = sessionmaker(bind=test_db_engine)
+    session = TestSession()
+    try:
+        yield session
+    finally:
+        session.rollback()
+        session.close()
 
 def _ensure_test_dirs():
     """Ensure test data directories exist."""

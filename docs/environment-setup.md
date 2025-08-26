@@ -1,5 +1,36 @@
 # Environment Setup Guide
 
+## Prerequisites
+
+### PostgreSQL Database
+The Icon Curator feature requires PostgreSQL for both development and production:
+
+1. **Install PostgreSQL**:
+   - **macOS**: `brew install postgresql`
+   - **Ubuntu**: `sudo apt-get install postgresql postgresql-contrib`
+   - **Windows**: Download from [postgresql.org](https://www.postgresql.org/download/windows/)
+
+2. **Start PostgreSQL service**:
+   - **macOS**: `brew services start postgresql`
+   - **Ubuntu**: `sudo systemctl start postgresql`
+   - **Windows**: Use Services application
+
+3. **Create databases**:
+   ```bash
+   createdb icon_curator_dev
+   createdb icon_curator_test
+   ```
+
+4. **Set environment variables** (optional):
+   ```bash
+   export DB_HOST=localhost
+   export DB_PORT=5432
+   export DB_NAME=icon_curator_dev
+   export DB_USER=postgres
+   export DB_PASSWORD=your_password
+   export TEST_DATABASE_URL=postgresql://postgres:your_password@localhost:5432/icon_curator_test
+   ```
+
 ## Virtual Environment Setup
 
 1. Create a virtual environment:
@@ -24,8 +55,9 @@
 
 ## Using the CLI
 
-After installation, the `media-analyzer` command will be available in your environment. Here are some example commands:
+After installation, both `media-analyzer` and `icon-curator` commands will be available in your environment.
 
+### Media Analyzer Examples
 ```bash
 # Get help on available commands
 media-analyzer --help
@@ -38,6 +70,24 @@ media-analyzer transcribe audio.wav --language en --summary-length 500 --output 
 
 # Show detailed processing information
 media-analyzer transcribe audio.mp3 --verbose
+```
+
+### Icon Curator Examples
+```bash
+# Get help on available commands
+icon-curator --help
+
+# Scrape and store icons from yotoicons.com
+icon-curator scrape
+
+# Search for icons by keyword
+icon-curator search "animal"
+
+# Get statistics about stored icons
+icon-curator stats
+
+# Search with category filter
+icon-curator search "nature" --category "outdoors" --limit 20
 ```
 
 ## Development Dependencies
