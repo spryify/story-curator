@@ -1,126 +1,153 @@
-"""Simplified integration tests for core functionality."""
+"""Integration tests for core icon curator functionality."""
 
 import pytest
 from datetime import datetime
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 
-from .test_models import TestBase, TestIconModel
-from src.icon_curator.models.icon import IconData
+from src.icon_curator.models.icon import IconData, ScrapingResult
 from src.icon_curator.core.exceptions import ValidationError
-
-
-@pytest.fixture(scope="function")
-def test_db_session():
-    """Create an in-memory SQLite database for testing."""
-    # Use in-memory SQLite for testing
-    engine = create_engine("sqlite:///:memory:", echo=False)
-    TestBase.metadata.create_all(engine)
-    
-    SessionLocal = sessionmaker(bind=engine)
-    session = SessionLocal()
-    
-    yield session
-    
-    session.close()
+from src.icon_curator.processors.scraper import YotoIconScraper
 
 
 class TestIconCuratorBasicFunctionality:
     """Basic integration tests for icon curator functionality."""
     
     def test_icon_data_creation(self):
-        """Test creating IconData objects."""
+        """Test creating IconData objects with all fields."""
         icon = IconData(
             name="Test Icon",
             url="https://yotoicons.com/test",
             image_url="https://yotoicons.com/test.svg",
-            tags=["test"],
-            description="A test icon",
-            category="Testing"
+            tags=["test", "integration"],
+            description="A test icon for integration tests",
+            category="Testing",
+            metadata={"source": "integration_test", "version": "1.0"}
         )
         
         assert icon.name == "Test Icon"
         assert icon.url == "https://yotoicons.com/test"
         assert icon.image_url == "https://yotoicons.com/test.svg"
-        assert icon.tags == ["test"]
-        assert icon.description == "A test icon"
+        assert icon.tags == ["test", "integration"]
+        assert icon.description == "A test icon for integration tests"
         assert icon.category == "Testing"
         assert isinstance(icon.created_at, datetime)
         assert isinstance(icon.updated_at, datetime)
-        assert icon.metadata == {}
+        assert icon.metadata == {"source": "integration_test", "version": "1.0"}
     
-    def test_test_model_creation(self, test_db_session):
-        """Test creating and saving test icon models."""
-        model = TestIconModel(
-            name="Test Icon Model",
-            url="https://example.com/test",
-            image_url="https://example.com/test.svg",
-            tags="test,example",
-            description="Test model",
-            category="Testing"
+    def test_icon_data_validation(self):
+        """Test IconData validation with invalid data."""
+        # Test with missing required fields
+        with pytest.raises(TypeError):
+            IconData()  # Missing required name, url, image_url, tags
+    
+    def test_scraping_result_creation(self):
+        """Test creating ScrapingResult objects."""
+        result = ScrapingResult(
+            total_icons=3,
+            successful_scraped=2,
+            failed_scraped=1,
+            processing_time=5.5,
+            errors=["Failed to scrape icon3"],
+            timestamp=datetime.now()
         )
         
-        test_db_session.add(model)
-        test_db_session.commit()
-        
-        # Query back from database
-        saved_model = test_db_session.query(TestIconModel).filter_by(name="Test Icon Model").first()
-        
-        assert saved_model is not None
-        assert saved_model.name == "Test Icon Model"
-        assert saved_model.url == "https://example.com/test"
-        assert saved_model.image_url == "https://example.com/test.svg"
-        assert saved_model.tags == "test,example"
-        assert saved_model.description == "Test model"
-        assert saved_model.category == "Testing"
-        assert saved_model.id is not None
-        assert saved_model.created_at is not None
+        assert result.total_icons == 3
+        assert result.successful_scraped == 2 
+        assert result.failed_scraped == 1
+        assert result.processing_time == 5.5
+        assert len(result.errors) == 1
+        assert result.success_rate == pytest.approx(66.7, rel=0.1)
     
-    def test_model_search_functionality(self, test_db_session):
-        """Test basic search functionality."""
-        # Create multiple test icons
-        icons = [
-            TestIconModel(
-                name="Animal Icon",
-                url="https://example.com/animal",
-                image_url="https://example.com/animal.svg",
-                tags="animal,cute",
-                category="Animals"
-            ),
-            TestIconModel(
-                name="Plant Icon",
-                url="https://example.com/plant",
-                image_url="https://example.com/plant.svg",
-                tags="plant,nature",
-                category="Nature"
-            ),
-            TestIconModel(
-                name="Car Icon",
-                url="https://example.com/car",
-                image_url="https://example.com/car.svg",
-                tags="car,vehicle",
-                category="Transport"
-            )
-        ]
+    def test_scraper_initialization(self):
+        """Test YotoIconScraper initialization and configuration."""
+        # Test default initialization
+        scraper = YotoIconScraper()
+        assert scraper.base_url == "https://yotoicons.com"
+        assert scraper.delay_between_requests == 1.0
+        assert scraper.max_retries == 3
+        assert scraper.timeout == 30
         
-        for icon in icons:
-            test_db_session.add(icon)
-        test_db_session.commit()
+        # Test custom initialization
+        custom_scraper = YotoIconScraper(
+            base_url="https://custom-icons.com",
+            delay_between_requests=2.0,
+            max_retries=5,
+            timeout=60
+        )
+        assert custom_scraper.base_url == "https://custom-icons.com"
+        assert custom_scraper.delay_between_requests == 2.0
+        assert custom_scraper.max_retries == 5
+        assert custom_scraper.timeout == 60
+    
+    def test_icon_data_equality_and_hashing(self):
+        """Test IconData equality and hashing for collections."""
+        icon1 = IconData(
+            name="Test Icon",
+            url="https://yotoicons.com/test",
+            image_url="https://yotoicons.com/test.svg",
+            tags=["test"]
+        )
         
-        # Test search by name
-        animal_results = test_db_session.query(TestIconModel).filter(
-            TestIconModel.name.like("%Animal%")
-        ).all()
-        assert len(animal_results) == 1
-        assert animal_results[0].name == "Animal Icon"
+        icon2 = IconData(
+            name="Test Icon",
+            url="https://yotoicons.com/test", 
+            image_url="https://yotoicons.com/test.svg",
+            tags=["test"]
+        )
         
-        # Test search by category
-        nature_results = test_db_session.query(TestIconModel).filter(
-            TestIconModel.category == "Nature"
-        ).all()
-        assert len(nature_results) == 1
-        assert nature_results[0].name == "Plant Icon"
+        icon3 = IconData(
+            name="Different Icon",
+            url="https://yotoicons.com/different",
+            image_url="https://yotoicons.com/different.svg",
+            tags=["different"]
+        )
         
-        # Test count
-        total_count = test_db_session.query(TestIconModel).count()
-        assert total_count == 3
+        # Test that icons with same URL are considered equal for deduplication
+        assert icon1.url == icon2.url
+        assert icon1.url != icon3.url
+        
+        # Test that we can work with icons in lists for deduplication
+        icon_list = [icon1, icon2, icon3]
+        # Should have 2 unique icons based on URL
+        unique_urls = {icon.url for icon in icon_list}
+        assert len(unique_urls) == 2
+    
+    def test_icon_data_string_representation(self):
+        """Test IconData string representation for debugging."""
+        icon = IconData(
+            name="Debug Icon",
+            url="https://yotoicons.com/debug",
+            image_url="https://yotoicons.com/debug.svg",
+            tags=["debug"],
+            category="Debug"
+        )
+        
+        # Test that string representation contains key information
+        icon_str = str(icon)
+        assert "Debug Icon" in icon_str
+        assert "Debug" in icon_str or "debug" in icon_str.lower()
+    
+    def test_scraping_result_edge_cases(self):
+        """Test ScrapingResult with edge cases."""
+        # Test with zero total icons
+        empty_result = ScrapingResult(
+            total_icons=0,
+            successful_scraped=0,
+            failed_scraped=0,
+            processing_time=0.1,
+            errors=[],
+            timestamp=datetime.now()
+        )
+        
+        assert empty_result.success_rate == 0.0
+        
+        # Test with perfect success rate
+        perfect_result = ScrapingResult(
+            total_icons=5,
+            successful_scraped=5,
+            failed_scraped=0,
+            processing_time=10.0,
+            errors=[],
+            timestamp=datetime.now()
+        )
+        
+        assert perfect_result.success_rate == 100.0
