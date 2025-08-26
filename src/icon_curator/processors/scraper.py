@@ -178,6 +178,104 @@ class YotoIconScraper:
         
         return all_icons
 
+    def scrape_category(self, category: str, max_pages: Optional[int] = None) -> ScrapingResult:
+        """Scrape icons from a specific category with optional page limit.
+        
+        Args:
+            category: Category name to scrape
+            max_pages: Maximum number of pages to scrape (None for all pages)
+            
+        Returns:
+            ScrapingResult with statistics and any errors encountered
+            
+        Raises:
+            ScrapingError: If scraping fails completely
+            NetworkError: If network requests fail
+        """
+        start_time = time.time()
+        scraped_icons: List[IconData] = []
+        errors: List[str] = []
+        
+        try:
+            category_icons = self._scrape_category_with_limit(category, max_pages)
+            scraped_icons.extend(category_icons)
+            
+            processing_time = time.time() - start_time
+            total_icons = len(scraped_icons)
+            successful_scraped = len([icon for icon in scraped_icons if icon is not None])
+            
+            return ScrapingResult(
+                total_icons=total_icons,
+                successful_scraped=successful_scraped,
+                failed_scraped=total_icons - successful_scraped,
+                processing_time=processing_time,
+                errors=errors,
+                timestamp=datetime.now()
+            )
+            
+        except Exception as e:
+            errors.append(f"Failed to scrape category {category}: {e}")
+            processing_time = time.time() - start_time
+            
+            return ScrapingResult(
+                total_icons=0,
+                successful_scraped=0,
+                failed_scraped=1,
+                processing_time=processing_time,
+                errors=errors,
+                timestamp=datetime.now()
+            )
+
+    def _scrape_category_with_limit(self, category: str, max_pages: Optional[int] = None) -> List[IconData]:
+        """Scrape icons from a category with optional page limit.
+        
+        Args:
+            category: Category name to scrape
+            max_pages: Maximum number of pages to scrape (None for all pages)
+            
+        Returns:
+            List of IconData objects for icons in the category
+        """
+        all_icons: List[IconData] = []
+        page = 1
+        
+        while True:
+            # Check page limit
+            if max_pages and page > max_pages:
+                print(f"🛑 Reached maximum page limit ({max_pages}) for category {category}")
+                break
+                
+            try:
+                # Build category URL with pagination
+                category_url = f"{self.base_url}/icons?tag={category}&page={page}"
+                print(f"🔍 Scraping {category_url} (page {page})")
+                
+                response = self._make_request(category_url)
+                soup = BeautifulSoup(response.content, 'html.parser')
+                
+                # Extract all icon image URLs from this page
+                page_icons = self._extract_icons_from_page(soup, category, category_url)
+                
+                if not page_icons:
+                    # No icons found on this page, we've reached the end
+                    print(f"✅ Category {category} completed - no more icons found (scraped {page-1} pages)")
+                    break
+                
+                all_icons.extend(page_icons)
+                print(f"📦 Found {len(page_icons)} icons on page {page} (total: {len(all_icons)})")
+                
+                # Move to next page
+                page += 1
+                
+                # Add small delay to be respectful
+                time.sleep(0.5)
+                
+            except Exception as e:
+                print(f"⚠️  Error scraping page {page} of category {category}: {e}")
+                break
+        
+        return all_icons
+
     def _extract_icons_from_page(self, soup: BeautifulSoup, category: str, page_url: str) -> List[IconData]:
         """Extract all icon data from a category page.
         

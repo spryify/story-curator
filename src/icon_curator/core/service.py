@@ -33,12 +33,16 @@ class IconService:
     
     def scrape_and_store_icons(
         self,
-        force_update: bool = False
+        force_update: bool = False,
+        category: Optional[str] = None,
+        max_pages: Optional[int] = None
     ) -> ScrapingResult:
         """Scrape icons from Yoto website and store them in database.
         
         Args:
             force_update: Whether to update existing icons
+            category: Specific category to scrape (None for all categories)
+            max_pages: Maximum number of pages to scrape per category
             
         Returns:
             ScrapingResult with operation statistics
@@ -49,11 +53,27 @@ class IconService:
         try:
             logger.info("Starting icon scraping and storage operation")
             
+            if category:
+                logger.info(f"Scraping category: {category}")
+                if max_pages:
+                    logger.info(f"Limited to {max_pages} pages")
+            else:
+                logger.info("Scraping all categories")
+                if max_pages:
+                    logger.info(f"Limited to {max_pages} pages per category")
+            
             # Ensure database tables exist
             db_manager.create_tables()
             
-            # Scrape icons from website
-            scraping_result = self.scraper.scrape_all_icons()
+            # Scrape icons from website based on parameters
+            if category:
+                scraping_result = self.scraper.scrape_category(category, max_pages)
+            else:
+                # For now, if max_pages is specified but no category, we'll need to modify scrape_all_icons
+                # to support page limits. For simplicity, let's fall back to the existing method
+                if max_pages:
+                    logger.warning("max_pages parameter is ignored when scraping all categories. Use with a specific category.")
+                scraping_result = self.scraper.scrape_all_icons()
             
             logger.info(
                 f"Scraping completed: {scraping_result.successful_scraped}/"

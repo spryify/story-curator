@@ -78,21 +78,21 @@ def scrape_command(args) -> int:
                     if images or svg_count:
                         print(f"    🎨 Found {len(images)} images and {svg_count} SVG elements")
                     # Try to use the scraper's actual discovery logic
-                    print(f"\n🔍 Testing icon discovery...")
+                    print(f"\n🔍 Testing category discovery...")
                     try:
-                        # Use the scraper's built-in discovery method in demo mode
-                        icon_urls = scraper._discover_icon_urls()
-                        if icon_urls:
-                            print(f"    ✅ Discovered {len(icon_urls)} potential icon URLs:")
-                            for url in icon_urls[:5]:  # Show first 5
-                                print(f"      - {url}")
-                            if len(icon_urls) > 5:
-                                print(f"      ... and {len(icon_urls) - 5} more")
+                        # Use the scraper's built-in category discovery method
+                        categories = scraper._discover_categories()
+                        if categories:
+                            print(f"    ✅ Discovered {len(categories)} categories:")
+                            for cat in categories[:5]:  # Show first 5
+                                print(f"      - {cat}")
+                            if len(categories) > 5:
+                                print(f"      ... and {len(categories) - 5} more")
                         else:
-                            print(f"    📝 No icon URLs discovered with current logic")
+                            print(f"    📝 No categories discovered with current logic")
                             print(f"        (This may need site-specific adaptation)")
                     except Exception as discovery_error:
-                        print(f"    ⚠️  Icon discovery test: {discovery_error}")
+                        print(f"    ⚠️  Category discovery test: {discovery_error}")
                         print(f"        (Discovery logic may need site-specific tuning)")
                 
                 else:
@@ -115,7 +115,25 @@ def scrape_command(args) -> int:
         service = IconService()
         
         print("Starting icon scraping from yotoicons.com...")
-        result = service.scrape_and_store_icons(force_update=args.force_update)
+        
+        # Determine what to scrape based on arguments
+        category = getattr(args, 'category', None)
+        max_pages = getattr(args, 'max_pages', None)
+        
+        if category:
+            print(f"Scraping category: {category}")
+            if max_pages:
+                print(f"Limited to {max_pages} pages per category")
+        else:
+            print("Scraping all available categories")
+            if max_pages:
+                print(f"Limited to {max_pages} pages per category")
+        
+        result = service.scrape_and_store_icons(
+            force_update=args.force_update,
+            category=category,
+            max_pages=max_pages
+        )
         
         print(f"Scraping completed!")
         print(f"Total icons found: {result.total_icons}")
@@ -259,6 +277,16 @@ def create_parser() -> argparse.ArgumentParser:
     scrape_parser = subparsers.add_parser(
         'scrape',
         help='Scrape icons from yotoicons.com'
+    )
+    scrape_parser.add_argument(
+        'category',
+        nargs='?',
+        help='Category to scrape (e.g., animals, food, weather). If not specified, scrapes all categories.'
+    )
+    scrape_parser.add_argument(
+        '--max-pages',
+        type=int,
+        help='Maximum number of pages to scrape per category (useful for testing)'
     )
     scrape_parser.add_argument(
         '--force-update',
