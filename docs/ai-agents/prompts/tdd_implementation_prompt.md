@@ -13,9 +13,8 @@ Implement the specified feature using strict Test-Driven Development (TDD) metho
 **MUST READ** before starting:
 1. **Feature Requirement**: `docs/requirements/feature-specifications/[FR-XXX]*.md`
 2. **TDD Workflow**: `docs/ai-agents/workflows/tdd-workflow.md`
-3. **TDD Quick Reference**: `docs/ai-agents/workflows/tdd-quick-reference.md`
-4. **Related ADRs**: Listed in feature requirement (especially ADR-006: Testing Strategy)
-5. **Project Coding Standards**: Follow all ADR requirements for documentation, type hints, and code quality
+3. **Related ADRs**: Listed in feature requirement (especially ADR-006: Testing Strategy)
+4. **Project Coding Standards**: Follow all ADR requirements for documentation, type hints, and code quality
 
 ## 🔄 TDD Process
 

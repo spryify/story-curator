@@ -2,24 +2,18 @@
 
 ## 🤖 Overview
 
-This directory contains comprehensive documentation specifically designed for AI agents (Claude Code, GitHub Copilot, etc.) working on the CLI Calculator project. All documentation follows industry best practices for agentic coding to ensure high-quality, consistent implementations.
+This directory contains comprehensive documentation specifically designed for AI agents (Claude Code, GitHub Copilot, etc.) working on the Story Curator project. The documentation follows industry best practices for agentic coding to ensure high-quality, consistent implementations.
 
 ## 📚 Documentation Structure
 
 ### Core Workflow Documents
 - **[development-workflow.md](development-workflow.md)** - Complete AI agent development process
 - **[tdd-workflow.md](tdd-workflow.md)** - Test-Driven Development methodology for AI agents
-- **[tdd-quick-reference.md](tdd-quick-reference.md)** - TDD commands, templates, and examples
 
 ### Implementation Guidance
 - **[feature-implementation.md](feature-implementation.md)** - How to implement specific types of features
 - **[testing-checklist.md](testing-checklist.md)** - Comprehensive testing requirements
 - **[quality-gates.md](quality-gates.md)** - Code quality standards and validation
-
-### Support Resources
-- **[troubleshooting.md](troubleshooting.md)** - Common issues and solutions
-- **[best-practices.md](best-practices.md)** - AI agent specific best practices
-- **[integration-guide.md](integration-guide.md)** - How to integrate with existing systems
 
 ## 🚀 Quick Start for AI Agents
 
