@@ -10,3 +10,11 @@ src/media_analyzer.egg-info/requires.txt
 src/media_analyzer.egg-info/top_level.txt
 src/media_analyzer/cli/__init__.py
 src/media_analyzer/cli/audio.py
+src/media_analyzer/models/__init__.py
+src/media_analyzer/models/audio/__init__.py
+src/media_analyzer/models/audio/errors.py
+src/media_analyzer/models/audio/transcription.py
+src/media_analyzer/models/subject/__init__.py
+src/media_analyzer/models/subject/identification.py
+src/media_analyzer/utils/__init__.py
+src/media_analyzer/utils/stopwords.py

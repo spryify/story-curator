@@ -106,15 +106,17 @@ def test_transcription_with_options(test_audio_file):
 
 
 @pytest.mark.parametrize("audio_format", ["wav", "mp3"])
-def test_supported_formats(test_audio_file, audio_format):
+def test_supported_formats(test_formats, audio_format):
     """Test that analyzer supports different audio formats."""
-    # Use the actual audio files we created
-    test_file = test_audio_file.parent / f"sample.{audio_format}"
-    
+    test_file = test_formats[audio_format]
+
     analyzer = Analyzer()
     result = analyzer.process_file(str(test_file))
+
     assert isinstance(result, TranscriptionResult)
+    assert result.confidence > 0.0
     assert "duration" in result.metadata
+    assert "format testing" in result.text.lower()
 
 
 def test_analyzer_error_handling(test_audio_file):

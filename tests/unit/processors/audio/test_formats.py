@@ -25,116 +25,11 @@ from pydub import AudioSegment
 from media_analyzer.core.validator import AudioFileValidator, AudioFormat
 from media_analyzer.processors.audio.audio_processor import AudioProcessor
 from media_analyzer.core.exceptions import AudioProcessingError
-from tests.utils.audio import create_speech_audio, create_wav_file, export_audio
+
+# Audio fixtures are automatically imported from tests.fixtures.audio.samples
 
 
-@pytest.fixture
-def sample_wav(tmp_path):
-    """Create a sample WAV file with speech for testing.
-    
-    Args:
-        tmp_path: Temporary directory from pytest
-        
-    Returns:
-        Path: Path to generated WAV file
-    """
-    text = "This is a test audio file for speech recognition."
-    file_path = tmp_path / "test.wav"
-    
-    return create_wav_file(
-        text=text,
-        output_path=file_path,
-        sample_rate=16000,
-        channels=1
-    )
 
-
-@pytest.fixture
-def sample_speech(tmp_path):
-    """Create a base speech audio file that other fixtures will convert.
-    
-    Args:
-        tmp_path: Temporary directory from pytest
-        
-    Returns:
-        AudioSegment: Audio segment containing speech
-    """
-    import subprocess
-    from pydub import AudioSegment
-    
-    # Create temp AIFF file (macOS say command output)
-    temp_aiff = str(tmp_path / "temp.aiff")
-    
-    # Create test text with simple content for Whisper
-    text = "This is a test audio file for format conversion testing."
-    
-    # Use macOS say command to generate speech
-    subprocess.run(["say", "-r", "200", "-v", "Samantha", "-o", temp_aiff, text], check=True)
-    
-    # Convert to standard format
-    audio = AudioSegment.from_file(temp_aiff, format="aiff")
-    audio = audio.set_frame_rate(16000).set_channels(1)
-    
-    # Clean up temp file
-    os.unlink(temp_aiff)
-    
-    return audio
-
-@pytest.fixture
-def sample_mp3(tmp_path, sample_speech):
-    """Create a sample MP3 file for testing.
-    
-    Args:
-        tmp_path: Temporary directory from pytest
-        sample_speech: Base speech audio segment
-        
-    Returns:
-        Path: Path to generated MP3 file
-    """
-    file_path = tmp_path / "test.mp3"
-    sample_speech.export(str(file_path), format="mp3")
-    yield file_path
-    # Cleanup
-    if file_path.exists():
-        file_path.unlink()
-
-
-@pytest.fixture
-def sample_m4a(tmp_path, sample_speech):
-    """Create a sample M4A file for testing.
-    
-    Args:
-        tmp_path: Temporary directory from pytest
-        sample_speech: Base speech audio segment
-        
-    Returns:
-        Path: Path to generated M4A file
-    """
-    file_path = tmp_path / "test.m4a"
-    sample_speech.export(str(file_path), format="ipod")  # ipod = AAC in M4A container
-    yield file_path
-    # Cleanup
-    if file_path.exists():
-        file_path.unlink()
-
-
-@pytest.fixture
-def sample_aac(tmp_path, sample_speech):
-    """Create a sample AAC file for testing.
-    
-    Args:
-        tmp_path: Temporary directory from pytest
-        sample_speech: Base speech audio segment
-        
-    Returns:
-        Path: Path to generated AAC file
-    """
-    file_path = tmp_path / "test.aac"
-    sample_speech.export(str(file_path), format="adts")  # adts = raw AAC
-    yield file_path
-    # Cleanup
-    if file_path.exists():
-        file_path.unlink()
 
 
 def test_format_detection(sample_wav, sample_mp3, sample_m4a, sample_aac):
