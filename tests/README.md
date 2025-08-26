@@ -7,9 +7,10 @@ This directory contains the test suite for the Media Apps project, focusing on c
 ```
 tests/
 ├── conftest.py               # Shared test fixtures and configuration
-├── data/                     # Test data files
-│   ├── sample.mp3           # Sample audio files for testing
-│   └── sample.wav
+├── fixtures/                # Test fixtures and data
+│   ├── audio/              # Audio test fixtures and samples
+│   │   ├── test_tone.wav   # Sample WAV audio
+│   │   └── test_speech.mp3 # Sample MP3 audio
 ├── integration/             # Integration and end-to-end tests
 │   └── audio_analysis/      
 │       └── test_pipeline.py # Tests for complete audio analysis pipeline
@@ -63,9 +64,9 @@ Located in `tests/integration/`, these tests verify component interactions:
 
 ## Test Data
 
-The `tests/data/` directory contains test audio files:
-- `sample.wav`: Standard WAV format test file
-- `sample.mp3`: MP3 format test file
+The `tests/fixtures/audio/` directory contains test audio files:
+- `test_tone.wav`: WAV format test file with generated tones
+- `test_speech.mp3`: MP3 format test file with speech content
 
 ## Test Configuration
 
