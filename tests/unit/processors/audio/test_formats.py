@@ -41,7 +41,7 @@ def test_files_dir():
 
 @pytest.fixture
 def sample_wav(test_files_dir):
-    """Create a sample WAV file for testing.
+    """Create a sample WAV file with speech for testing.
     
     Args:
         test_files_dir: Path to test files directory
@@ -49,28 +49,83 @@ def sample_wav(test_files_dir):
     Returns:
         Path: Path to generated WAV file
     """
+    import subprocess
+    
+    # Create temp AIFF file (macOS say command output)
+    temp_aiff = str(test_files_dir / "temp.aiff")
+    
+    # Create test text with simple content for Whisper
+    text = "This is a test audio file for speech recognition."
+    
+    # Use macOS say command to generate speech
+    subprocess.run(["say", "-r", "200", "-v", "Samantha", "-o", temp_aiff, text], check=True)
+    
+    # Convert to WAV format
+    from pydub import AudioSegment
+    audio = AudioSegment.from_file(temp_aiff, format="aiff")
+    audio = audio.set_frame_rate(16000).set_channels(1)
+    
+    # Export to WAV
     file_path = test_files_dir / "test.wav"
-    tone = Sine(440).to_audio_segment(duration=1000)  # 1 second 440Hz tone
-    tone.export(str(file_path), format="wav")
+    audio.export(str(file_path), format="wav")
+    
+    # Clean up temp file
+    import os
+    if os.path.exists(temp_aiff):
+        os.unlink(temp_aiff)
+        
     yield file_path
-    # Cleanup
+    # Cleanup WAV file
     if file_path.exists():
         file_path.unlink()
 
 
 @pytest.fixture
-def sample_mp3(test_files_dir):
+def sample_speech(test_files_dir):
+    """Create a base speech audio file that other fixtures will convert.
+    
+    Args:
+        test_files_dir: Path to test files directory
+        
+    Returns:
+        AudioSegment: Audio segment containing speech
+    """
+    import subprocess
+    from pydub import AudioSegment
+    
+    # Create temp AIFF file (macOS say command output)
+    temp_aiff = str(test_files_dir / "temp.aiff")
+    
+    # Create test text with simple content for Whisper
+    text = "This is a test audio file for format conversion testing."
+    
+    # Use macOS say command to generate speech
+    subprocess.run(["say", "-r", "200", "-v", "Samantha", "-o", temp_aiff, text], check=True)
+    
+    # Convert to standard format
+    audio = AudioSegment.from_file(temp_aiff, format="aiff")
+    audio = audio.set_frame_rate(16000).set_channels(1)
+    
+    # Clean up temp file
+    import os
+    if os.path.exists(temp_aiff):
+        os.unlink(temp_aiff)
+        
+    return audio
+
+@pytest.fixture
+def sample_mp3(test_files_dir, sample_speech):
     """Create a sample MP3 file for testing.
     
     Args:
         test_files_dir: Path to test files directory
+        sample_speech: Base speech audio segment
         
     Returns:
         Path: Path to generated MP3 file
     """
     file_path = test_files_dir / "test.mp3"
-    tone = Sine(440).to_audio_segment(duration=1000)
-    tone.export(str(file_path), format="mp3")
+    sample_speech.export(str(file_path), format="mp3")
     yield file_path
     # Cleanup
     if file_path.exists():
@@ -78,18 +133,18 @@ def sample_mp3(test_files_dir):
 
 
 @pytest.fixture
-def sample_m4a(test_files_dir):
+def sample_m4a(test_files_dir, sample_speech):
     """Create a sample M4A file for testing.
     
     Args:
         test_files_dir: Path to test files directory
+        sample_speech: Base speech audio segment
         
     Returns:
         Path: Path to generated M4A file
     """
     file_path = test_files_dir / "test.m4a"
-    tone = Sine(440).to_audio_segment(duration=1000)
-    tone.export(str(file_path), format="ipod")  # ipod = AAC in M4A container
+    sample_speech.export(str(file_path), format="ipod")  # ipod = AAC in M4A container
     yield file_path
     # Cleanup
     if file_path.exists():
@@ -97,18 +152,18 @@ def sample_m4a(test_files_dir):
 
 
 @pytest.fixture
-def sample_aac(test_files_dir):
+def sample_aac(test_files_dir, sample_speech):
     """Create a sample AAC file for testing.
     
     Args:
         test_files_dir: Path to test files directory
+        sample_speech: Base speech audio segment
         
     Returns:
         Path: Path to generated AAC file
     """
     file_path = test_files_dir / "test.aac"
-    tone = Sine(440).to_audio_segment(duration=1000)
-    tone.export(str(file_path), format="adts")  # adts = raw AAC
+    sample_speech.export(str(file_path), format="adts")  # adts = raw AAC
     yield file_path
     # Cleanup
     if file_path.exists():
@@ -189,9 +244,9 @@ def test_audio_loading(sample_wav, sample_mp3, sample_m4a, sample_aac):
         audio = processor.load_audio(file_path)
         assert isinstance(audio, AudioSegment)
         assert len(audio) > 0
-        # Check duration is approximately 1 second (in ms)
+        # Check that duration is reasonable (between 1 and 5 seconds)
         duration_ms = len(audio)
-        assert abs(duration_ms - 1000) < 50  # Allow 50ms tolerance
+        assert 1000 <= duration_ms <= 5000
     with tempfile.NamedTemporaryFile(suffix=".xyz") as tmp:
         with pytest.raises(AudioProcessingError):
             processor.load_audio(Path(tmp.name))
