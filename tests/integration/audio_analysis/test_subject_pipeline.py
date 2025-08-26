@@ -68,7 +68,7 @@ def create_mock_subject_result(context=None):
     }
     return SubjectAnalysisResult(subjects=subjects, categories=categories, metadata=metadata)
 
-class TestAudioSubjectIntegration:
+class TestSubjectPipeline:
     """Integration test suite for audio subject identification."""
     
     def test_audio_to_subjects_pipeline(self, audio_analyzer, audio_file_path):
