@@ -29,22 +29,15 @@ from media_analyzer.processors.audio.audio_processor import AudioProcessor
 from media_analyzer.core.exceptions import AudioProcessingError
 
 
-@pytest.fixture
-def test_files_dir():
-    """Fixture to provide test files directory.
-    
-    Returns:
-        Path: Path to test files directory
-    """
-    return Path(__file__).parent / "test_files"
+# Using tmp_path fixture directly from pytest
 
 
 @pytest.fixture
-def sample_wav(test_files_dir):
+def sample_wav(tmp_path):
     """Create a sample WAV file with speech for testing.
     
     Args:
-        test_files_dir: Path to test files directory
+        tmp_path: Temporary directory from pytest
         
     Returns:
         Path: Path to generated WAV file
@@ -52,7 +45,7 @@ def sample_wav(test_files_dir):
     import subprocess
     
     # Create temp AIFF file (macOS say command output)
-    temp_aiff = str(test_files_dir / "temp.aiff")
+    temp_aiff = str(tmp_path / "temp.aiff")
     
     # Create test text with simple content for Whisper
     text = "This is a test audio file for speech recognition."
@@ -66,7 +59,7 @@ def sample_wav(test_files_dir):
     audio = audio.set_frame_rate(16000).set_channels(1)
     
     # Export to WAV
-    file_path = test_files_dir / "test.wav"
+    file_path = tmp_path / "test.wav"
     audio.export(str(file_path), format="wav")
     
     # Clean up temp file
@@ -81,11 +74,11 @@ def sample_wav(test_files_dir):
 
 
 @pytest.fixture
-def sample_speech(test_files_dir):
+def sample_speech(tmp_path):
     """Create a base speech audio file that other fixtures will convert.
     
     Args:
-        test_files_dir: Path to test files directory
+        tmp_path: Temporary directory from pytest
         
     Returns:
         AudioSegment: Audio segment containing speech
@@ -94,7 +87,7 @@ def sample_speech(test_files_dir):
     from pydub import AudioSegment
     
     # Create temp AIFF file (macOS say command output)
-    temp_aiff = str(test_files_dir / "temp.aiff")
+    temp_aiff = str(tmp_path / "temp.aiff")
     
     # Create test text with simple content for Whisper
     text = "This is a test audio file for format conversion testing."
@@ -107,24 +100,22 @@ def sample_speech(test_files_dir):
     audio = audio.set_frame_rate(16000).set_channels(1)
     
     # Clean up temp file
-    import os
-    if os.path.exists(temp_aiff):
-        os.unlink(temp_aiff)
-        
+    os.unlink(temp_aiff)
+    
     return audio
 
 @pytest.fixture
-def sample_mp3(test_files_dir, sample_speech):
+def sample_mp3(tmp_path, sample_speech):
     """Create a sample MP3 file for testing.
     
     Args:
-        test_files_dir: Path to test files directory
+        tmp_path: Temporary directory from pytest
         sample_speech: Base speech audio segment
         
     Returns:
         Path: Path to generated MP3 file
     """
-    file_path = test_files_dir / "test.mp3"
+    file_path = tmp_path / "test.mp3"
     sample_speech.export(str(file_path), format="mp3")
     yield file_path
     # Cleanup
@@ -133,17 +124,17 @@ def sample_mp3(test_files_dir, sample_speech):
 
 
 @pytest.fixture
-def sample_m4a(test_files_dir, sample_speech):
+def sample_m4a(tmp_path, sample_speech):
     """Create a sample M4A file for testing.
     
     Args:
-        test_files_dir: Path to test files directory
+        tmp_path: Temporary directory from pytest
         sample_speech: Base speech audio segment
         
     Returns:
         Path: Path to generated M4A file
     """
-    file_path = test_files_dir / "test.m4a"
+    file_path = tmp_path / "test.m4a"
     sample_speech.export(str(file_path), format="ipod")  # ipod = AAC in M4A container
     yield file_path
     # Cleanup
@@ -152,17 +143,17 @@ def sample_m4a(test_files_dir, sample_speech):
 
 
 @pytest.fixture
-def sample_aac(test_files_dir, sample_speech):
+def sample_aac(tmp_path, sample_speech):
     """Create a sample AAC file for testing.
     
     Args:
-        test_files_dir: Path to test files directory
+        tmp_path: Temporary directory from pytest
         sample_speech: Base speech audio segment
         
     Returns:
         Path: Path to generated AAC file
     """
-    file_path = test_files_dir / "test.aac"
+    file_path = tmp_path / "test.aac"
     sample_speech.export(str(file_path), format="adts")  # adts = raw AAC
     yield file_path
     # Cleanup
@@ -274,7 +265,7 @@ def test_audio_info(sample_wav):
     assert info["duration"] > 0
 
 
-def test_format_conversion(sample_wav, sample_mp3, sample_m4a, sample_aac, test_files_dir):
+def test_format_conversion(sample_wav, sample_mp3, sample_m4a, sample_aac, tmp_path):
     """Test conversion between different audio formats.
     
     Args:
@@ -282,13 +273,13 @@ def test_format_conversion(sample_wav, sample_mp3, sample_m4a, sample_aac, test_
         sample_mp3: Path to sample MP3 file
         sample_m4a: Path to sample M4A file
         sample_aac: Path to sample AAC file
-        test_files_dir: Path to test files directory
+        tmp_path: Temporary directory from pytest
     """
     validator = AudioFileValidator()
     
     # Test conversion to WAV from each format
     for input_file in [sample_mp3, sample_m4a, sample_aac]:
-        output_file = test_files_dir / f"converted_{input_file.name}.wav"
+        output_file = tmp_path / f"converted_{input_file.name}.wav"
         
         try:
             assert validator.convert_to_wav(str(input_file), str(output_file))
@@ -354,23 +345,23 @@ def test_extract_text(sample_wav):
     assert result.metadata.get("language") == "en"
 
 
-def test_error_handling(test_files_dir):
+def test_error_handling(tmp_path):
     """Test error handling for invalid files and formats.
     
     Args:
-        test_files_dir: Path to test files directory
+        tmp_path: Temporary directory from pytest
     """
     validator = AudioFileValidator()
     processor = AudioProcessor()
     
     # Test non-existent file
-    non_existent = test_files_dir / "non_existent.wav"
+    non_existent = tmp_path / "non_existent.wav"
     is_valid, error = validator.validate_file(str(non_existent))
     assert not is_valid
     assert error is not None and "File does not exist" in error
     
     # Test empty file
-    empty_file = test_files_dir / "empty.wav"
+    empty_file = tmp_path / "empty.wav"
     empty_file.touch()
     try:
         is_valid, error = validator.validate_file(str(empty_file))
@@ -380,7 +371,7 @@ def test_error_handling(test_files_dir):
         empty_file.unlink()
     
     # Test corrupted file
-    corrupt_file = test_files_dir / "corrupt.wav"
+    corrupt_file = tmp_path / "corrupt.wav"
     try:
         # Create corrupted WAV file
         with open(corrupt_file, 'wb') as f:
