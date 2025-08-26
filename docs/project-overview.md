@@ -55,18 +55,19 @@ media-apps/
 │       └── utils/         # Utility functions
 ├── tests/                 # Test suites
 ├── docs/                  # Documentation
-│   ├── architecture/      # System architecture
+│   ├── adr/               # System architecture
+│   ├── ai-agents/         # Instructions for AI agents
 │   ├── requirements/      # Feature specifications
-│   └── api/          # API documentation
-├── examples/          # Usage examples
-└── scripts/          # Development scripts
+│   └── api/               # API documentation
+├── examples/              # Usage examples
+└── scripts/               # Development scripts
 ```
 
 ## Getting Started
 1. Review the [Architecture Documentation](docs/architecture.md)
-2. Follow the [Environment Setup Guide](ENVIRONMENT_SETUP.md)
-3. Read the [Coding Standards](CODING_STANDARDS.md)
-4. Check the [Contributing Guidelines](CONTRIBUTING.md)
+2. Follow the [Environment Setup Guide](environment-setup.md)
+3. Read the [Coding Standards](coding-standards.md)
+4. Check the [Contributing Guidelines](contributing.md)
 
 ## Development Workflow
 1. Create/update feature specification in `docs/requirements/`
