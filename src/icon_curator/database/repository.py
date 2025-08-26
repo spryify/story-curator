@@ -44,20 +44,41 @@ class IconRepository:
             raise ValidationError("Icon must have name, url, and image_url")
         
         try:
-            # Check if icon already exists by URL
+            # Check if icon already exists by URL or yoto_icon_id
+            existing = None
+            
+            # First check by URL
             existing = self.session.query(IconModel).filter_by(url=icon_data.url).first()
             
+            # If not found by URL, check by yoto_icon_id if available
+            if not existing and icon_data.metadata and icon_data.metadata.get('icon_id'):
+                existing = self.session.query(IconModel).filter_by(
+                    yoto_icon_id=icon_data.metadata.get('icon_id')
+                ).first()
+            
             if existing:
-                # Update existing icon
+                # Update existing icon with new rich metadata
                 existing.name = icon_data.name
                 existing.image_url = icon_data.image_url
                 existing.tags = icon_data.tags
                 existing.description = icon_data.description
                 existing.category = icon_data.category
-                existing.icon_metadata = icon_data.metadata or {}
+                
+                # Extract and save rich metadata
+                metadata = icon_data.metadata or {}
+                existing.yoto_icon_id = metadata.get('icon_id')
+                existing.primary_tag = metadata.get('primary_tag')
+                existing.secondary_tag = metadata.get('secondary_tag')
+                existing.artist = metadata.get('artist')
+                existing.artist_id = metadata.get('artist_id')
+                existing.icon_metadata = metadata
+                
                 existing.updated_at = datetime.utcnow()
                 icon_model = existing
             else:
+                # Extract rich metadata for new icon
+                metadata = icon_data.metadata or {}
+                
                 # Create new icon
                 icon_model = IconModel(
                     name=icon_data.name,
@@ -66,7 +87,15 @@ class IconRepository:
                     tags=icon_data.tags,
                     description=icon_data.description,
                     category=icon_data.category,
-                    icon_metadata=icon_data.metadata or {},
+                    
+                    # New rich metadata fields
+                    yoto_icon_id=metadata.get('icon_id'),
+                    primary_tag=metadata.get('primary_tag'),
+                    secondary_tag=metadata.get('secondary_tag'),
+                    artist=metadata.get('artist'),
+                    artist_id=metadata.get('artist_id'),
+                    
+                    icon_metadata=metadata,
                 )
                 self.session.add(icon_model)
             
@@ -142,6 +171,108 @@ class IconRepository:
             if tags:
                 for tag in tags:
                     db_query = db_query.filter(IconModel.tags.any(tag))
+            
+            return db_query.limit(limit).all()
+            
+        except SQLAlchemyError as e:
+            raise DatabaseError(f"Failed to search icons: {e}") from e
+    
+    def search_icons_by_artist(self, artist: str, limit: int = 50) -> List[IconModel]:
+        """Search icons by artist name.
+        
+        Args:
+            artist: Artist username to search for
+            limit: Maximum number of results
+            
+        Returns:
+            List of matching icon models
+        """
+        try:
+            return (
+                self.session.query(IconModel)
+                .filter(IconModel.artist.ilike(f"%{artist}%"))
+                .limit(limit)
+                .all()
+            )
+        except SQLAlchemyError as e:
+            raise DatabaseError(f"Failed to search icons by artist: {e}") from e
+
+    def search_icons_by_yoto_id(self, yoto_icon_id: str) -> Optional[IconModel]:
+        """Search for icon by Yoto icon ID.
+        
+        Args:
+            yoto_icon_id: Yoto icon ID to search for
+            
+        Returns:
+            Matching icon model or None
+        """
+        try:
+            return (
+                self.session.query(IconModel)
+                .filter(IconModel.yoto_icon_id == yoto_icon_id)
+                .first()
+            )
+        except SQLAlchemyError as e:
+            raise DatabaseError(f"Failed to search icon by Yoto ID: {e}") from e
+
+    def search_icons_advanced(
+        self, 
+        query: Optional[str] = None,
+        category: Optional[str] = None, 
+        tags: Optional[List[str]] = None,
+        artist: Optional[str] = None,
+        primary_tag: Optional[str] = None,
+        secondary_tag: Optional[str] = None,
+        limit: int = 50
+    ) -> List[IconModel]:
+        """Advanced search with rich metadata support.
+        
+        Args:
+            query: Text query to search in name and description
+            category: Category to filter by
+            tags: Tags to filter by (any match)
+            artist: Artist username to filter by
+            primary_tag: Primary tag to filter by
+            secondary_tag: Secondary tag to filter by
+            limit: Maximum number of results
+            
+        Returns:
+            List of matching icon models
+        """
+        try:
+            db_query = self.session.query(IconModel)
+            
+            # Text search in name, description, and rich metadata
+            if query:
+                search_filter = or_(
+                    IconModel.name.ilike(f"%{query}%"),
+                    IconModel.description.ilike(f"%{query}%"),
+                    IconModel.primary_tag.ilike(f"%{query}%"),
+                    IconModel.secondary_tag.ilike(f"%{query}%"),
+                    IconModel.artist.ilike(f"%{query}%")
+                )
+                db_query = db_query.filter(search_filter)
+            
+            # Category filter
+            if category:
+                db_query = db_query.filter(IconModel.category == category)
+            
+            # Tags filter (array contains)
+            if tags:
+                for tag in tags:
+                    db_query = db_query.filter(IconModel.tags.any(tag))
+            
+            # Artist filter
+            if artist:
+                db_query = db_query.filter(IconModel.artist.ilike(f"%{artist}%"))
+            
+            # Primary tag filter
+            if primary_tag:
+                db_query = db_query.filter(IconModel.primary_tag.ilike(f"%{primary_tag}%"))
+            
+            # Secondary tag filter
+            if secondary_tag:
+                db_query = db_query.filter(IconModel.secondary_tag.ilike(f"%{secondary_tag}%"))
             
             return db_query.limit(limit).all()
             

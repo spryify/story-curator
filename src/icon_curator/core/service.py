@@ -233,6 +233,21 @@ class IconService:
         Returns:
             IconData object
         """
+        # Combine rich metadata from columns and metadata JSON
+        metadata = model.icon_metadata.copy() if model.icon_metadata else {}
+        
+        # Add rich metadata from dedicated columns to metadata dict
+        if model.yoto_icon_id:
+            metadata['icon_id'] = model.yoto_icon_id
+        if model.primary_tag:
+            metadata['primary_tag'] = model.primary_tag
+        if model.secondary_tag:
+            metadata['secondary_tag'] = model.secondary_tag
+        if model.artist:
+            metadata['artist'] = model.artist
+        if model.artist_id:
+            metadata['artist_id'] = model.artist_id
+            
         return IconData(
             name=model.name,
             url=model.url,
@@ -242,5 +257,5 @@ class IconService:
             category=model.category,
             created_at=model.created_at,
             updated_at=model.updated_at,
-            metadata=model.icon_metadata or {}
+            metadata=metadata
         )
