@@ -19,17 +19,13 @@ import pytest
 from pathlib import Path
 import tempfile
 import wave
-import shutil
 
 from pydub import AudioSegment
-from pydub.generators import Sine
 
 from media_analyzer.core.validator import AudioFileValidator, AudioFormat
 from media_analyzer.processors.audio.audio_processor import AudioProcessor
 from media_analyzer.core.exceptions import AudioProcessingError
-
-
-# Using tmp_path fixture directly from pytest
+from tests.utils.audio import create_speech_audio, create_wav_file, export_audio
 
 
 @pytest.fixture
@@ -42,35 +38,15 @@ def sample_wav(tmp_path):
     Returns:
         Path: Path to generated WAV file
     """
-    import subprocess
-    
-    # Create temp AIFF file (macOS say command output)
-    temp_aiff = str(tmp_path / "temp.aiff")
-    
-    # Create test text with simple content for Whisper
     text = "This is a test audio file for speech recognition."
-    
-    # Use macOS say command to generate speech
-    subprocess.run(["say", "-r", "200", "-v", "Samantha", "-o", temp_aiff, text], check=True)
-    
-    # Convert to WAV format
-    from pydub import AudioSegment
-    audio = AudioSegment.from_file(temp_aiff, format="aiff")
-    audio = audio.set_frame_rate(16000).set_channels(1)
-    
-    # Export to WAV
     file_path = tmp_path / "test.wav"
-    audio.export(str(file_path), format="wav")
     
-    # Clean up temp file
-    import os
-    if os.path.exists(temp_aiff):
-        os.unlink(temp_aiff)
-        
-    yield file_path
-    # Cleanup WAV file
-    if file_path.exists():
-        file_path.unlink()
+    return create_wav_file(
+        text=text,
+        output_path=file_path,
+        sample_rate=16000,
+        channels=1
+    )
 
 
 @pytest.fixture
