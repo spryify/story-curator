@@ -52,16 +52,19 @@ So that I can diagnose and fix issues efficiently
 - **Inputs**: 
   - Audio files (MP3, M4A, AAC, WAV)
   - Optional parameters for summarization length
+  - Content type hints (e.g., "children's story")
 - **Outputs**:
   - Full text transcription (TXT/JSON)
   - Text summary (TXT/JSON)
   - Processing metadata (duration, confidence scores)
+  - Content-specific analysis (dialogue markers, story elements)
 - **Data Flow**:
   1. Audio file validation
-  2. Speech recognition processing
-  3. Text extraction
-  4. Summary generation
-  5. Output formatting
+  2. Content type detection/validation
+  3. Speech recognition processing with content-specific optimization
+  4. Text extraction with narrative structure analysis
+  5. Summary generation
+  6. Output formatting
 
 ### Behavior Specifications
 - **Normal Operation**:

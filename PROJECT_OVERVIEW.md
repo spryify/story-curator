@@ -6,9 +6,10 @@ The Media Content Analyzer is an intelligent Python-based system designed to ana
 ## Current Scope (Phase 1)
 - Audio file analysis with focus on text extraction and summarization
 - Support for common audio formats (WAV, MP3, etc.)
+- Specialized handling for different content types (e.g., children's stories)
 - Command-line interface for processing audio files
 - Robust error handling and logging
-- Comprehensive test coverage
+- Comprehensive test coverage with content-specific test cases
 - Clear documentation and API specifications
 
 ## Future Scope

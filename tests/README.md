@@ -41,6 +41,8 @@ Located in `tests/unit/`, these tests verify individual components in isolation:
    - Audio format validation
    - File loading and metadata extraction
    - Text extraction from audio
+   - Children's content processing
+   - Story narrative recognition
    - Error handling for invalid inputs
    - Support for different audio formats
 
@@ -67,12 +69,15 @@ Located in `tests/integration/`, these tests verify component interactions:
 The `tests/fixtures/audio/` directory contains test audio files:
 - `test_tone.wav`: WAV format test file with generated tones
 - `test_speech.mp3`: MP3 format test file with speech content
+- `story_test.wav`: WAV format test file with children's story content
 
 ## Test Configuration
 
 `conftest.py` provides shared test fixtures:
 
 - `test_audio_file`: Access to sample audio files
+- `story_speech_options`: Speech generation options optimized for children's content
+- `sample_story_wav`: Sample children's story audio file
 - `test_config`: Standard test configuration with settings for:
   - Audio processing (model, device, sample rate)
   - Text processing (summary length, confidence thresholds)
