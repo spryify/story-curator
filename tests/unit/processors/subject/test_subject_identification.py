@@ -277,6 +277,100 @@ class TestSubjectIdentification:
                 if name1 in name2 or name2 in name1:
                     assert abs(len(name1) - len(name2)) > 5, f"Found similar subjects: {name1}, {name2}"
 
+    def test_childrens_story_analysis(self, subject_identifier, childrens_story_text):
+        """Test subject identification in children's stories."""
+        # Use specialized context for children's content
+        context = Context(
+            domain="children_literature",
+            language="en",
+            confidence=1.0
+        )
+        
+        result = subject_identifier.identify_subjects(childrens_story_text, context)
+        
+        # Verify story elements are identified
+        subjects = {s.name.lower() for s in result.subjects}
+        
+        # Check for characters
+        assert any("flutter" in s for s in subjects)
+        assert any("professor hoot" in s or "owl" in s for s in subjects)
+        
+        # Check for setting
+        assert any("garden" in s for s in subjects)
+        
+        # Check for educational themes
+        educational_themes = ["nature", "learning", "friendship"]
+        assert any(theme in " ".join(subjects) for theme in educational_themes)
+        
+        # Check metadata for age-appropriate classification
+        assert "content_type" in result.metadata
+        assert "age_appropriate" in result.metadata
+        assert result.metadata["age_appropriate"] is True
+        
+    def test_educational_content_analysis(self, subject_identifier, educational_lesson_text):
+        """Test subject identification in educational content."""
+        context = Context(
+            domain="educational",
+            language="en",
+            confidence=1.0
+        )
+        
+        result = subject_identifier.identify_subjects(educational_lesson_text, context)
+        
+        # Verify educational concepts are identified
+        subjects = {s.name.lower() for s in result.subjects}
+        
+        # Check for main topic
+        assert any("weather" in s for s in subjects)
+        
+        # Check for subtopics
+        weather_types = ["rain", "snow", "sun"]
+        assert any(w_type in " ".join(subjects) for w_type in weather_types)
+        
+        # Check for educational markers
+        assert "lesson_topic" in result.metadata
+        assert "educational_level" in result.metadata
+        assert "interactive_elements" in result.metadata  # Like questions in the text
+        
+    def test_age_appropriate_content_detection(self, subject_identifier):
+        """Test detection of age-appropriate vs complex content."""
+        # Children's content
+        simple_text = "The friendly dragon helped the children learn about sharing."
+        simple_result = subject_identifier.identify_subjects(simple_text)
+        
+        # Complex content
+        complex_text = "The quantum mechanical principles underlying molecular bonding..."
+        complex_result = subject_identifier.identify_subjects(complex_text)
+        
+        # Verify content classification
+        assert simple_result.metadata.get("age_appropriate", False) is True
+        assert simple_result.metadata.get("reading_level", "advanced") in ["beginner", "intermediate"]
+        
+        assert complex_result.metadata.get("age_appropriate", True) is False
+        assert complex_result.metadata.get("reading_level") == "advanced"
+        
+    def test_moral_lesson_detection(self, subject_identifier):
+        """Test detection of moral lessons in children's stories."""
+        story = """
+        The little mouse found lots of cheese. At first, he wanted to keep it all.
+        But then he saw his hungry friends. He shared the cheese with everyone.
+        They all had a wonderful feast together, and the mouse learned that sharing
+        makes everyone happy.
+        """
+        
+        result = subject_identifier.identify_subjects(story)
+        
+        # Check for moral themes
+        moral_themes = {s.name.lower() for s in result.subjects 
+                       if s.category.lower() == "moral_lesson"}
+        
+        assert any("sharing" in theme for theme in moral_themes)
+        assert any("friendship" in theme for theme in moral_themes)
+        
+        # Verify moral lesson metadata
+        assert "moral_lessons" in result.metadata
+        assert len(result.metadata["moral_lessons"]) > 0
+
 
 def test_subject_identification_with_context(subject_identifier, sample_text):
     """Test subject identification with context information."""
@@ -297,6 +391,48 @@ def test_subject_identification_with_context(subject_identifier, sample_text):
 
 
 @pytest.fixture
+def childrens_story_text():
+    """Sample children's story text for testing."""
+    return """
+    The Magic Garden Adventure
+
+    In a colorful garden lived a curious butterfly named Flutter. Flutter loved to explore 
+    and learn about all the flowers. One sunny morning, Flutter met a wise old owl named 
+    Professor Hoot.
+
+    "Would you like to learn about the special magic of the garden?" asked Professor Hoot.
+    "Oh yes, please!" Flutter replied excitedly.
+
+    Professor Hoot taught Flutter about how bees make honey, how flowers grow from tiny 
+    seeds, and how the rain and sunshine help everything in the garden thrive. Flutter 
+    learned that the real magic was in understanding how nature works together.
+
+    At the end of the day, Flutter was so happy to have made a new friend and learned 
+    so many wonderful things. Flutter promised to share these lessons with all the other 
+    garden creatures.
+
+    The End
+    """
+
+@pytest.fixture
+def educational_lesson_text():
+    """Sample educational content for testing."""
+    return """
+    Let's Learn About the Weather!
+
+    Today we're going to explore different types of weather. When the sun is shining, 
+    we call it a sunny day. Sometimes clouds fill the sky, and it might rain. Rain 
+    helps plants grow and gives us water to drink.
+
+    In winter, it gets cold and sometimes snows. Snowflakes are like tiny ice stars 
+    falling from the sky! In spring, we see rainbows after the rain, and flowers start 
+    to bloom.
+
+    Remember, each type of weather is special and helps our Earth in its own way. 
+    What's your favorite kind of weather?
+    """
+
+@pytest.fixture
 def long_text():
     """Provide a long text for performance testing."""
     # Generate a text with 10,000+ words
@@ -308,6 +444,7 @@ def long_text():
     processing and computer vision.
     """
     return base_text * 200  # Multiply to get >10,000 words
+
 
 @pytest.fixture
 def multilingual_text():
