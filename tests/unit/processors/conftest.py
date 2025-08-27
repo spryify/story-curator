@@ -46,13 +46,13 @@ def mock_whisper():
                 {
                     'start': 3.0,
                     'end': 6.0,
-                    'text': 'who lived in a magical forest for format testing',
+                    'text': "'I love to hop and play!' said Hoppy happily",
                     'avg_logprob': -0.3
                 },
                 {
                     'start': 6.0,
                     'end': 9.0,
-                    'text': 'that demonstrates speech recognition capabilities.',
+                    'text': "'Be careful where you hop,' warned the wise owl",
                     'avg_logprob': -0.25
                 }
             ]
@@ -78,12 +78,16 @@ def mock_spacy():
             Mock(text="Apple", label_="ORG"),
             Mock(text="Bill Gates", label_="PERSON"),
             Mock(text="Tim Cook", label_="PERSON"),
+            Mock(text="California", label_="GPE"),
+            Mock(text="Cupertino", label_="GPE"),
             Mock(text="Hoppy", label_="PERSON"),
             Mock(text="bunny", label_="ANIMAL"),
             Mock(text="forest", label_="LOCATION"),
             Mock(text="castle", label_="BUILDING"),
             Mock(text="Principal", label_="TITLE"),
             Mock(text="Vice Principal", label_="TITLE"),
+            Mock(text="Principal Wilson", label_="PERSON"),
+            Mock(text="Vice Principal Martinez", label_="PERSON"),
         ]
         
         mock_doc.ents = entities
@@ -100,12 +104,36 @@ def mock_subject_identification():
         
         # Mock identify method to return relevant subjects based on text content
         def mock_identify(text):
-            if 'butterfly' in text.lower() or 'garden' in text.lower():
-                return ['nature', 'animals', 'children_story', 'friendship']
-            elif 'weather' in text.lower() or 'sun' in text.lower():
-                return ['education', 'science', 'weather', 'learning']
-            else:
-                return ['general', 'story']
+            subjects = []
+            text_lower = text.lower()
+            
+            # Character identification
+            if 'butterfly' in text_lower or 'flutter' in text_lower:
+                subjects.extend(['flutter', 'butterfly', 'characters'])
+            if 'professor' in text_lower or 'owl' in text_lower:
+                subjects.extend(['professor', 'owl', 'wisdom'])
+            if 'hoppy' in text_lower:
+                subjects.extend(['hoppy', 'bunny', 'animals'])
+                
+            # Setting identification
+            if 'garden' in text_lower:
+                subjects.extend(['garden', 'nature', 'outdoor'])
+            if 'forest' in text_lower:
+                subjects.extend(['forest', 'nature', 'wilderness'])
+                
+            # Subject categories
+            if 'weather' in text_lower or 'sun' in text_lower or 'rain' in text_lower:
+                subjects.extend(['education', 'science', 'weather', 'learning'])
+            
+            # Story themes
+            if any(word in text_lower for word in ['magic', 'adventure', 'story', 'tale']):
+                subjects.extend(['children_story', 'friendship', 'adventure'])
+                
+            # Default fallback
+            if not subjects:
+                subjects = ['general', 'story']
+                
+            return subjects
         
         mock_instance.identify_subjects.side_effect = mock_identify
         mock_class.return_value = mock_instance

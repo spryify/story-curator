@@ -18,10 +18,7 @@ from media_analyzer.processors.subject.processors.entity_processor import Entity
 from media_analyzer.processors.subject.processors.keyword_processor import KeywordProcessor
 
 
-@pytest.fixture
-def subject_identifier():
-    """Create a SubjectIdentifier instance for testing."""
-    return SubjectIdentifier()
+# subject_identifier fixture is now defined in conftest.py
 
 
 class TestSubjectIdentification:
@@ -401,81 +398,3 @@ def test_subject_identification_with_context(subject_identifier, sample_text):
         assert subject.context == context
 
 
-
-
-
-@pytest.fixture
-def childrens_story_text():
-    """Sample children's story text for testing."""
-    return """
-    The Magic Garden Adventure
-
-    In a colorful garden lived a curious butterfly named Flutter. Flutter loved to explore 
-    and learn about all the flowers. One sunny morning, Flutter met a wise old owl named 
-    Professor Hoot.
-
-    "Would you like to learn about the special magic of the garden?" asked Professor Hoot.
-    "Oh yes, please!" Flutter replied excitedly.
-
-    Professor Hoot taught Flutter about how bees make honey, how flowers grow from tiny 
-    seeds, and how the rain and sunshine help everything in the garden thrive. Flutter 
-    learned that the real magic was in understanding how nature works together.
-
-    At the end of the day, Flutter was so happy to have made a new friend and learned 
-    so many wonderful things. Flutter promised to share these lessons with all the other 
-    garden creatures.
-
-    The End
-    """
-
-@pytest.fixture
-def educational_lesson_text():
-    """Sample educational content for testing."""
-    return """
-    Let's Learn About the Weather!
-
-    Today we're going to explore different types of weather. When the sun is shining, 
-    we call it a sunny day. Sometimes clouds fill the sky, and it might rain. Rain 
-    helps plants grow and gives us water to drink.
-
-    In winter, it gets cold and sometimes snows. Snowflakes are like tiny ice stars 
-    falling from the sky! In spring, we see rainbows after the rain, and flowers start 
-    to bloom.
-
-    Remember, each type of weather is special and helps our Earth in its own way. 
-    What's your favorite kind of weather?
-    """
-
-@pytest.fixture
-def long_text():
-    """Provide a long text for performance testing."""
-    # Generate a text with 10,000+ words
-    base_text = """
-    In the rapidly evolving landscape of artificial intelligence, companies are racing
-    to develop cutting-edge technologies. Machine learning algorithms continue to improve,
-    while deep learning networks become more sophisticated. Cloud computing infrastructure
-    enables processing of massive datasets, leading to breakthroughs in natural language
-    processing and computer vision.
-    """
-    return base_text * 200  # Multiply to get >10,000 words
-
-
-@pytest.fixture
-def multilingual_text():
-    """Provide multilingual text for testing."""
-    return """
-    The conference on artificial intelligence (AI) was a success. Los participantes
-    discutieron machine learning y deep learning. La présentation sur l'intelligence
-    artificielle était très intéressante. Die Entwicklung der KI-Technologie 
-    schreitet voran.
-    """
-
-@pytest.fixture
-def specialized_domain_text():
-    """Provide text from a specialized domain."""
-    return """
-    The CRISPR-Cas9 system enables precise genome editing through targeted DNA
-    cleavage. This revolutionary technique has applications in genetic engineering,
-    biotechnology, and medical research. The guide RNA sequence determines the
-    specificity of the nuclease activity.
-    """
