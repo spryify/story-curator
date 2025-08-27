@@ -4,7 +4,7 @@
 Accepted
 
 ## Context
-The media analyzer requires a robust, user-friendly command-line interface that supports both simple and complex operations while maintaining extensibility for future features.
+The Story Curator requires a robust, user-friendly command-line interface that supports both simple and complex operations while maintaining extensibility for future features.
 
 ## Decision
 We will implement a modular CLI architecture using Click and Rich libraries with the following structure:

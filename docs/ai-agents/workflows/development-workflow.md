@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document provides a comprehensive workflow for AI agents (Claude Code, GitHub Copilot, etc.) to implement features in the Media Analyzer project following industry best practices for agentic coding.
+This document provides a comprehensive workflow for AI agents (Claude Code, GitHub Copilot, etc.) to implement features in the Story Curator project following industry best practices for agentic coding.
 
 ## Pre-Implementation Checklist
 

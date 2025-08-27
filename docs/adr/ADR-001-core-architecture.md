@@ -4,7 +4,7 @@
 Accepted
 
 ## Context
-The media analyzer needs a robust, maintainable, and extensible architecture that supports audio processing, text analysis, and future media types while maintaining clean separation of concerns.
+The Story Curator needs a robust, maintainable, and extensible architecture that supports audio processing, text analysis, and future media types while maintaining clean separation of concerns.
 
 ## Decision
 We will implement a clean architecture with the following key patterns:

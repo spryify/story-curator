@@ -1,4 +1,4 @@
-# Media Analyzer - Architecture Documentation
+# Story Curator - Architecture Documentation
 
 For coding style and contribution requirements, see the [Coding Standards](../CODING_STANDARDS.md).
 
@@ -17,7 +17,7 @@ For coding style and contribution requirements, see the [Coding Standards](../CO
 
 ## System Overview
 
-The Media Analyzer is designed as a modular, extensible command-line application following clean architecture principles. The system separates concerns into distinct layers while maintaining loose coupling and high cohesion.
+The Story Curator is designed as a modular, extensible command-line application following clean architecture principles. The system separates concerns into distinct layers while maintaining loose coupling and high cohesion.
 
 ### Core Components
 

@@ -4,7 +4,7 @@
 Accepted
 
 ## Context
-The media analyzer needs a robust error handling strategy that provides clear feedback to users while maintaining system stability and debuggability.
+The Story Curator needs a robust error handling strategy that provides clear feedback to users while maintaining system stability and debuggability.
 
 ## Decision
 We will implement a comprehensive error handling strategy with the following components:

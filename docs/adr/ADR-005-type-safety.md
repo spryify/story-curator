@@ -4,7 +4,7 @@
 Accepted
 
 ## Context
-The media analyzer needs to maintain type safety to prevent runtime errors, improve code maintainability, and provide better IDE support. With Python's gradual typing system, we need clear guidelines for type hints and runtime type checking.
+The Story Curator needs to maintain type safety to prevent runtime errors, improve code maintainability, and provide better IDE support. With Python's gradual typing system, we need clear guidelines for type hints and runtime type checking.
 
 ## Decision
 We will implement comprehensive type safety using Python's type hints and runtime checking with the following structure:

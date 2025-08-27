@@ -4,7 +4,7 @@
 Accepted
 
 ## Context
-The media analyzer needs comprehensive logging to support debugging, monitoring, and auditing of media processing operations. The logging system must be performant, configurable, and provide appropriate detail levels for different environments.
+The Story Curator needs comprehensive logging to support debugging, monitoring, and auditing of media processing operations. The logging system must be performant, configurable, and provide appropriate detail levels for different environments.
 
 ## Decision
 We will implement a structured logging architecture using Python's built-in logging module with the following structure:

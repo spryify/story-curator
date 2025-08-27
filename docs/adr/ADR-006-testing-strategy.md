@@ -4,7 +4,7 @@
 Accepted
 
 ## Context
-The media analyzer requires comprehensive testing to ensure reliability, maintainability, and correctness. We need a clear testing strategy that covers all aspects of the system while remaining maintainable and efficient.
+The Story Curator requires comprehensive testing to ensure reliability, maintainability, and correctness. We need a clear testing strategy that covers all aspects of the system while remaining maintainable and efficient.
 
 ## Decision
 We will implement a multi-layered testing strategy with the following components:

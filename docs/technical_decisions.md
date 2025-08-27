@@ -1,6 +1,6 @@
 # Technical Stack Decisions
 
-This document outlines the key technical decisions made for the Media Analyzer project, particularly focusing on the library choices and their justification.
+This document outlines the key technical decisions made for the Story Curator project, particularly focusing on the library choices and their justification.
 
 ## Core Libraries
 
