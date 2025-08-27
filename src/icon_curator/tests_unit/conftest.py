@@ -5,8 +5,15 @@ from unittest.mock import Mock
 from datetime import datetime
 from typing import List
 import os
+import sys
+from pathlib import Path
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+
+# Add src directory to Python path for imports
+src_path = Path(__file__).parent.parent.parent
+if str(src_path) not in sys.path:
+    sys.path.insert(0, str(src_path))
 
 from src.icon_curator.models.icon import IconData, ScrapingResult
 from src.icon_curator.database.models import IconModel

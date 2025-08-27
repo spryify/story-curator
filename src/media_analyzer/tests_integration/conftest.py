@@ -1,8 +1,14 @@
 """Audio analysis integration test fixtures."""
 
 import pytest
+import sys
 from pathlib import Path
-from tests.utils.audio import create_wav_file
+from ..tests_unit.utils.audio import create_wav_file
+
+# Add src directory to Python path for imports
+src_path = Path(__file__).parent.parent.parent
+if str(src_path) not in sys.path:
+    sys.path.insert(0, str(src_path))
 
 
 def create_story_audio_file(tmp_path: Path, story_text: str, filename: str = "story.wav") -> Path:

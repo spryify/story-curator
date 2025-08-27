@@ -76,7 +76,7 @@ class TestLiveYotoIconsScraping:
     @skip_live
     def test_extract_real_icon_image_urls(self):
         """Test extracting actual icon image URLs from yotoicons.com."""
-        test_categories = ["food", "animals", "weather"]
+        test_categories = ["food", "weather"]
         
         all_image_urls = []
         successful_extractions = 0

@@ -6,8 +6,10 @@ import requests
 from bs4 import BeautifulSoup
 from pathlib import Path
 
-# Add src to path
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+# Add src to path for imports
+src_path = Path(__file__).parent.parent.parent
+if str(src_path) not in sys.path:
+    sys.path.insert(0, str(src_path))
 
 from icon_curator.processors.scraper import YotoIconScraper
 
@@ -110,17 +112,15 @@ def test_scraper_integration_with_real_site():
     assert response.status_code == 200
     print("✅ Scraper can connect to yotoicons.com")
     
-    # Test URL discovery
-    icon_urls = scraper._discover_icon_urls()
-    assert len(icon_urls) > 0
-    print(f"✅ Scraper discovered {len(icon_urls)} URLs")
+    # Test category discovery
+    categories = scraper._discover_categories()
+    assert len(categories) > 0
+    print(f"✅ Scraper discovered {len(categories)} categories")
     
-    # Filter for actual icon category URLs
-    category_urls = [url for url in icon_urls if "tag=" in url and "yotoicons.com" in url]
+    # Build category URLs for verification
+    category_urls = [f"{scraper.base_url}/icons?tag={cat}&page=1" for cat in categories]
     assert len(category_urls) > 0
-    print(f"✅ Found {len(category_urls)} category URLs")
-    
-    return category_urls
+    print(f"✅ Built {len(category_urls)} category URLs")
 
 
 if __name__ == "__main__":

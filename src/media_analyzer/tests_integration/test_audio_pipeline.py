@@ -1,17 +1,13 @@
 """Integration tests for the audio analysis pipeline."""
 
 import os
-import numpy as np
 from pathlib import Path
-from scipy import signal
 import pytest
-import io
-import wave
 
 from media_analyzer.core.analyzer import Analyzer
 from media_analyzer.core.exceptions import ValidationError
 from media_analyzer.models.audio import TranscriptionResult
-from tests.utils.audio import create_timed_speech_file, create_wav_file
+from ..tests_unit.utils.audio import create_timed_speech_file, create_wav_file
 
 
 @pytest.fixture

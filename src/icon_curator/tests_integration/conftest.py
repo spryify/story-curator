@@ -2,9 +2,16 @@
 
 import os
 import pytest
+import sys
+from pathlib import Path
 from datetime import datetime
 from typing import List
 from unittest.mock import Mock
+
+# Add src directory to Python path for imports
+src_path = Path(__file__).parent.parent.parent
+if str(src_path) not in sys.path:
+    sys.path.insert(0, str(src_path))
 
 from src.icon_curator.models.icon import IconData, ScrapingResult
 from src.icon_curator.processors.scraper import YotoIconScraper

@@ -54,7 +54,8 @@ class TestIconCuratorBasicFunctionality:
         assert result.failed_scraped == 1
         assert result.processing_time == 5.5
         assert len(result.errors) == 1
-        assert result.success_rate == pytest.approx(66.7, rel=0.1)
+        # Check success rate is approximately 66.7% (2/3 * 100)
+        assert abs(result.success_rate - 66.7) < 0.1
     
     def test_scraper_initialization(self):
         """Test YotoIconScraper initialization and configuration."""
