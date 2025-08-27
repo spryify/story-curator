@@ -2,7 +2,7 @@
 
 import pytest
 
-from src.icon_curator.core.exceptions import (
+from src.icon_extractor.core.exceptions import (
     IconCuratorError,
     ScrapingError,
     ValidationError,

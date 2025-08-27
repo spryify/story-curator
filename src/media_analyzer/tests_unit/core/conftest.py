@@ -35,36 +35,40 @@ def test_config():
     }
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture
 def mock_whisper():
     """Mock whisper.load_model for core analyzer tests."""
-    with patch('whisper.load_model') as mock_load_model:
-        # Create a mock model
-        mock_model = Mock()
-        
-        # Mock transcription result with proper structure
-        mock_result = {
-            'text': 'Once upon a time there was a test audio file for format testing that demonstrates speech recognition capabilities.',
-            'language': 'en',
-            'segments': [
-                {
-                    'start': 0.0,
-                    'end': 3.0,
-                    'text': 'This is a test audio file that demonstrates',
-                    'avg_logprob': -0.2
-                },
-                {
-                    'start': 3.0,
-                    'end': 6.0,
-                    'text': 'speech recognition capabilities.',
-                    'avg_logprob': -0.3
-                }
-            ]
-        }
-        
-        mock_model.transcribe.return_value = mock_result
-        mock_load_model.return_value = mock_model
-        yield mock_model
+    # Create a mock model first
+    mock_model = Mock()
+    
+    # Mock transcription result with proper structure
+    mock_result = {
+        'text': 'Once upon a time there was a test audio file for format testing that demonstrates speech recognition capabilities.',
+        'language': 'en',
+        'segments': [
+            {
+                'start': 0.0,
+                'end': 3.0,
+                'text': 'Once upon a time there was a test audio file',
+                'avg_logprob': -0.2
+            },
+            {
+                'start': 3.0,
+                'end': 6.0,
+                'text': 'for format testing that demonstrates',
+                'avg_logprob': -0.3
+            },
+            {
+                'start': 6.0,
+                'end': 9.0,
+                'text': 'speech recognition capabilities.',
+                'avg_logprob': -0.25
+            }
+        ]
+    }
+    
+    mock_model.transcribe.return_value = mock_result
+    yield mock_model
 
 
 def generate_speech_audio(text, **kwargs):

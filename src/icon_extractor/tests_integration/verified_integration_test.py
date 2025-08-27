@@ -11,7 +11,7 @@ src_path = Path(__file__).parent.parent.parent
 if str(src_path) not in sys.path:
     sys.path.insert(0, str(src_path))
 
-from icon_curator.processors.scraper import YotoIconScraper
+from icon_extractor.processors.scraper import YotoIconScraper
 
 
 def test_extract_real_icon_image_urls():

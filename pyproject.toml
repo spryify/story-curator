@@ -58,7 +58,7 @@ dev = [
 
 [project.scripts]
 media-analyzer = "media_analyzer.cli.main:main"
-icon-curator = "icon_curator.cli.main:main"
+icon-extractor = "icon_extractor.cli.main:main"
 
 [project.urls]
 Homepage = "https://github.com/story-curator/story-curator"

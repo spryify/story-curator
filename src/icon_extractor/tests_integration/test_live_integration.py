@@ -6,9 +6,9 @@ import requests
 from bs4 import BeautifulSoup
 from typing import List
 
-from src.icon_curator.processors.scraper import YotoIconScraper
-from src.icon_curator.models.icon import IconData
-from src.icon_curator.core.exceptions import NetworkError, ScrapingError
+from src.icon_extractor.processors.scraper import YotoIconScraper
+from src.icon_extractor.models.icon import IconData
+from src.icon_extractor.core.exceptions import NetworkError, ScrapingError
 
 
 # Skip these tests if we're in CI or if explicitly disabled
@@ -304,14 +304,14 @@ To run live integration tests:
    export SKIP_LIVE_TESTS=false
 
 2. Run specific live test:
-   pytest tests/integration/icon_curator/test_live_integration.py::TestLiveYotoIconsScraping::test_extract_real_icon_image_urls -v -s
+   pytest tests/integration/icon_extractor/test_live_integration.py::TestLiveYotoIconsScraping::test_extract_real_icon_image_urls -v -s
 
 3. Run all live tests:
-   pytest tests/integration/icon_curator/test_live_integration.py -v -s
+   pytest tests/integration/icon_extractor/test_live_integration.py -v -s
 
 4. Skip live tests (default):
    export SKIP_LIVE_TESTS=true
-   pytest tests/integration/icon_curator/test_live_integration.py -v
+   pytest tests/integration/icon_extractor/test_live_integration.py -v
 
 These tests will:
 - Connect to the real yotoicons.com website

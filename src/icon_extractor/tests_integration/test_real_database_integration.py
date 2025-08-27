@@ -10,11 +10,11 @@ from datetime import datetime
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 
-from src.icon_curator.models.icon import IconData
-from src.icon_curator.database.models import IconModel, Base
-from src.icon_curator.database.repository import IconRepository
-from src.icon_curator.database.connection import DatabaseManager
-from src.icon_curator.core.exceptions import DatabaseError, ValidationError
+from src.icon_extractor.models.icon import IconData
+from src.icon_extractor.database.models import IconModel, Base
+from src.icon_extractor.database.repository import IconRepository
+from src.icon_extractor.database.connection import DatabaseManager
+from src.icon_extractor.core.exceptions import DatabaseError, ValidationError
 
 # Skip database tests if no test database is available
 TEST_DATABASE_URL = os.getenv('TEST_DATABASE_URL', 'postgresql://postgres:password@localhost:5432/icon_curator_test')

@@ -3,7 +3,7 @@
 import pytest
 from datetime import datetime
 
-from src.icon_curator.database.models import IconModel
+from src.icon_extractor.database.models import IconModel
 
 
 class TestIconModel:

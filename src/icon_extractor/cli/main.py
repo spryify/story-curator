@@ -199,7 +199,7 @@ def scrape_command(args) -> int:
     """
     try:
         # Check if we should run in demo mode
-        demo_mode = getattr(args, 'demo', False) or os.getenv('ICON_CURATOR_DEMO', 'false').lower() == 'true'
+        demo_mode = getattr(args, 'demo', False) or os.getenv('ICON_EXTRACTOR_DEMO', 'false').lower() == 'true'
         
         if demo_mode:
             return _run_demo_scrape()

@@ -3,9 +3,9 @@
 import pytest
 from datetime import datetime
 
-from src.icon_curator.models.icon import IconData, ScrapingResult
-from src.icon_curator.core.exceptions import ValidationError
-from src.icon_curator.processors.scraper import YotoIconScraper
+from src.icon_extractor.models.icon import IconData, ScrapingResult
+from src.icon_extractor.core.exceptions import ValidationError
+from src.icon_extractor.processors.scraper import YotoIconScraper
 
 
 class TestIconCuratorBasicFunctionality:

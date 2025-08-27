@@ -25,10 +25,10 @@ def test_config():
     }
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture
 def mock_whisper():
     """Mock whisper.load_model for audio processor tests."""
-    with patch('whisper.load_model') as mock_load_model:
+    with patch('media_analyzer.processors.audio.audio_processor.whisper.load_model') as mock_load_model:
         # Create a mock model
         mock_model = Mock()
         
@@ -63,7 +63,7 @@ def mock_whisper():
         yield mock_model
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture
 def mock_spacy():
     """Mock spaCy model loading for subject processor tests."""
     with patch('spacy.load') as mock_load:
@@ -96,7 +96,7 @@ def mock_spacy():
         yield mock_nlp
 
 
-@pytest.fixture(autouse=True)  
+@pytest.fixture
 def mock_subject_identification():
     """Mock subject identification models for all tests."""
     with patch('media_analyzer.processors.subject.subject_identifier.SubjectIdentifier') as mock_class:

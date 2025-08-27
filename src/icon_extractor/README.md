@@ -9,7 +9,7 @@ The Icon Curator is a comprehensive system for scraping, storing, and managing Y
 The system follows the established project patterns with a clean separation of concerns:
 
 ```
-src/icon_curator/
+src/icon_extractor/
 ├── __init__.py                 # Package initialization
 ├── cli/                        # Command-line interface
 │   ├── __init__.py
@@ -86,31 +86,31 @@ The system includes comprehensive test coverage:
 
 ```bash
 # Show help
-python -m src.icon_curator.cli.main --help
+python -m src.icon_extractor.cli.main --help
 
 # Scrape icons from yotoicons.com
-python -m src.icon_curator.cli.main scrape
+python -m src.icon_extractor.cli.main scrape
 
 # Force update existing icons
-python -m src.icon_curator.cli.main scrape --force-update
+python -m src.icon_extractor.cli.main scrape --force-update
 
 # Search for icons
-python -m src.icon_curator.cli.main search "animal"
+python -m src.icon_extractor.cli.main search "animal"
 
 # Search with filters
-python -m src.icon_curator.cli.main search "cute" --category Animals --tags "fluffy,pet"
+python -m src.icon_extractor.cli.main search "cute" --category Animals --tags "fluffy,pet"
 
 # View database statistics  
-python -m src.icon_curator.cli.main stats
+python -m src.icon_extractor.cli.main stats
 
 # Enable verbose logging
-python -m src.icon_curator.cli.main -v scrape
+python -m src.icon_extractor.cli.main -v scrape
 ```
 
 ### Python API
 
 ```python
-from src.icon_curator.core.service import IconService
+from src.icon_extractor.core.service import IconService
 
 # Initialize service
 service = IconService()
@@ -135,12 +135,12 @@ print(f"Total icons: {stats['total_icons']}")
 
 ```bash
 # Database configuration
-DATABASE_URL="postgresql://user:password@localhost:5432/icon_curator"
+DATABASE_URL="postgresql://user:password@localhost:5432/icon_extractor"
 
 # Optional database settings
 DB_HOST="localhost"
 DB_PORT="5432" 
-DB_NAME="icon_curator_dev"
+DB_NAME="icon_extractor_dev"
 DB_USER="postgres"
 DB_PASSWORD="password"
 DB_ECHO="false"  # Set to "true" for SQL logging
@@ -151,7 +151,7 @@ DB_ECHO="false"  # Set to "true" for SQL logging
 The scraper can be configured programmatically:
 
 ```python
-from src.icon_curator.processors.scraper import YotoIconScraper
+from src.icon_extractor.processors.scraper import YotoIconScraper
 
 scraper = YotoIconScraper(
     base_url="https://yotoicons.com",
@@ -239,15 +239,15 @@ Run the test suite:
 
 ```bash
 # Run all tests
-python -m pytest tests/unit/icon_curator/ tests/integration/icon_curator/test_basic_integration.py -v
+python -m pytest tests/unit/icon_extractor/ tests/integration/icon_extractor/test_basic_integration.py -v
 
 # Run with coverage
-python -m pytest tests/unit/icon_curator/ --cov=src/icon_curator --cov-report=html
+python -m pytest tests/unit/icon_extractor/ --cov=src/icon_extractor --cov-report=html
 
 # Run specific test categories
-python -m pytest tests/unit/icon_curator/test_models.py -v
-python -m pytest tests/unit/icon_curator/test_cli.py -v
-python -m pytest tests/unit/icon_curator/test_scraper.py -v
+python -m pytest tests/unit/icon_extractor/test_models.py -v
+python -m pytest tests/unit/icon_extractor/test_cli.py -v
+python -m pytest tests/unit/icon_extractor/test_scraper.py -v
 ```
 
 ## Contributing

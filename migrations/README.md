@@ -73,7 +73,7 @@ The system uses these environment variables for database connection:
 - `DATABASE_URL`: Full PostgreSQL connection URL (e.g., `postgresql://user:pass@localhost/db`)
 - `DB_HOST`: Database host (default: `localhost`)
 - `DB_PORT`: Database port (default: `5432`)
-- `DB_NAME`: Database name (default: `icon_curator_dev`)
+- `DB_NAME`: Database name (default: `story_curator_dev`)
 - `DB_USER`: Database user (default: `postgres`)
 - `DB_PASSWORD`: Database password (default: empty)
 

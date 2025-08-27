@@ -88,7 +88,7 @@ class MigrationRegistry:
             # Default development database
             host = os.getenv('DB_HOST', 'localhost')
             port = os.getenv('DB_PORT', '5432')
-            name = os.getenv('DB_NAME', 'icon_curator_dev')
+            name = os.getenv('DB_NAME', 'story_curator_dev')
             user = os.getenv('DB_USER', 'postgres')
             password = os.getenv('DB_PASSWORD', '')
             database_url = f"postgresql://{user}:{password}@{host}:{port}/{name}"

@@ -12,7 +12,8 @@ from ..tests_unit.utils.audio import create_timed_speech_file, create_wav_file
 
 @pytest.fixture
 def audio_analyzer():
-    """Create an AudioAnalyzer instance."""
+    """Create a real AudioAnalyzer instance for integration tests (no mocks)."""
+    # Create analyzer with real dependencies - no mocks in integration tests
     return Analyzer()
 
 

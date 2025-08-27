@@ -15,8 +15,8 @@ src_path = Path(__file__).parent.parent.parent
 if str(src_path) not in sys.path:
     sys.path.insert(0, str(src_path))
 
-from src.icon_curator.models.icon import IconData, ScrapingResult
-from src.icon_curator.database.models import IconModel
+from src.icon_extractor.models.icon import IconData, ScrapingResult
+from src.icon_extractor.database.models import IconModel
 
 
 @pytest.fixture
@@ -100,7 +100,7 @@ def test_db_engine():
     # Use environment variable or default test database URL
     test_db_url = os.getenv(
         "TEST_DATABASE_URL", 
-        "postgresql://postgres:password@localhost:5432/icon_curator_test"
+        "postgresql://postgres:password@localhost:5432/story_curator_test"
     )
     engine = create_engine(test_db_url, echo=False)
     yield engine

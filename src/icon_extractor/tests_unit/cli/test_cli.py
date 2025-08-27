@@ -6,15 +6,15 @@ from unittest.mock import Mock, patch
 import sys
 from io import StringIO
 
-from src.icon_curator.cli.main import (
+from src.icon_extractor.cli.main import (
     create_parser, 
     main,
     scrape_command,
     search_command,
     stats_command
 )
-from src.icon_curator.models.icon import IconData, ScrapingResult
-from src.icon_curator.core.exceptions import IconCuratorError
+from src.icon_extractor.models.icon import IconData, ScrapingResult
+from src.icon_extractor.core.exceptions import IconCuratorError
 
 
 class TestCLIParser:
@@ -93,8 +93,8 @@ class TestCLIParser:
 class TestCLICommands:
     """Test cases for CLI command functions."""
     
-    @patch.dict(os.environ, {'ICON_CURATOR_DEMO': 'false'})
-    @patch('src.icon_curator.cli.main.IconService')
+    @patch.dict(os.environ, {'ICON_EXTRACTOR_DEMO': 'false'})
+    @patch('src.icon_extractor.cli.main.IconService')
     def test_scrape_command_success(self, mock_service_class):
         """Test successful scrape command execution."""
         # Mock service and its methods
@@ -131,8 +131,8 @@ class TestCLICommands:
         assert "Total icons found: 100" in output
         assert "Successfully scraped: 85" in output
     
-    @patch.dict(os.environ, {'ICON_CURATOR_DEMO': 'false'})
-    @patch('src.icon_curator.cli.main.IconService')
+    @patch.dict(os.environ, {'ICON_EXTRACTOR_DEMO': 'false'})
+    @patch('src.icon_extractor.cli.main.IconService')
     def test_scrape_command_with_errors(self, mock_service_class):
         """Test scrape command with errors."""
         mock_service = Mock()
@@ -165,14 +165,14 @@ class TestCLICommands:
         assert "Error 1" in output
         assert "Error 2" in output
     
-    @patch.dict(os.environ, {'ICON_CURATOR_DEMO': 'false'})
-    @patch('src.icon_curator.cli.main.IconService')
+    @patch.dict(os.environ, {'ICON_EXTRACTOR_DEMO': 'false'})
+    @patch('src.icon_extractor.cli.main.IconService')
     def test_scrape_command_failure(self, mock_service_class):
         """Test scrape command failure."""
         mock_service = Mock()
         mock_service_class.return_value = mock_service
         
-        from src.icon_curator.core.exceptions import IconCuratorError
+        from src.icon_extractor.core.exceptions import IconCuratorError
         mock_service.scrape_and_store_icons.side_effect = IconCuratorError("Scraping failed")
         
         args = Mock()
@@ -187,7 +187,7 @@ class TestCLICommands:
         output = fake_stderr.getvalue()
         assert "Error: Scraping failed" in output
     
-    @patch('src.icon_curator.cli.main.IconService')
+    @patch('src.icon_extractor.cli.main.IconService')
     def test_search_command_success(self, mock_service_class):
         """Test successful search command."""
         mock_service = Mock()
@@ -235,7 +235,7 @@ class TestCLICommands:
         assert "Test Icon 1" in output
         assert "Test Icon 2" in output
     
-    @patch('src.icon_curator.cli.main.IconService')
+    @patch('src.icon_extractor.cli.main.IconService')
     def test_search_command_no_results(self, mock_service_class):
         """Test search command with no results."""
         mock_service = Mock()
@@ -257,7 +257,7 @@ class TestCLICommands:
         output = fake_stdout.getvalue()
         assert "No icons found matching the criteria" in output
     
-    @patch('src.icon_curator.cli.main.IconService')
+    @patch('src.icon_extractor.cli.main.IconService')
     def test_stats_command_success(self, mock_service_class):
         """Test successful stats command."""
         mock_service = Mock()
@@ -301,7 +301,7 @@ class TestMainFunction:
         output = fake_stdout.getvalue()
         assert "usage:" in output.lower() or "help" in output.lower()
     
-    @patch('src.icon_curator.cli.main.scrape_command')
+    @patch('src.icon_extractor.cli.main.scrape_command')
     def test_main_with_scrape_command(self, mock_scrape_command):
         """Test main function with scrape command."""
         mock_scrape_command.return_value = 0
@@ -311,7 +311,7 @@ class TestMainFunction:
         assert result == 0
         mock_scrape_command.assert_called_once()
     
-    @patch('src.icon_curator.cli.main.search_command')
+    @patch('src.icon_extractor.cli.main.search_command')
     def test_main_with_search_command(self, mock_search_command):
         """Test main function with search command."""
         mock_search_command.return_value = 0
@@ -321,7 +321,7 @@ class TestMainFunction:
         assert result == 0
         mock_search_command.assert_called_once()
     
-    @patch('src.icon_curator.cli.main.stats_command')
+    @patch('src.icon_extractor.cli.main.stats_command')
     def test_main_with_stats_command(self, mock_stats_command):
         """Test main function with stats command."""
         mock_stats_command.return_value = 0

@@ -5,8 +5,8 @@ import pytest
 from unittest.mock import Mock, patch
 from datetime import datetime
 
-from src.icon_curator.models.icon import IconData
-from src.icon_curator.core.exceptions import DatabaseError, ValidationError
+from src.icon_extractor.models.icon import IconData
+from src.icon_extractor.core.exceptions import DatabaseError, ValidationError
 
 # Database integration tests require PostgreSQL setup
 SKIP_DATABASE_TESTS = os.getenv('SKIP_DATABASE_TESTS', 'true').lower() == 'true'
@@ -164,14 +164,14 @@ class TestRealDatabaseIntegration:
 To enable real PostgreSQL database integration tests:
 
 1. Set up PostgreSQL database:
-   createdb icon_curator_test
+   createdb story_curator_test
 
 2. Set environment variables:
-   export DATABASE_URL="postgresql://user:password@localhost/icon_curator_test"
+   export DATABASE_URL="postgresql://user:password@localhost/story_curator_test"
    export SKIP_DATABASE_TESTS=false
 
 3. Run database tests:
-   pytest tests/integration/icon_curator/test_database_integration.py::TestRealDatabaseIntegration -v
+   pytest tests/integration/icon_extractor/test_database_integration.py::TestRealDatabaseIntegration -v
 
 Note: Real database tests are skipped by default to avoid requiring PostgreSQL setup
 for basic integration testing.

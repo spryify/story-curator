@@ -5,9 +5,9 @@ from media_analyzer.processors.subject.subject_identifier import SubjectIdentifi
 from media_analyzer.models.subject.identification import Context
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture
 def mock_spacy():
-    """Mock spaCy for all tests in this directory."""
+    """Mock spaCy for tests that need it."""
     import unittest.mock as mock
     
     # Create mock doc object with entities

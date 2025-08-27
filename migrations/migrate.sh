@@ -10,7 +10,7 @@ MIGRATION_RUNNER="$SCRIPT_DIR/migration_runner.py"
 PYTHON_CMD="${PYTHON_CMD:-python}"
 
 # Default database URL (can be overridden with DATABASE_URL environment variable)
-DEFAULT_DB_URL="postgresql://postgres:@localhost:5432/icon_curator_dev"
+DEFAULT_DB_URL="postgresql://postgres:@localhost:5432/story_curator_dev"
 DATABASE_URL="${DATABASE_URL:-$DEFAULT_DB_URL}"
 
 # Check if virtual environment is activated

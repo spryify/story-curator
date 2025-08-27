@@ -3,7 +3,7 @@
 import pytest
 from datetime import datetime
 
-from src.icon_curator.models.icon import IconData, ScrapingResult
+from src.icon_extractor.models.icon import IconData, ScrapingResult
 
 
 class TestIconData:
