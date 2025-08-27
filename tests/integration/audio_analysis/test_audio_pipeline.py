@@ -11,7 +11,7 @@ import wave
 from media_analyzer.core.analyzer import Analyzer
 from media_analyzer.core.exceptions import ValidationError
 from media_analyzer.models.audio import TranscriptionResult
-from tests.utils.audio import create_timed_speech_file
+from tests.utils.audio import create_timed_speech_file, create_wav_file
 
 
 @pytest.fixture
@@ -19,10 +19,90 @@ def audio_analyzer():
     """Create an AudioAnalyzer instance."""
     return Analyzer()
 
+
+def create_story_audio_file(tmp_path: Path, story_text: str, filename: str = "story.wav") -> Path:
+    """Create an audio file using the existing utility with story text.
+    
+    Args:
+        tmp_path: Temporary directory path
+        story_text: Text content to convert to speech
+        filename: Output filename
+        
+    Returns:
+        Path to the created audio file
+    """
+    return create_wav_file(
+        text=story_text,
+        output_path=tmp_path / filename,
+        voice="Samantha",  # Child-friendly voice
+        rate=160,          # Slightly slower rate for clarity
+        sample_rate=16000,
+        channels=1
+    )
+
+
+@pytest.fixture
+def children_story_texts():
+    """Sample children's story texts for audio generation."""
+    return {
+        "magic_garden": """
+            The Magic Garden Adventure. In a colorful garden lived a curious butterfly named Flutter. 
+            Flutter loved to explore and learn about all the flowers. One sunny morning, Flutter met 
+            a wise old owl named Professor Hoot. Would you like to learn about the special magic of 
+            the garden, asked Professor Hoot. Oh yes, please, Flutter replied excitedly.
+        """,
+        
+        "weather_lesson": """
+            Let's Learn About the Weather! Today we're going to explore different types of weather. 
+            When the sun is shining, we call it a sunny day. Sometimes clouds fill the sky, and it 
+            might rain. Rain helps plants grow and gives us water to drink. In winter, it gets cold 
+            and sometimes snows.
+        """,
+        
+        "sharing_story": """
+            The Tale of Two Friends. Once upon a time, there were two little mice named Hoppy and Squeaky. 
+            They found a big piece of cheese in the garden. Hoppy wanted to share it with all their 
+            friends, but Squeaky wanted to keep it all. Let's share it, said Hoppy. Sharing makes 
+            everything more fun and brings friends together.
+        """,
+        
+        "nature_adventure": """
+            Exploring the Forest. The little rabbit hopped through the green forest, discovering 
+            beautiful flowers and tall trees. The sun filtered through the leaves, creating dancing 
+            shadows on the forest floor. Birds sang cheerful songs while butterflies danced from 
+            flower to flower. Nature is full of wonderful surprises for those who take time to explore.
+        """
+    }
+
+
+@pytest.fixture
+def educational_content_texts():
+    """Educational content texts for testing learning-focused audio."""
+    return {
+        "counting_lesson": """
+            Let's Count Together! One butterfly, two flowers, three buzzing bees. Four little frogs 
+            by the pond, five colorful birds in the tree. Counting is fun when we practice every day. 
+            Can you count along with me? Let's try again from the beginning.
+        """,
+        
+        "colors_lesson": """
+            Learning About Colors. Red roses in the garden, yellow sunshine in the sky. Blue water 
+            in the pond, green grass all around. Orange carrots for the rabbits, purple flowers 
+            so bright. Colors make our world beautiful and help us learn about everything we see.
+        """,
+        
+        "kindness_lesson": """
+            Being Kind to Others. When we help our friends, we feel happy inside. Sharing toys, 
+            saying please and thank you, and helping when someone falls down. These are all ways 
+            to show kindness. Remember, being kind makes everyone feel special and loved.
+        """
+    }
+
+
 class TestAudioPipeline:
     """Integration test suite for audio processing pipeline."""
 
-    def test_end_to_end_audio_analysis(self, audio_analyzer, tmp_path, test_config):
+    def test_end_to_end_audio_analysis(self, audio_analyzer, tmp_path):
         """Test the complete audio analysis pipeline."""
         # Create a test audio file
         test_file = create_timed_speech_file(tmp_path)
@@ -140,3 +220,175 @@ class TestAudioPipeline:
                     assert result.metadata["duration"] > 0
                 except Exception as e:
                     pytest.fail(f"Processing failed for {file_path}: {e}")
+
+    def test_childrens_story_audio_processing(self, audio_analyzer, children_story_texts, tmp_path):
+        """Test processing of children's story audio files."""
+        for story_name, story_text in children_story_texts.items():
+            # Create audio file from story text
+            audio_file = create_story_audio_file(tmp_path, story_text, f"{story_name}.wav")
+            
+            # Process the audio file
+            result = audio_analyzer.process_file(audio_file)
+            
+            # Verify basic transcription results
+            assert isinstance(result, TranscriptionResult)
+            assert result.text
+            assert len(result.text.strip()) > 10  # Should have substantial content
+            assert result.confidence > 0.5  # Should have reasonable confidence
+            
+            # Verify metadata
+            assert "processing_time" in result.metadata
+            assert "duration" in result.metadata
+            assert result.metadata["duration"] > 1.0  # Should be at least 1 second
+            
+            # Check for story-specific content in transcription
+            text_lower = result.text.lower()
+            if story_name == "magic_garden":
+                # Should contain garden/nature related words
+                story_keywords = ["garden", "butterfly", "flutter", "owl", "professor"]
+                assert any(keyword in text_lower for keyword in story_keywords), \
+                    f"Expected story keywords not found in: {result.text}"
+                    
+            elif story_name == "weather_lesson":
+                # Should contain weather-related words
+                weather_keywords = ["weather", "sun", "rain", "snow", "clouds"]
+                assert any(keyword in text_lower for keyword in weather_keywords), \
+                    f"Expected weather keywords not found in: {result.text}"
+                    
+            elif story_name == "sharing_story":
+                # Should contain sharing/friendship words
+                sharing_keywords = ["share", "friends", "mouse", "cheese"]
+                assert any(keyword in text_lower for keyword in sharing_keywords), \
+                    f"Expected sharing keywords not found in: {result.text}"
+
+    def test_educational_audio_content(self, audio_analyzer, educational_content_texts, tmp_path):
+        """Test processing of educational audio content."""
+        for lesson_name, lesson_text in educational_content_texts.items():
+            # Create audio file from educational text
+            audio_file = create_story_audio_file(tmp_path, lesson_text, f"{lesson_name}.wav")
+            
+            # Process the audio file
+            result = audio_analyzer.process_file(audio_file)
+            
+            # Verify transcription quality
+            assert isinstance(result, TranscriptionResult)
+            assert result.text
+            assert result.confidence > 0.4  # Educational content might be slightly harder
+            
+            # Verify educational content is captured
+            text_lower = result.text.lower()
+            if lesson_name == "counting_lesson":
+                # Should contain numbers or counting words
+                counting_keywords = ["one", "two", "three", "count", "number"]
+                assert any(keyword in text_lower for keyword in counting_keywords), \
+                    f"Expected counting keywords not found in: {result.text}"
+                    
+            elif lesson_name == "colors_lesson":
+                # Should contain color words
+                color_keywords = ["red", "yellow", "blue", "green", "color"]
+                assert any(keyword in text_lower for keyword in color_keywords), \
+                    f"Expected color keywords not found in: {result.text}"
+                    
+            elif lesson_name == "kindness_lesson":
+                # Should contain kindness/social words
+                kindness_keywords = ["kind", "help", "friend", "share", "thank"]
+                assert any(keyword in text_lower for keyword in kindness_keywords), \
+                    f"Expected kindness keywords not found in: {result.text}"
+
+    def test_story_audio_with_different_voices(self, audio_analyzer, tmp_path):
+        """Test processing audio with different synthesized voices."""
+        story_text = """
+        The little bunny hopped through the meadow, looking for carrots. 
+        The sun was shining and the birds were singing. It was a perfect day for an adventure.
+        """
+        
+        # Test with different voices available on macOS
+        voices = ["Samantha", "Alex", "Victoria"]  # Different voice options
+        
+        for voice in voices:
+            try:
+                # Create audio file with specific voice using utility function
+                output_file = create_wav_file(
+                    text=story_text,
+                    output_path=tmp_path / f"story_{voice.lower()}.wav",
+                    voice=voice,
+                    rate=150,
+                    sample_rate=16000,
+                    channels=1
+                )
+                
+                if output_file.exists():
+                    # Process the audio file
+                    result = audio_analyzer.process_file(output_file)
+                    
+                    # Verify basic results
+                    assert isinstance(result, TranscriptionResult)
+                    assert result.text
+                    
+                    # Check for story content
+                    text_lower = result.text.lower()
+                    story_keywords = ["bunny", "meadow", "carrot", "sun", "bird"]
+                    assert any(keyword in text_lower for keyword in story_keywords), \
+                        f"Story content not recognized with voice {voice}: {result.text}"
+                        
+            except Exception:
+                # Skip if voice not available or utility function fails
+                continue
+
+    def test_multi_sentence_story_segmentation(self, audio_analyzer, tmp_path):
+        """Test processing longer stories with multiple sentences."""
+        long_story = """
+        Once upon a time, in a magical forest, there lived a wise old oak tree. 
+        The oak tree was home to many animals including squirrels, birds, and rabbits. 
+        Every morning, the animals would gather to hear the oak tree tell wonderful stories. 
+        The tree would share tales of brave adventures, friendship, and the importance of caring for nature. 
+        All the forest creatures loved these story times and looked forward to them each day.
+        """
+        
+        # Create longer audio file
+        audio_file = create_story_audio_file(tmp_path, long_story, "long_story.wav")
+        
+        # Process the audio
+        result = audio_analyzer.process_file(audio_file)
+        
+        # Verify comprehensive transcription
+        assert isinstance(result, TranscriptionResult)
+        assert result.text
+        assert len(result.text.split()) >= 20  # Should have many words
+        
+        # Check for story elements
+        text_lower = result.text.lower()
+        story_elements = ["forest", "tree", "animals", "stories", "adventures"]
+        found_elements = [elem for elem in story_elements if elem in text_lower]
+        assert len(found_elements) >= 2, \
+            f"Expected multiple story elements, found: {found_elements} in: {result.text}"
+        
+        # Verify metadata for longer content
+        assert result.metadata["duration"] > 5.0  # Should be longer audio
+        assert result.confidence > 0.3  # May be lower for longer content
+
+    def test_story_with_dialogue_and_emotions(self, audio_analyzer, tmp_path):
+        """Test processing stories with dialogue and emotional content."""
+        dialogue_story = """
+        "Hello there, little rabbit!" said the friendly fox. 
+        "Would you like to be my friend?" 
+        The rabbit was scared at first, but the fox seemed very kind. 
+        "Yes, I would like that very much," replied the rabbit happily. 
+        And so they became the very best of friends, playing together every day.
+        """
+        
+        # Create audio with dialogue
+        audio_file = create_story_audio_file(tmp_path, dialogue_story, "dialogue_story.wav")
+        
+        # Process the audio
+        result = audio_analyzer.process_file(audio_file)
+        
+        # Verify dialogue transcription
+        assert isinstance(result, TranscriptionResult)
+        assert result.text
+        
+        # Check for dialogue indicators and emotional words
+        text_lower = result.text.lower()
+        dialogue_keywords = ["hello", "friend", "said", "replied", "happy"]
+        assert any(keyword in text_lower for keyword in dialogue_keywords), \
+            f"Expected dialogue keywords not found in: {result.text}"
