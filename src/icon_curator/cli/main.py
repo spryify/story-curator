@@ -19,6 +19,92 @@ def setup_logging(verbose: bool = False):
     )
 
 
+def _run_demo_scrape() -> int:
+    """Run scraping in demo mode without database.
+    
+    Returns:
+        Exit code (0 for success, 1 for error)
+    """
+    print("🚀 Running in DEMO mode (no database required)")
+    print("   This will demonstrate web scraping without storing data")
+    print("   Set up PostgreSQL for full functionality\n")
+    
+    # Demo scraping - just test the scraper without database
+    from ..processors.scraper import YotoIconScraper
+    scraper = YotoIconScraper()
+    
+    print("Starting demo icon scraping from yotoicons.com...")
+    print("Discovering available icons...")
+    
+    try:
+        # Test the main site and discover actual structure
+        print(f"🔍 Exploring yotoicons.com structure...")
+        
+        main_url = "https://yotoicons.com/"
+        response = scraper._make_request(main_url)
+        
+        if response:
+            print(f"    ✅ Successfully connected to {main_url}")
+            
+            # Parse the main page to see what's available
+            from bs4 import BeautifulSoup
+            soup = BeautifulSoup(response.text, 'html.parser')
+            
+            # Look for common patterns that might indicate icons
+            title = soup.find('title')
+            if title:
+                print(f"    📄 Page title: {title.get_text().strip()}")
+            
+            # Show general page structure
+            headings = soup.find_all(['h1', 'h2', 'h3'])
+            if headings:
+                print(f"    📝 Page headings found:")
+                for heading in headings[:3]:
+                    text = heading.get_text().strip()
+                    if text and len(text) < 100:
+                        print(f"      - {text}")
+            
+            # Look for any image references
+            images = soup.find_all('img')
+            svg_count = len(soup.find_all('svg'))
+            if images or svg_count:
+                print(f"    🎨 Found {len(images)} images and {svg_count} SVG elements")
+            
+            # Try to use the scraper's actual discovery logic
+            print(f"\n🔍 Testing category discovery...")
+            try:
+                # Use the scraper's built-in category discovery method
+                categories = scraper._discover_categories()
+                if categories:
+                    print(f"    ✅ Discovered {len(categories)} categories:")
+                    for cat in categories[:5]:  # Show first 5
+                        print(f"      - {cat}")
+                    if len(categories) > 5:
+                        print(f"      ... and {len(categories) - 5} more")
+                else:
+                    print(f"    📝 No categories discovered with current logic")
+                    print(f"        (This may need site-specific adaptation)")
+            except Exception as discovery_error:
+                print(f"    ⚠️  Category discovery test: {discovery_error}")
+                print(f"        (Discovery logic may need site-specific tuning)")
+        
+        else:
+            print(f"    ❌ Could not connect to {main_url}")
+        
+        print(f"\n🎯 Demo completed!")
+        print(f"   The scraper successfully connected to yotoicons.com")
+        print(f"   For full icon discovery and database storage:")
+        print(f"   1. Install PostgreSQL (see docs/environment-setup.md)")
+        print(f"   2. Run: python setup_database.py")
+        print(f"   3. Run: icon-curator scrape")
+        
+        return 0
+        
+    except Exception as e:
+        print(f"Demo error: {e}")
+        return 1
+
+
 def scrape_command(args) -> int:
     """Execute the scrape command.
     
@@ -33,83 +119,7 @@ def scrape_command(args) -> int:
         demo_mode = getattr(args, 'demo', False) or os.getenv('ICON_CURATOR_DEMO', 'false').lower() == 'true'
         
         if demo_mode:
-            print("🚀 Running in DEMO mode (no database required)")
-            print("   This will demonstrate web scraping without storing data")
-            print("   Set up PostgreSQL for full functionality\n")
-            
-            # Demo scraping - just test the scraper without database
-            from ..processors.scraper import YotoIconScraper
-            scraper = YotoIconScraper()
-            
-            print("Starting demo icon scraping from yotoicons.com...")
-            print("Discovering available icons...")
-            
-            try:
-                # Test the main site and discover actual structure
-                print(f"🔍 Exploring yotoicons.com structure...")
-                
-                main_url = "https://yotoicons.com/"
-                response = scraper._make_request(main_url)
-                
-                if response:
-                    print(f"    ✅ Successfully connected to {main_url}")
-                    
-                    # Parse the main page to see what's available
-                    from bs4 import BeautifulSoup
-                    soup = BeautifulSoup(response.text, 'html.parser')
-                    
-                    # Look for common patterns that might indicate icons
-                    title = soup.find('title')
-                    if title:
-                        print(f"    📄 Page title: {title.get_text().strip()}")
-                    
-                    # Show general page structure
-                    headings = soup.find_all(['h1', 'h2', 'h3'])
-                    if headings:
-                        print(f"    📝 Page headings found:")
-                        for heading in headings[:3]:
-                            text = heading.get_text().strip()
-                            if text and len(text) < 100:
-                                print(f"      - {text}")
-                    
-                    # Look for any image references
-                    images = soup.find_all('img')
-                    svg_count = len(soup.find_all('svg'))
-                    if images or svg_count:
-                        print(f"    🎨 Found {len(images)} images and {svg_count} SVG elements")
-                    # Try to use the scraper's actual discovery logic
-                    print(f"\n🔍 Testing category discovery...")
-                    try:
-                        # Use the scraper's built-in category discovery method
-                        categories = scraper._discover_categories()
-                        if categories:
-                            print(f"    ✅ Discovered {len(categories)} categories:")
-                            for cat in categories[:5]:  # Show first 5
-                                print(f"      - {cat}")
-                            if len(categories) > 5:
-                                print(f"      ... and {len(categories) - 5} more")
-                        else:
-                            print(f"    📝 No categories discovered with current logic")
-                            print(f"        (This may need site-specific adaptation)")
-                    except Exception as discovery_error:
-                        print(f"    ⚠️  Category discovery test: {discovery_error}")
-                        print(f"        (Discovery logic may need site-specific tuning)")
-                
-                else:
-                    print(f"    ❌ Could not connect to {main_url}")
-                
-                print(f"\n🎯 Demo completed!")
-                print(f"   The scraper successfully connected to yotoicons.com")
-                print(f"   For full icon discovery and database storage:")
-                print(f"   1. Install PostgreSQL (see docs/environment-setup.md)")
-                print(f"   2. Run: python setup_database.py")
-                print(f"   3. Run: icon-curator scrape")
-                
-                return 0
-                
-            except Exception as e:
-                print(f"Demo error: {e}")
-                return 1
+            return _run_demo_scrape()
         
         # Full mode with database
         service = IconService()
