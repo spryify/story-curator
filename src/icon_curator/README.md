@@ -122,7 +122,7 @@ print(f"Scraped {result.successful_scraped} icons")
 # Search for icons
 icons = service.search_icons("animal", category="Nature", limit=10)
 for icon in icons:
-    print(f"{icon.name}: {icon.image_url}")
+    print(f"{icon.name}: {icon.url}")
 
 # Get statistics
 stats = service.get_statistics()
@@ -168,7 +168,6 @@ CREATE TABLE icons (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     url VARCHAR(500) NOT NULL UNIQUE,
-    image_url VARCHAR(500) NOT NULL,
     tags TEXT[] NOT NULL DEFAULT '{}',
     description TEXT,
     category VARCHAR(100),

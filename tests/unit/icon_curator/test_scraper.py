@@ -165,7 +165,6 @@ class TestYotoIconScraper:
         mock_icon = IconData(
             name="Test Icon",
             url="https://example.com/icon1",
-            image_url="https://example.com/icon1.svg",
             tags=["test"]
         )
         mock_scrape_icon.return_value = mock_icon

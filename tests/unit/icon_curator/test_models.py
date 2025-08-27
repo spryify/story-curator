@@ -13,14 +13,12 @@ class TestIconData:
         """Test creating IconData with minimum required fields."""
         icon = IconData(
             name="Test Icon",
-            url="https://example.com/icon",
-            image_url="https://example.com/icon.svg",
+            url="https://example.com/icon.svg",
             tags=["test"]
         )
         
         assert icon.name == "Test Icon"
-        assert icon.url == "https://example.com/icon"
-        assert icon.image_url == "https://example.com/icon.svg"
+        assert icon.url == "https://example.com/icon.svg"
         assert icon.tags == ["test"]
         assert icon.description is None
         assert icon.category is None
@@ -36,8 +34,7 @@ class TestIconData:
         
         icon = IconData(
             name="Complete Icon",
-            url="https://example.com/complete",
-            image_url="https://example.com/complete.svg",
+            url="https://example.com/complete.svg",
             tags=["complete", "test"],
             description="A complete test icon",
             category="Testing",
@@ -47,8 +44,7 @@ class TestIconData:
         )
         
         assert icon.name == "Complete Icon"
-        assert icon.url == "https://example.com/complete"
-        assert icon.image_url == "https://example.com/complete.svg"
+        assert icon.url == "https://example.com/complete.svg"
         assert icon.tags == ["complete", "test"]
         assert icon.description == "A complete test icon"
         assert icon.category == "Testing"
@@ -61,7 +57,6 @@ class TestIconData:
         icon = IconData(
             name="Test",
             url="https://example.com/test",
-            image_url="https://example.com/test.svg",
             tags=["test"]
         )
         
@@ -91,7 +86,8 @@ class TestScrapingResult:
             failed_scraped=15,
             errors=errors,
             processing_time=120.5,
-            timestamp=timestamp
+            timestamp=timestamp,
+            icons=[]
         )
         
         assert result.total_icons == 100
@@ -109,7 +105,8 @@ class TestScrapingResult:
             failed_scraped=15,
             errors=[],
             processing_time=60.0,
-            timestamp=datetime.now()
+            timestamp=datetime.now(),
+            icons=[]
         )
         
         assert result.success_rate == 85.0
@@ -122,7 +119,8 @@ class TestScrapingResult:
             failed_scraped=0,
             errors=[],
             processing_time=0.0,
-            timestamp=datetime.now()
+            timestamp=datetime.now(),
+            icons=[]
         )
         
         assert result.success_rate == 0.0
@@ -135,7 +133,8 @@ class TestScrapingResult:
             failed_scraped=0,
             errors=[],
             processing_time=30.0,
-            timestamp=datetime.now()
+            timestamp=datetime.now(),
+            icons=[]
         )
         
         assert result.success_rate == 100.0

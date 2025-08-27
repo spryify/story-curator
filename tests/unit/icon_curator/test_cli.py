@@ -186,7 +186,6 @@ class TestCLICommands:
             IconData(
                 name="Test Icon 1",
                 url="https://example.com/1",
-                image_url="https://example.com/1.svg",
                 tags=["test", "icon"],
                 description="First test icon",
                 category="Testing"
@@ -194,7 +193,6 @@ class TestCLICommands:
             IconData(
                 name="Test Icon 2",
                 url="https://example.com/2",
-                image_url="https://example.com/2.svg",
                 tags=["test"],
                 description="Second test icon",
                 category="Testing"

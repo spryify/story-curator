@@ -55,8 +55,7 @@ def sample_icon_data() -> IconData:
     """Create sample icon data for testing."""
     return IconData(
         name="Test Icon",
-        url="https://yotoicons.com/test-icon",
-        image_url="https://yotoicons.com/images/test-icon.svg",
+        url="https://yotoicons.com/images/test-icon.svg",
         tags=["test", "sample"],
         description="A test icon for integration tests",
         category="Testing",
@@ -70,24 +69,21 @@ def sample_icon_data_list() -> List[IconData]:
     return [
         IconData(
             name="Animal Icon",
-            url="https://yotoicons.com/animal-icon",
-            image_url="https://yotoicons.com/images/animal.svg",
+            url="https://yotoicons.com/images/animal.svg",
             tags=["animals", "cute"],
             description="Cute animal icon",
             category="Animals"
         ),
         IconData(
             name="Plant Icon", 
-            url="https://yotoicons.com/plant-icon",
-            image_url="https://yotoicons.com/images/plant.svg",
+            url="https://yotoicons.com/images/plant.svg",
             tags=["nature", "plants"],
             description="Nature plant icon",
             category="Nature"
         ),
         IconData(
             name="Vehicle Icon",
-            url="https://yotoicons.com/vehicle-icon",
-            image_url="https://yotoicons.com/images/vehicle.svg",
+            url="https://yotoicons.com/images/vehicle.svg",
             tags=["vehicles", "transport"],
             description="Transport vehicle icon",
             category="Transport"
@@ -104,7 +100,8 @@ def sample_scraping_result() -> ScrapingResult:
         failed_scraped=2,
         errors=["Failed to scrape icon1", "Failed to scrape icon2"],
         processing_time=15.5,
-        timestamp=datetime.now()
+        timestamp=datetime.now(),
+        icons=[]  # Add empty icons list
     )
 
 

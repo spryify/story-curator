@@ -15,8 +15,7 @@ class TestIconCuratorBasicFunctionality:
         """Test creating IconData objects with all fields."""
         icon = IconData(
             name="Test Icon",
-            url="https://yotoicons.com/test",
-            image_url="https://yotoicons.com/test.svg",
+            url="https://yotoicons.com/test.svg",
             tags=["test", "integration"],
             description="A test icon for integration tests",
             category="Testing",
@@ -24,8 +23,7 @@ class TestIconCuratorBasicFunctionality:
         )
         
         assert icon.name == "Test Icon"
-        assert icon.url == "https://yotoicons.com/test"
-        assert icon.image_url == "https://yotoicons.com/test.svg"
+        assert icon.url == "https://yotoicons.com/test.svg"
         assert icon.tags == ["test", "integration"]
         assert icon.description == "A test icon for integration tests"
         assert icon.category == "Testing"
@@ -37,7 +35,7 @@ class TestIconCuratorBasicFunctionality:
         """Test IconData validation with invalid data."""
         # Test with missing required fields
         with pytest.raises(TypeError):
-            IconData()  # Missing required name, url, image_url, tags
+            IconData()  # Missing required name, url, tags
     
     def test_scraping_result_creation(self):
         """Test creating ScrapingResult objects."""
@@ -47,7 +45,8 @@ class TestIconCuratorBasicFunctionality:
             failed_scraped=1,
             processing_time=5.5,
             errors=["Failed to scrape icon3"],
-            timestamp=datetime.now()
+            timestamp=datetime.now(),
+            icons=[]
         )
         
         assert result.total_icons == 3
@@ -83,21 +82,18 @@ class TestIconCuratorBasicFunctionality:
         icon1 = IconData(
             name="Test Icon",
             url="https://yotoicons.com/test",
-            image_url="https://yotoicons.com/test.svg",
             tags=["test"]
         )
         
         icon2 = IconData(
             name="Test Icon",
             url="https://yotoicons.com/test", 
-            image_url="https://yotoicons.com/test.svg",
             tags=["test"]
         )
         
         icon3 = IconData(
             name="Different Icon",
             url="https://yotoicons.com/different",
-            image_url="https://yotoicons.com/different.svg",
             tags=["different"]
         )
         
@@ -116,7 +112,6 @@ class TestIconCuratorBasicFunctionality:
         icon = IconData(
             name="Debug Icon",
             url="https://yotoicons.com/debug",
-            image_url="https://yotoicons.com/debug.svg",
             tags=["debug"],
             category="Debug"
         )
@@ -135,7 +130,8 @@ class TestIconCuratorBasicFunctionality:
             failed_scraped=0,
             processing_time=0.1,
             errors=[],
-            timestamp=datetime.now()
+            timestamp=datetime.now(),
+            icons=[]
         )
         
         assert empty_result.success_rate == 0.0
@@ -147,7 +143,8 @@ class TestIconCuratorBasicFunctionality:
             failed_scraped=0,
             processing_time=10.0,
             errors=[],
-            timestamp=datetime.now()
+            timestamp=datetime.now(),
+            icons=[]
         )
         
         assert perfect_result.success_rate == 100.0

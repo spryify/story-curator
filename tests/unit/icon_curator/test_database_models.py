@@ -13,8 +13,7 @@ class TestIconModel:
         """Test creating an IconModel instance."""
         model = IconModel(
             name="Test Icon",
-            url="https://example.com/test",
-            image_url="https://example.com/test.svg",
+            url="https://example.com/test.svg",
             tags=["test", "example"],
             description="A test icon",
             category="Testing",
@@ -22,8 +21,7 @@ class TestIconModel:
         )
         
         assert model.name == "Test Icon"
-        assert model.url == "https://example.com/test"
-        assert model.image_url == "https://example.com/test.svg"
+        assert model.url == "https://example.com/test.svg"
         assert model.tags == ["test", "example"]
         assert model.description == "A test icon"
         assert model.category == "Testing"
@@ -35,8 +33,7 @@ class TestIconModel:
         model = IconModel(
             id=1,
             name="Test Icon",
-            url="https://example.com/test",
-            image_url="https://example.com/test.svg",
+            url="https://example.com/test.svg",
             tags=["test"],
             category="Testing"
         )
@@ -51,13 +48,11 @@ class TestIconModel:
         """Test IconModel with default values."""
         model = IconModel(
             name="Minimal Icon",
-            url="https://example.com/minimal",
-            image_url="https://example.com/minimal.svg"
+            url="https://example.com/minimal.svg"
         )
         
         assert model.name == "Minimal Icon"
-        assert model.url == "https://example.com/minimal"
-        assert model.image_url == "https://example.com/minimal.svg"
+        assert model.url == "https://example.com/minimal.svg"
         assert model.tags == []  # Default empty list
         assert model.description is None
         assert model.category is None

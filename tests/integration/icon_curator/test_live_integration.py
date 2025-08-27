@@ -178,7 +178,6 @@ class TestLiveYotoIconsScraping:
                     assert isinstance(icon, IconData)
                     assert icon.name is not None
                     assert icon.url is not None
-                    assert icon.image_url is not None
                     assert isinstance(icon.tags, list)
                 
                 print(f"✅ Successfully extracted {len(extracted_icons)} complete icon records")

@@ -16,7 +16,6 @@ class TestIconDataIntegration:
         icon = IconData(
             name="Complete Test Icon",
             url="https://yotoicons.com/complete",
-            image_url="https://yotoicons.com/complete.svg",
             tags=["test", "integration", "complete"],
             description="A complete test icon for integration tests",
             category="Testing",
@@ -26,7 +25,6 @@ class TestIconDataIntegration:
         # Verify all fields are set correctly
         assert icon.name == "Complete Test Icon"
         assert icon.url == "https://yotoicons.com/complete"
-        assert icon.image_url == "https://yotoicons.com/complete.svg"
         assert icon.tags == ["test", "integration", "complete"]
         assert icon.description == "A complete test icon for integration tests"
         assert icon.category == "Testing"
@@ -38,17 +36,16 @@ class TestIconDataIntegration:
         """Test IconData validation with invalid data."""
         # Test with missing required fields
         with pytest.raises(TypeError):
-            IconData()  # Missing required name, url, image_url, tags
+            IconData()  # Missing required name, url, tags
         
         with pytest.raises(TypeError):
-            IconData(name="Test")  # Missing url, image_url, tags
+            IconData(name="Test")  # Missing url, tags
     
     def test_icon_data_defaults(self):
         """Test IconData default values."""
         icon = IconData(
             name="Minimal Icon",
             url="https://yotoicons.com/minimal",
-            image_url="https://yotoicons.com/minimal.svg",
             tags=["minimal"]
         )
         
@@ -64,21 +61,18 @@ class TestIconDataIntegration:
         icon1 = IconData(
             name="Duplicate Test",
             url="https://yotoicons.com/dup",
-            image_url="https://yotoicons.com/dup.svg",
             tags=["duplicate"]
         )
         
         icon2 = IconData(
             name="Duplicate Test Same URL",
             url="https://yotoicons.com/dup",
-            image_url="https://yotoicons.com/dup.svg",
             tags=["duplicate", "same"]
         )
         
         icon3 = IconData(
             name="Different Icon",
             url="https://yotoicons.com/different",
-            image_url="https://yotoicons.com/different.svg",
             tags=["different"]
         )
         
@@ -96,7 +90,6 @@ class TestIconDataIntegration:
         icon = IconData(
             name="Debug Icon",
             url="https://yotoicons.com/debug",
-            image_url="https://yotoicons.com/debug.svg",
             tags=["debug", "testing"],
             category="Debug"
         )
@@ -121,7 +114,8 @@ class TestScrapingResultIntegration:
             failed_scraped=2,
             processing_time=45.5,
             errors=["Network timeout for icon19", "Parse error for icon20"],
-            timestamp=datetime.now()
+            timestamp=datetime.now(),
+            icons=[]
         )
         
         # Verify all fields
@@ -141,7 +135,8 @@ class TestScrapingResultIntegration:
             failed_scraped=0,
             processing_time=0.1,
             errors=[],
-            timestamp=datetime.now()
+            timestamp=datetime.now(),
+            icons=[]
         )
         assert empty_result.success_rate == 0.0
         
@@ -152,7 +147,8 @@ class TestScrapingResultIntegration:
             failed_scraped=0,
             processing_time=300.0,
             errors=[],
-            timestamp=datetime.now()
+            timestamp=datetime.now(),
+            icons=[]
         )
         assert perfect_result.success_rate == 100.0
         
@@ -163,7 +159,8 @@ class TestScrapingResultIntegration:
             failed_scraped=10,
             processing_time=5.0,
             errors=["Error1", "Error2", "Error3"],
-            timestamp=datetime.now()
+            timestamp=datetime.now(),
+            icons=[]
         )
         assert failed_result.success_rate == 0.0
 
@@ -234,7 +231,8 @@ class TestIntegratedWorkflow:
             failed_scraped=2,  # 2 failed
             processing_time=12.5,
             errors=["Failed icon 1", "Failed icon 2"],
-            timestamp=datetime.now()
+            timestamp=datetime.now(),
+            icons=[]
         )
         
         # Verify the workflow results
@@ -284,7 +282,8 @@ class TestIntegratedWorkflow:
             failed_scraped=1,
             processing_time=1.0,
             errors=["Critical scraping error"],
-            timestamp=datetime.now()
+            timestamp=datetime.now(),
+            icons=[]
         )
         
         assert error_result.success_rate == 0.0
@@ -298,7 +297,7 @@ class TestIntegratedWorkflow:
         
         # Verify the icon maintains consistency
         assert original_icon.name == "Test Icon"
-        assert original_icon.url == "https://yotoicons.com/test-icon"
+        assert original_icon.url == "https://yotoicons.com/images/test-icon.svg"
         assert "test" in original_icon.tags
         assert "sample" in original_icon.tags
         assert original_icon.category == "Testing"
@@ -310,7 +309,8 @@ class TestIntegratedWorkflow:
             failed_scraped=0,
             processing_time=2.5,
             errors=[],
-            timestamp=datetime.now()
+            timestamp=datetime.now(),
+            icons=[]
         )
         
         # Verify consistency between icon and result

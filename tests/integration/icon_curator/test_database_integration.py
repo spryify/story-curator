@@ -79,7 +79,6 @@ class TestDatabaseWorkflowIntegration:
         # Verify IconData has required database fields
         assert sample_icon_data.name is not None
         assert sample_icon_data.url is not None
-        assert sample_icon_data.image_url is not None
         assert isinstance(sample_icon_data.tags, list)
         assert sample_icon_data.created_at is not None
         assert sample_icon_data.updated_at is not None
