@@ -13,12 +13,6 @@ SKIP_DATABASE_TESTS = os.getenv('SKIP_DATABASE_TESTS', 'true').lower() == 'true'
 skip_database = pytest.mark.skipif(SKIP_DATABASE_TESTS, reason="Database integration tests require PostgreSQL setup")
 
 
-@pytest.fixture
-def mock_icon_repository():
-    """Create a mock IconRepository for unit testing."""
-    return Mock()
-
-
 class TestIconRepositoryUnit:
     """Unit tests for IconRepository functionality using mocks."""
     
