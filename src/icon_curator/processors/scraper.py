@@ -101,7 +101,8 @@ class YotoIconScraper:
                 failed_scraped=0,  # We count successful icons directly
                 errors=errors,
                 processing_time=processing_time,
-                timestamp=datetime.now()
+                timestamp=datetime.now(),
+                icons=scraped_icons
             )
             
         except Exception as e:
@@ -224,7 +225,8 @@ class YotoIconScraper:
                 failed_scraped=total_icons - successful_scraped,
                 processing_time=processing_time,
                 errors=errors,
-                timestamp=datetime.now()
+                timestamp=datetime.now(),
+                icons=category_icons
             )
             
         except Exception as e:
@@ -237,7 +239,8 @@ class YotoIconScraper:
                 failed_scraped=1,
                 processing_time=processing_time,
                 errors=errors,
-                timestamp=datetime.now()
+                timestamp=datetime.now(),
+                icons=[]
             )
 
     def _extract_icons_from_page(self, soup: BeautifulSoup, category: str, page_url: str) -> List[IconData]:
@@ -321,8 +324,7 @@ class YotoIconScraper:
                     
                     icon_data = IconData(
                         name=name,
-                        url=page_url,  # The category page URL
-                        image_url=image_url,
+                        url=image_url,  # Use image URL as the unique identifier and display URL
                         description=description,
                         tags=list(set(tags)),  # Remove duplicates
                         category=category,

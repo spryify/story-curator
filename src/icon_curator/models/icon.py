@@ -10,8 +10,7 @@ class IconData:
     """Represents an icon with its metadata."""
     
     name: str
-    url: str
-    image_url: str
+    url: str  # This will be the image URL - serves as both unique identifier and image location
     tags: List[str]
     description: Optional[str] = None
     category: Optional[str] = None
@@ -39,6 +38,7 @@ class ScrapingResult:
     errors: List[str]
     processing_time: float
     timestamp: datetime
+    icons: List['IconData']  # Add the icons field
     
     @property
     def success_rate(self) -> float:

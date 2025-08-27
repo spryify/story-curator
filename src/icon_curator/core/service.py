@@ -82,7 +82,7 @@ class IconService:
             
             # Store scraped icons in database
             stored_count = 0
-            for icon_data in self._get_scraped_icons(scraping_result):
+            for icon_data in scraping_result.icons:
                 try:
                     # Check if icon already exists
                     existing = self.repository.get_icon_by_url(icon_data.url)
@@ -270,8 +270,7 @@ class IconService:
             
         return IconData(
             name=model.name,
-            url=model.url,
-            image_url=model.image_url,
+            url=model.image_url,  # Use image_url from database as the url field
             tags=model.tags or [],
             description=model.description,
             category=model.category,

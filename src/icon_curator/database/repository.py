@@ -40,8 +40,9 @@ class IconRepository:
             DatabaseError: If save operation fails
             ValidationError: If icon data is invalid
         """
-        if not icon_data.name or not icon_data.url or not icon_data.image_url:
-            raise ValidationError("Icon must have name, url, and image_url")
+        # Validate required fields
+        if not icon_data.name or not icon_data.url:
+            raise ValidationError("Icon must have name and url")
         
         try:
             # Check if icon already exists by URL or yoto_icon_id
@@ -59,7 +60,7 @@ class IconRepository:
             if existing:
                 # Update existing icon with new rich metadata
                 existing.name = icon_data.name
-                existing.image_url = icon_data.image_url
+                existing.image_url = icon_data.url  # Use url field for both url and image_url in database
                 existing.tags = icon_data.tags
                 existing.description = icon_data.description
                 existing.category = icon_data.category
@@ -83,7 +84,7 @@ class IconRepository:
                 icon_model = IconModel(
                     name=icon_data.name,
                     url=icon_data.url,
-                    image_url=icon_data.image_url,
+                    image_url=icon_data.url,  # Use url field for image_url in database
                     tags=icon_data.tags,
                     description=icon_data.description,
                     category=icon_data.category,

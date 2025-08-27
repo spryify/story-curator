@@ -199,7 +199,6 @@ def search_command(args) -> int:
         for icon in icons:
             print(f"Name: {icon.name}")
             print(f"URL: {icon.url}")
-            print(f"Image: {icon.image_url}")
             if icon.category:
                 print(f"Category: {icon.category}")
             if icon.tags:
