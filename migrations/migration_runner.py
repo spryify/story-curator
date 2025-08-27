@@ -68,8 +68,15 @@ class MigrationRunner:
     def get_pending_migrations(self) -> List[Type[BaseMigration]]:
         """Get list of pending (unapplied) migrations."""
         applied = set(self.registry.get_applied_migrations())
-        return [m for m in self._available_migrations 
-                if m.__name__ not in applied]
+        pending = []
+        
+        for migration_class in self._available_migrations:
+            # Create instance to get version number
+            instance = migration_class()
+            if instance.version not in applied:
+                pending.append(migration_class)
+        
+        return pending
     
     def upgrade(self, target_version: Optional[str] = None) -> None:
         """Run upgrade migrations.
@@ -89,21 +96,35 @@ class MigrationRunner:
         
         logger.info(f"Applying {len(pending)} migration(s)...")
         
+        # Create database connection
+        from sqlalchemy import create_engine
+        engine = create_engine(self.registry.database_url)
+        
         for migration_class in pending:
             try:
                 migration = migration_class()
                 
-                # Validate preconditions
-                if not migration.validate_preconditions():
-                    raise MigrationError(f"Preconditions not met for {migration.version}")
-                
-                migration.log_progress("Starting upgrade")
-                migration.upgrade()
-                
-                # Mark as applied
-                self.registry.mark_applied(migration.version, migration.description)
-                migration.log_progress("Successfully applied")
-                
+                with engine.connect() as conn:
+                    trans = conn.begin()
+                    
+                    try:
+                        # Validate preconditions
+                        if not migration.check_preconditions(conn):
+                            raise MigrationError(f"Preconditions not met for {migration.version}")
+                        
+                        migration.log_progress("Starting upgrade")
+                        migration.upgrade(conn)
+                        
+                        # Mark as applied
+                        self.registry.mark_applied(migration.version, migration.description)
+                        migration.log_progress("Successfully applied")
+                        
+                        trans.commit()
+                        
+                    except Exception as e:
+                        trans.rollback()
+                        raise e
+                        
             except Exception as e:
                 logger.error(f"Migration {migration_class.__name__} failed: {e}")
                 raise MigrationError(f"Migration failed: {e}") from e
@@ -154,28 +175,29 @@ class MigrationRunner:
         print("================")
         
         for migration_class in self._available_migrations:
-            status = "✓ Applied" if migration_class.__name__ in applied else "✗ Pending"
-            description = getattr(migration_class, 'description', 'No description')
-            print(f"{migration_class.__name__:<30} {status:<10} {description}")
+            instance = migration_class()
+            status = "✓ Applied" if instance.version in applied else "✗ Pending"
+            print(f"{migration_class.__name__:<30} {status:<10} {instance.description}")
         
         pending_count = len(self.get_pending_migrations())
         print(f"\nTotal: {len(self._available_migrations)} migrations, {pending_count} pending")
     
     def history(self) -> None:
         """Show migration history."""
-        import sqlite3
+        from sqlalchemy import create_engine, text
         
-        with sqlite3.connect(self.registry.db_path) as conn:
-            cursor = conn.execute('''
+        engine = create_engine(self.registry.database_url)
+        with engine.connect() as conn:
+            result = conn.execute(text('''
                 SELECT version, description, applied_at 
                 FROM applied_migrations 
                 ORDER BY applied_at DESC
-            ''')
+            '''))
             
             print("Migration History:")
             print("==================")
             
-            for row in cursor.fetchall():
+            for row in result.fetchall():
                 version, description, applied_at = row
                 print(f"{applied_at} - {version}: {description}")
 
