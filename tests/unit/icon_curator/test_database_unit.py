@@ -1,4 +1,4 @@
-"""Integration tests for database repository functionality (with mocks)."""
+"""Unit tests for database repository functionality (using mocks)."""
 
 import os
 import pytest
@@ -13,8 +13,14 @@ SKIP_DATABASE_TESTS = os.getenv('SKIP_DATABASE_TESTS', 'true').lower() == 'true'
 skip_database = pytest.mark.skipif(SKIP_DATABASE_TESTS, reason="Database integration tests require PostgreSQL setup")
 
 
-class TestIconRepositoryIntegration:
-    """Integration tests for IconRepository functionality using mocks."""
+@pytest.fixture
+def mock_icon_repository():
+    """Create a mock IconRepository for unit testing."""
+    return Mock()
+
+
+class TestIconRepositoryUnit:
+    """Unit tests for IconRepository functionality using mocks."""
     
     def test_repository_save_icon_workflow(self, mock_icon_repository, sample_icon_data):
         """Test the complete workflow of saving an icon through the repository."""
