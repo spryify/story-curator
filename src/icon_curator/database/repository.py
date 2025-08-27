@@ -60,7 +60,7 @@ class IconRepository:
             if existing:
                 # Update existing icon with new rich metadata
                 existing.name = icon_data.name
-                existing.image_url = icon_data.url  # Use url field for both url and image_url in database
+                existing.url = icon_data.url  # Update the single URL field
                 existing.tags = icon_data.tags
                 existing.description = icon_data.description
                 existing.category = icon_data.category
@@ -84,7 +84,6 @@ class IconRepository:
                 icon_model = IconModel(
                     name=icon_data.name,
                     url=icon_data.url,
-                    image_url=icon_data.url,  # Use url field for image_url in database
                     tags=icon_data.tags,
                     description=icon_data.description,
                     category=icon_data.category,

@@ -26,7 +26,6 @@ class IconModel(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(255), nullable=False, index=True)
     url = Column(String(500), nullable=False, unique=True)
-    image_url = Column(String(500), nullable=False)
     tags = Column(ARRAY(String), nullable=False, default=lambda: [])
     description = Column(Text)
     category = Column(String(100))

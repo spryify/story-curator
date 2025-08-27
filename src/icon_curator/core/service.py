@@ -270,7 +270,7 @@ class IconService:
             
         return IconData(
             name=model.name,
-            url=model.image_url,  # Use image_url from database as the url field
+            url=model.url,  # Use url field directly
             tags=model.tags or [],
             description=model.description,
             category=model.category,

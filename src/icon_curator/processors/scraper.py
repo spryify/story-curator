@@ -324,7 +324,7 @@ class YotoIconScraper:
                     
                     icon_data = IconData(
                         name=name,
-                        url=image_url,  # Use image URL as the unique identifier and display URL
+                        url=image_url,  # Store the actual image URL in the url field
                         description=description,
                         tags=list(set(tags)),  # Remove duplicates
                         category=category,
