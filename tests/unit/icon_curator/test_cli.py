@@ -1,5 +1,6 @@
 """Unit tests for CLI interface."""
 
+import os
 import pytest
 from unittest.mock import Mock, patch
 import sys
@@ -92,13 +93,14 @@ class TestCLIParser:
 class TestCLICommands:
     """Test cases for CLI command functions."""
     
+    @patch.dict(os.environ, {'ICON_CURATOR_DEMO': 'false'})
     @patch('src.icon_curator.cli.main.IconService')
     def test_scrape_command_success(self, mock_service_class):
         """Test successful scrape command execution."""
         # Mock service and its methods
         mock_service = Mock()
         mock_service_class.return_value = mock_service
-        
+
         # Mock scraping result
         mock_result = Mock()
         mock_result.total_icons = 100
@@ -107,31 +109,35 @@ class TestCLICommands:
         mock_result.success_rate = 85.0
         mock_result.processing_time = 60.5
         mock_result.errors = []
-        
+
         mock_service.scrape_and_store_icons.return_value = mock_result
-        
-        # Create mock args
+
+        # Create mock args (no demo mode)
         args = Mock()
         args.force_update = False
-        
+        args.demo = False
+        args.category = None
+        args.max_pages = None
+
         # Capture stdout
         with patch('sys.stdout', new=StringIO()) as fake_stdout:
             result = scrape_command(args)
-        
+
         assert result == 0
-        mock_service.scrape_and_store_icons.assert_called_once_with(force_update=False)
+        mock_service.scrape_and_store_icons.assert_called_once_with(force_update=False, category=None, max_pages=None)
         
         output = fake_stdout.getvalue()
         assert "Starting icon scraping" in output
         assert "Total icons found: 100" in output
         assert "Successfully scraped: 85" in output
     
+    @patch.dict(os.environ, {'ICON_CURATOR_DEMO': 'false'})
     @patch('src.icon_curator.cli.main.IconService')
     def test_scrape_command_with_errors(self, mock_service_class):
         """Test scrape command with errors."""
         mock_service = Mock()
         mock_service_class.return_value = mock_service
-        
+
         mock_result = Mock()
         mock_result.total_icons = 10
         mock_result.successful_scraped = 8
@@ -139,33 +145,39 @@ class TestCLICommands:
         mock_result.success_rate = 80.0
         mock_result.processing_time = 15.0
         mock_result.errors = ["Error 1", "Error 2"]
-        
+
         mock_service.scrape_and_store_icons.return_value = mock_result
-        
+
         args = Mock()
         args.force_update = True
-        
+        args.demo = False
+        args.category = None
+        args.max_pages = None
+
         with patch('sys.stdout', new=StringIO()) as fake_stdout:
             result = scrape_command(args)
-        
+
         assert result == 0
-        mock_service.scrape_and_store_icons.assert_called_once_with(force_update=True)
+        mock_service.scrape_and_store_icons.assert_called_once_with(force_update=True, category=None, max_pages=None)
         
         output = fake_stdout.getvalue()
         assert "Errors encountered (2)" in output
         assert "Error 1" in output
         assert "Error 2" in output
     
+    @patch.dict(os.environ, {'ICON_CURATOR_DEMO': 'false'})
     @patch('src.icon_curator.cli.main.IconService')
     def test_scrape_command_failure(self, mock_service_class):
         """Test scrape command failure."""
         mock_service = Mock()
         mock_service_class.return_value = mock_service
         
+        from src.icon_curator.core.exceptions import IconCuratorError
         mock_service.scrape_and_store_icons.side_effect = IconCuratorError("Scraping failed")
         
         args = Mock()
         args.force_update = False
+        args.demo = False
         
         with patch('sys.stderr', new=StringIO()) as fake_stderr:
             result = scrape_command(args)
