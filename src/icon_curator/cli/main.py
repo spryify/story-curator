@@ -105,6 +105,89 @@ def _run_demo_scrape() -> int:
         return 1
 
 
+def _print_scrape_progress(category: Optional[str], max_pages: Optional[int]) -> None:
+    """Print scraping progress information.
+    
+    Args:
+        category: Category being scraped (None for all categories)
+        max_pages: Maximum pages per category (None for unlimited)
+    """
+    if category:
+        print(f"Scraping category: {category}")
+        if max_pages:
+            print(f"Limited to {max_pages} pages per category")
+    else:
+        print("Scraping all available categories")
+        if max_pages:
+            print(f"Limited to {max_pages} pages per category")
+
+
+def _print_scrape_results(result) -> None:
+    """Print scraping results summary.
+    
+    Args:
+        result: Scraping result object with statistics
+    """
+    print(f"Scraping completed!")
+    print(f"Total icons found: {result.total_icons}")
+    print(f"Successfully scraped: {result.successful_scraped}")
+    print(f"Failed: {result.failed_scraped}")
+    print(f"Success rate: {result.success_rate:.1f}%")
+    print(f"Processing time: {result.processing_time:.2f} seconds")
+    
+    if result.errors:
+        print(f"\nErrors encountered ({len(result.errors)}):")
+        for error in result.errors[:10]:  # Show first 10 errors
+            print(f"  - {error}")
+        if len(result.errors) > 10:
+            print(f"  ... and {len(result.errors) - 10} more errors")
+
+
+def _handle_database_connection_error(error_msg: str) -> None:
+    """Handle database connection errors with helpful messages.
+    
+    Args:
+        error_msg: Error message from the exception
+    """
+    if "connection" in error_msg.lower() and "postgresql" in error_msg.lower():
+        print("❌ Database Connection Error!")
+        print("   PostgreSQL is not running or not configured.")
+        print("   ")
+        print("   🚀 Try demo mode: icon-curator scrape --demo")
+        print("   📚 Setup guide: docs/environment-setup.md")
+    else:
+        print(f"Error: {error_msg}", file=sys.stderr)
+
+
+def _run_full_scrape(args) -> int:
+    """Run full scraping with database storage.
+    
+    Args:
+        args: Parsed command line arguments
+        
+    Returns:
+        Exit code (0 for success, 1 for error)
+    """
+    service = IconService()
+    
+    print("Starting icon scraping from yotoicons.com...")
+    
+    # Determine what to scrape based on arguments
+    category = getattr(args, 'category', None)
+    max_pages = getattr(args, 'max_pages', None)
+    
+    _print_scrape_progress(category, max_pages)
+    
+    result = service.scrape_and_store_icons(
+        force_update=args.force_update,
+        category=category,
+        max_pages=max_pages
+    )
+    
+    _print_scrape_results(result)
+    return 0
+
+
 def scrape_command(args) -> int:
     """Execute the scrape command.
     
@@ -121,56 +204,10 @@ def scrape_command(args) -> int:
         if demo_mode:
             return _run_demo_scrape()
         
-        # Full mode with database
-        service = IconService()
-        
-        print("Starting icon scraping from yotoicons.com...")
-        
-        # Determine what to scrape based on arguments
-        category = getattr(args, 'category', None)
-        max_pages = getattr(args, 'max_pages', None)
-        
-        if category:
-            print(f"Scraping category: {category}")
-            if max_pages:
-                print(f"Limited to {max_pages} pages per category")
-        else:
-            print("Scraping all available categories")
-            if max_pages:
-                print(f"Limited to {max_pages} pages per category")
-        
-        result = service.scrape_and_store_icons(
-            force_update=args.force_update,
-            category=category,
-            max_pages=max_pages
-        )
-        
-        print(f"Scraping completed!")
-        print(f"Total icons found: {result.total_icons}")
-        print(f"Successfully scraped: {result.successful_scraped}")
-        print(f"Failed: {result.failed_scraped}")
-        print(f"Success rate: {result.success_rate:.1f}%")
-        print(f"Processing time: {result.processing_time:.2f} seconds")
-        
-        if result.errors:
-            print(f"\nErrors encountered ({len(result.errors)}):")
-            for error in result.errors[:10]:  # Show first 10 errors
-                print(f"  - {error}")
-            if len(result.errors) > 10:
-                print(f"  ... and {len(result.errors) - 10} more errors")
-        
-        return 0
+        return _run_full_scrape(args)
         
     except IconCuratorError as e:
-        error_msg = str(e)
-        if "connection" in error_msg.lower() and "postgresql" in error_msg.lower():
-            print("❌ Database Connection Error!")
-            print("   PostgreSQL is not running or not configured.")
-            print("   ")
-            print("   🚀 Try demo mode: icon-curator scrape --demo")
-            print("   📚 Setup guide: docs/environment-setup.md")
-        else:
-            print(f"Error: {e}", file=sys.stderr)
+        _handle_database_connection_error(str(e))
         return 1
     except KeyboardInterrupt:
         print("\nOperation cancelled by user", file=sys.stderr)
@@ -178,6 +215,31 @@ def scrape_command(args) -> int:
     except Exception as e:
         print(f"Unexpected error: {e}", file=sys.stderr)
         return 1
+
+
+def _print_search_results(icons) -> None:
+    """Print search results in formatted output.
+    
+    Args:
+        icons: List of icon objects to display
+    """
+    if not icons:
+        print("No icons found matching the criteria.")
+        return
+    
+    print(f"Found {len(icons)} icons:")
+    print("-" * 80)
+    
+    for icon in icons:
+        print(f"Name: {icon.name}")
+        print(f"URL: {icon.url}")
+        if icon.category:
+            print(f"Category: {icon.category}")
+        if icon.tags:
+            print(f"Tags: {', '.join(icon.tags)}")
+        if icon.description:
+            print(f"Description: {icon.description}")
+        print("-" * 80)
 
 
 def search_command(args) -> int:
@@ -199,24 +261,7 @@ def search_command(args) -> int:
             limit=args.limit
         )
         
-        if not icons:
-            print("No icons found matching the criteria.")
-            return 0
-        
-        print(f"Found {len(icons)} icons:")
-        print("-" * 80)
-        
-        for icon in icons:
-            print(f"Name: {icon.name}")
-            print(f"URL: {icon.url}")
-            if icon.category:
-                print(f"Category: {icon.category}")
-            if icon.tags:
-                print(f"Tags: {', '.join(icon.tags)}")
-            if icon.description:
-                print(f"Description: {icon.description}")
-            print("-" * 80)
-        
+        _print_search_results(icons)
         return 0
         
     except IconCuratorError as e:
@@ -225,6 +270,29 @@ def search_command(args) -> int:
     except Exception as e:
         print(f"Unexpected error: {e}", file=sys.stderr)
         return 1
+
+
+def _print_statistics(stats) -> None:
+    """Print database statistics in formatted output.
+    
+    Args:
+        stats: Statistics dictionary with counts and top items
+    """
+    print("Icon Database Statistics:")
+    print("=" * 40)
+    print(f"Total Icons: {stats['total_icons']}")
+    print(f"Total Categories: {stats['total_categories']}")
+    print(f"Total Tags: {stats['total_tags']}")
+    
+    if stats['categories']:
+        print(f"\nTop Categories:")
+        for category in stats['categories']:
+            print(f"  - {category}")
+    
+    if stats['tags']:
+        print(f"\nTop Tags:")
+        for tag in stats['tags']:
+            print(f"  - {tag}")
 
 
 def stats_command(args) -> int:
@@ -240,22 +308,7 @@ def stats_command(args) -> int:
         service = IconService()
         stats = service.get_statistics()
         
-        print("Icon Database Statistics:")
-        print("=" * 40)
-        print(f"Total Icons: {stats['total_icons']}")
-        print(f"Total Categories: {stats['total_categories']}")
-        print(f"Total Tags: {stats['total_tags']}")
-        
-        if stats['categories']:
-            print(f"\nTop Categories:")
-            for category in stats['categories']:
-                print(f"  - {category}")
-        
-        if stats['tags']:
-            print(f"\nTop Tags:")
-            for tag in stats['tags']:
-                print(f"  - {tag}")
-        
+        _print_statistics(stats)
         return 0
         
     except IconCuratorError as e:
@@ -266,23 +319,12 @@ def stats_command(args) -> int:
         return 1
 
 
-def create_parser() -> argparse.ArgumentParser:
-    """Create command line argument parser."""
-    parser = argparse.ArgumentParser(
-        prog='icon-curator',
-        description='Yoto Icons Database Management Tool'
-    )
+def _create_scrape_parser(subparsers) -> None:
+    """Create the scrape command parser.
     
-    parser.add_argument(
-        '-v', '--verbose',
-        action='store_true',
-        help='Enable verbose logging'
-    )
-    
-    # Create subcommands
-    subparsers = parser.add_subparsers(dest='command', help='Available commands')
-    
-    # Scrape command
+    Args:
+        subparsers: Subparsers object to add the scrape parser to
+    """
     scrape_parser = subparsers.add_parser(
         'scrape',
         help='Scrape icons from yotoicons.com'
@@ -308,8 +350,14 @@ def create_parser() -> argparse.ArgumentParser:
         help='Run in demo mode (no database required)'
     )
     scrape_parser.set_defaults(func=scrape_command)
+
+
+def _create_search_parser(subparsers) -> None:
+    """Create the search command parser.
     
-    # Search command
+    Args:
+        subparsers: Subparsers object to add the search parser to
+    """
     search_parser = subparsers.add_parser(
         'search',
         help='Search for icons in the database'
@@ -333,13 +381,40 @@ def create_parser() -> argparse.ArgumentParser:
         help='Maximum number of results (default: 50)'
     )
     search_parser.set_defaults(func=search_command)
+
+
+def _create_stats_parser(subparsers) -> None:
+    """Create the stats command parser.
     
-    # Stats command
+    Args:
+        subparsers: Subparsers object to add the stats parser to
+    """
     stats_parser = subparsers.add_parser(
         'stats',
         help='Show database statistics'
     )
     stats_parser.set_defaults(func=stats_command)
+
+
+def create_parser() -> argparse.ArgumentParser:
+    """Create command line argument parser."""
+    parser = argparse.ArgumentParser(
+        prog='icon-curator',
+        description='Yoto Icons Database Management Tool'
+    )
+    
+    parser.add_argument(
+        '-v', '--verbose',
+        action='store_true',
+        help='Enable verbose logging'
+    )
+    
+    # Create subcommands
+    subparsers = parser.add_subparsers(dest='command', help='Available commands')
+    
+    _create_scrape_parser(subparsers)
+    _create_search_parser(subparsers)
+    _create_stats_parser(subparsers)
     
     return parser
 
