@@ -105,17 +105,79 @@ CREATE TRIGGER update_icons_updated_at
 3. **Structured Data Support**: Native JSONB support for flexible metadata storage
 4. **Array Operations**: Native array support for tags enables efficient queries
 5. **Ecosystem Maturity**: Rich tooling and library support for PostgreSQL
+6. **Migration System**: Robust schema evolution with version control and rollback capabilities
+7. **Transaction Safety**: All database changes protected by ACID transactions
+8. **Operational Transparency**: Clear status reporting and migration history tracking
 
 ### Negative
 1. **Development Setup**: Requires PostgreSQL installation for local development
 2. **Resource Usage**: Higher memory footprint compared to SQLite for testing
 3. **Complexity**: More complex than simple file-based databases
+4. **Migration Dependencies**: Requires careful ordering and dependency management for schema changes
 
 ### Migration Strategy
 1. **Development Environment**: Update all developers to use PostgreSQL locally
 2. **Test Suite**: Modify test fixtures to use PostgreSQL features
 3. **CI/CD**: Configure PostgreSQL service for continuous integration
 4. **Documentation**: Update setup guides for PostgreSQL requirements
+
+### Database Migrations System
+A robust migration system has been implemented to manage schema evolution:
+
+#### Migration Architecture
+- **Base Class Pattern**: All migrations inherit from `BaseMigration` class with standardized interface
+- **Version-Based Tracking**: Sequential numbered migrations (001, 002, 003, etc.)
+- **Dependency Management**: Each migration can declare dependencies on previous migrations
+- **Transaction Safety**: All migrations run within database transactions for atomicity
+- **Idempotent Operations**: Migrations can be run multiple times safely
+
+#### Migration Components
+```python
+# Base migration class with SQLAlchemy integration
+class BaseMigration:
+    version: str = None  # e.g., "001"
+    description: str = None
+    dependencies: List[str] = []
+    
+    def upgrade(self, connection) -> None:
+        """Apply the migration"""
+        raise NotImplementedError
+        
+    def downgrade(self, connection) -> None:
+        """Rollback the migration"""
+        raise NotImplementedError
+```
+
+#### Migration Tracking
+- **Applied Migrations Table**: `applied_migrations` table tracks completed migrations
+- **Status Queries**: Real-time status of pending/applied migrations
+- **History Tracking**: Complete audit trail of when migrations were applied
+- **Precondition Validation**: Ensures dependencies are met before execution
+
+#### CLI Tools
+- **Migration Runner**: Python CLI tool for executing migrations
+  ```bash
+  python migrations/migration_runner.py status      # Show current status
+  python migrations/migration_runner.py upgrade     # Apply pending migrations
+  python migrations/migration_runner.py downgrade   # Rollback last migration
+  python migrations/migration_runner.py history     # Show migration history
+  ```
+- **Shell Wrapper**: Convenience script `migrations/migrate.sh` for common operations
+  ```bash
+  ./migrations/migrate.sh status    # Quick status check
+  ./migrations/migrate.sh upgrade   # Apply migrations with environment detection
+  ```
+
+#### Current Migration Timeline
+1. **Migration 001**: Initial schema creation with icons table and indexes
+2. **Migration 002**: Added rich metadata columns (JSONB support, additional fields)
+3. **Migration 003**: Cleanup of duplicate columns and schema optimization
+
+#### Migration Best Practices Discovered
+- **Connection Parameter Passing**: Migrations receive SQLAlchemy connection objects for proper transaction management
+- **PostgreSQL-Specific Features**: Migrations utilize native PostgreSQL types (ARRAY, JSONB)
+- **Index Creation Strategy**: GIN indexes created for optimal search performance
+- **Constraint Management**: Proper handling of unique constraints and foreign keys
 
 ## Implementation Details
 
@@ -180,12 +242,21 @@ ORDER BY rank DESC;
 - Index usage analysis
 - Database size monitoring
 - Connection pool metrics
+- Migration execution time and success rates
 
 ### Maintenance Tasks
 - Regular `ANALYZE` to update statistics
 - Periodic `VACUUM` for space reclamation
 - Index maintenance and rebuilding
 - Backup and recovery procedures
+- Migration status audits and validation
+
+### Schema Evolution Management
+- **Version Control Integration**: All migration files tracked in git
+- **Testing Protocol**: Each migration tested against real PostgreSQL instance
+- **Rollback Procedures**: Downgrade paths tested and documented
+- **Production Deployment**: Staged migration process with status validation
+- **Environment Consistency**: Same migration system across dev/staging/production
 
 ## Compliance
 
@@ -203,13 +274,16 @@ ORDER BY rank DESC;
 - [PostgreSQL Array Documentation](https://www.postgresql.org/docs/current/arrays.html)
 - [PostgreSQL JSONB Documentation](https://www.postgresql.org/docs/current/datatype-json.html)
 - [PostgreSQL Full-Text Search](https://www.postgresql.org/docs/current/textsearch.html)
+- [SQLAlchemy Migration Patterns](https://docs.sqlalchemy.org/en/20/core/metadata.html)
 - FR-004-yoto-icons-db.md - Feature Specification
 - ADR-003: Error Handling Strategy
 - ADR-005: Type Safety Standards
+- Migration System: `/migrations/` directory with version-controlled schema changes
 
 ---
 
 **Decision Date**: August 26, 2025  
 **Decision Makers**: GitHub Copilot (AI Agent)  
+**Last Updated**: August 27, 2025  
 **Review Date**: February 26, 2026  
-**Status**: Accepted
+**Status**: Accepted - Migration System Implemented
