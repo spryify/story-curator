@@ -36,20 +36,17 @@ class TestYotoIconScraper:
         assert scraper.max_retries == 5
         assert scraper.timeout == 60
     
-    def test_is_icon_url_filtering(self):
-        """Test URL filtering logic."""
+    def test_extract_icon_name_from_img(self):
+        """Test extracting icon name from image tag."""
         scraper = YotoIconScraper()
         
-        # Should accept icon-like URLs
-        assert scraper._is_icon_url("https://example.com/icon/test")
-        assert scraper._is_icon_url("https://example.com/item/123")
-        assert scraper._is_icon_url("https://example.com/detail/abc")
+        # Mock image tag with alt text
+        mock_img = Mock()
+        mock_img.get.return_value = "Test Icon Alt Text"
         
-        # Should reject resource URLs
-        assert not scraper._is_icon_url("https://example.com/test.png")
-        assert not scraper._is_icon_url("https://example.com/test.jpg")
-        assert not scraper._is_icon_url("https://example.com/style.css")
-        assert not scraper._is_icon_url("https://example.com/script.js")
+        result = scraper._extract_icon_name_from_img(mock_img, "https://example.com/test.svg")
+        
+        assert result == "Test Icon Alt Text"
     
     @patch('src.icon_curator.processors.scraper.requests.Session.get')
     def test_make_request_success(self, mock_get):
@@ -83,58 +80,51 @@ class TestYotoIconScraper:
         assert "Network error" in str(exc_info.value)
     
     @patch('src.icon_curator.processors.scraper.BeautifulSoup')
-    def test_extract_icon_name_from_title(self, mock_beautifulsoup):
-        """Test extracting icon name from page title."""
+    def test_build_icon_name(self, mock_beautifulsoup):
+        """Test building icon name from tags and ID."""
         scraper = YotoIconScraper()
         
-        # Mock BeautifulSoup and title tag
-        mock_soup = Mock()
-        mock_beautifulsoup.return_value = mock_soup
+        result = scraper._build_icon_name("animals", "cat", "icon123")
         
-        mock_title = Mock()
-        mock_title.text = "Test Icon - Yoto Icons"
-        mock_soup.find.return_value = mock_title
-        
-        result = scraper._extract_icon_name(mock_soup, "https://example.com/test")
-        
-        assert result == "Test Icon"
-        mock_soup.find.assert_called_with('title')
+        assert result == "Animals Cat (#icon123)"
     
-    @patch('src.icon_curator.processors.scraper.BeautifulSoup')
-    def test_extract_icon_name_from_h1(self, mock_beautifulsoup):
-        """Test extracting icon name from H1 tag."""
+    def test_has_next_page(self):
+        """Test detecting if a page has a next page link."""
         scraper = YotoIconScraper()
         
+        # Mock BeautifulSoup with pagination section and next page link
         mock_soup = Mock()
-        mock_beautifulsoup.return_value = mock_soup
+        mock_pagination = Mock()
+        mock_next_link = Mock()
         
-        # No title tag, but has H1
-        mock_title = None
-        mock_h1 = Mock()
-        mock_h1.text = "Icon from H1"
-        mock_soup.find.side_effect = [mock_title, mock_h1]  # title, then h1
+        # Set up the mock chain: soup.find() returns pagination, soup.select_one() returns next_link
+        mock_soup.find.return_value = mock_pagination
+        mock_soup.select_one.return_value = mock_next_link
         
-        result = scraper._extract_icon_name(mock_soup, "https://example.com/test")
+        result = scraper._has_next_page(mock_soup)
         
-        assert result == "Icon from H1"
+        assert result is True
+        mock_soup.find.assert_called_with('section', {'id': 'pagination'})
+        mock_soup.select_one.assert_called_with('#pagination a#next_page')
     
-    @patch('src.icon_curator.processors.scraper.BeautifulSoup')
-    def test_extract_icon_name_fallback_to_url(self, mock_beautifulsoup):
-        """Test extracting icon name falls back to URL parsing."""
+    def test_extract_onclick_metadata(self):
+        """Test extracting metadata from onclick attribute."""
         scraper = YotoIconScraper()
         
-        mock_soup = Mock()
-        mock_beautifulsoup.return_value = mock_soup
+        # Mock div with onclick attribute - 6 parameters format
+        mock_div = Mock()
+        mock_div.get.return_value = "populate_icon_modal('278', 'animals', 'dinosaur', 't-rex', 'pangolinpaw', '1914');"
         
-        # No title, no H1, no meta
-        mock_soup.find.return_value = None
+        result = scraper._extract_onclick_metadata(mock_div)
         
-        result = scraper._extract_icon_name(
-            mock_soup, 
-            "https://example.com/path/test-icon-name"
-        )
-        
-        assert result == "Test Icon Name"
+        assert result == {
+            'icon_id': '278',
+            'category': 'animals',
+            'primary_tag': 'dinosaur',
+            'secondary_tag': 't-rex',
+            'artist': 'pangolinpaw',
+            'artist_id': '1914'
+        }
     
     def test_scraper_cleanup(self):
         """Test scraper resource cleanup."""
@@ -148,26 +138,28 @@ class TestYotoIconScraper:
         scraper.session.close.assert_called_once()
     
     @patch('src.icon_curator.processors.scraper.time.sleep')
-    @patch.object(YotoIconScraper, '_discover_icon_urls')
-    @patch.object(YotoIconScraper, '_scrape_icon_from_url')
-    def test_scrape_all_icons_basic_flow(self, mock_scrape_icon, mock_discover_urls, mock_sleep):
+    @patch.object(YotoIconScraper, '_discover_categories')
+    @patch.object(YotoIconScraper, '_scrape_category')
+    def test_scrape_all_icons_basic_flow(self, mock_scrape_category, mock_discover_categories, mock_sleep):
         """Test the basic flow of scraping all icons."""
         scraper = YotoIconScraper(delay_between_requests=0.1)
         
-        # Mock discovery returning some URLs
-        mock_discover_urls.return_value = [
-            "https://example.com/icon1",
-            "https://example.com/icon2"
-        ]
+        # Mock discovery returning some categories
+        mock_discover_categories.return_value = ["animals", "nature"]
         
-        # Mock successful scraping
+        # Mock successful scraping for each category
         from src.icon_curator.models.icon import IconData
-        mock_icon = IconData(
-            name="Test Icon",
+        mock_icon1 = IconData(
+            name="Test Icon 1",
             url="https://example.com/icon1",
-            tags=["test"]
+            tags=["animals"]
         )
-        mock_scrape_icon.return_value = mock_icon
+        mock_icon2 = IconData(
+            name="Test Icon 2", 
+            url="https://example.com/icon2",
+            tags=["nature"]
+        )
+        mock_scrape_category.side_effect = [[mock_icon1], [mock_icon2]]
         
         result = scraper.scrape_all_icons()
         
@@ -177,6 +169,7 @@ class TestYotoIconScraper:
         assert result.failed_scraped == 0
         assert len(result.errors) == 0
         assert result.processing_time > 0
+        assert len(result.icons) == 2
         
-        # Should have called scrape_icon_from_url for each discovered URL
-        assert mock_scrape_icon.call_count == 2
+        # Should have called scrape_category for each discovered category
+        assert mock_scrape_category.call_count == 2
