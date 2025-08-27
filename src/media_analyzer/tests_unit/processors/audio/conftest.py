@@ -9,6 +9,34 @@ from pydub import AudioSegment
 
 
 @pytest.fixture
+def mock_whisper():
+    """Create a mock Whisper model for audio processor testing."""
+    from unittest.mock import Mock
+    from media_analyzer.models.audio import TranscriptionResult
+    
+    mock_model = Mock()
+    
+    # Set up default return value for transcribe method
+    mock_model.transcribe.return_value = {
+        "text": "This is a test transcription from the mock whisper model.",
+        "segments": [
+            {
+                "text": "This is a test transcription",
+                "start": 0.0,
+                "end": 1.5
+            },
+            {
+                "text": "from the mock whisper model.",
+                "start": 1.5,
+                "end": 3.0
+            }
+        ]
+    }
+    
+    return mock_model
+
+
+@pytest.fixture
 def test_audio_file(speech_options, tmp_path):
     """Create a temporary audio file for testing."""
     test_text = "This is a test audio file"
