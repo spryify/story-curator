@@ -115,6 +115,10 @@ def create_timed_speech_file(
     duration: int = 1000,
     text: Optional[str] = None,
     filename: str = "test.wav",
+    voice: str = "Samantha",
+    rate: int = 200,
+    sample_rate: int = 16000,
+    channels: int = 1,
 ) -> Path:
     """Create a test audio file with specified duration using text-to-speech.
     
@@ -123,6 +127,10 @@ def create_timed_speech_file(
         duration: Duration in milliseconds (approximate)
         text: Text to speak. If None, will generate test text based on duration
         filename: Name of the file to create
+        voice: The voice to use (defaults to "Samantha")
+        rate: Speaking rate (words per minute)
+        sample_rate: Output sample rate in Hz
+        channels: Number of audio channels (1=mono, 2=stereo)
         
     Returns:
         Path to the created audio file
@@ -130,11 +138,13 @@ def create_timed_speech_file(
     Example:
         >>> # Create a 2-second WAV file
         >>> file_path = create_timed_speech_file(tmp_path, duration=2000)
-        >>> # Create an MP3 file with specific text
+        >>> # Create an MP3 file with specific text and voice options
         >>> file_path = create_timed_speech_file(
         ...     tmp_path,
         ...     text="Hello world",
-        ...     filename="test.mp3"
+        ...     filename="test.mp3",
+        ...     rate=180,
+        ...     sample_rate=16000
         ... )
     """
     # If no text provided, generate text based on duration
@@ -151,7 +161,7 @@ def create_timed_speech_file(
         text = ". ".join(phrases) + "."  # Add periods for natural pauses
 
     # Generate the audio segment
-    audio = create_speech_audio(text)
+    audio = create_speech_audio(text, voice=voice, rate=rate, sample_rate=sample_rate, channels=channels)
     
     # Export to desired format
     file_path = path / filename

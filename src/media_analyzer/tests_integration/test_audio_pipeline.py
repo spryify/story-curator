@@ -310,3 +310,133 @@ class TestAudioPipeline:
         dialogue_keywords = ["hello", "friend", "said", "replied", "happy"]
         assert any(keyword in text_lower for keyword in dialogue_keywords), \
             f"Expected dialogue keywords not found in: {result.text}"
+
+    def test_audio_processor_extract_text(self, audio_analyzer, tmp_path):
+        """Integration test for audio processor text extraction."""
+        from media_analyzer.processors.audio.audio_processor import AudioProcessor
+        
+        # Create test audio file
+        test_file = create_timed_speech_file(tmp_path, text="This is a test audio file for transcription")
+        
+        processor = AudioProcessor()
+        audio_data = processor.load_audio(test_file)
+        
+        # Test with default options
+        result = processor.extract_text(audio_data)
+        assert hasattr(result, 'text')
+        assert isinstance(result.text, str)
+        assert len(result.text) > 0
+        assert hasattr(result, 'segments')
+        assert isinstance(result.segments, list)
+        for segment in result.segments:
+            assert isinstance(segment, dict)
+            assert "text" in segment
+            assert "start" in segment
+            assert "end" in segment
+            assert isinstance(segment["text"], str)
+            assert isinstance(segment["start"], (int, float))
+            assert isinstance(segment["end"], (int, float))
+            assert segment["end"] >= segment["start"]
+        
+        # Test with custom language
+        result = processor.extract_text(audio_data, {"language": "en"})
+        assert result.text
+        assert hasattr(result, 'metadata')
+        assert result.metadata.get("language") == "en"
+
+    def test_audio_processor_story_text_extraction(self, audio_analyzer, tmp_path):
+        """Integration test for children's story audio text extraction.
+        
+        Tests that the processor can accurately handle:
+        - Story narrative structure
+        - Character dialogue
+        - Story-specific vocabulary
+        """
+        from media_analyzer.processors.audio.audio_processor import AudioProcessor
+        
+        # Create story audio
+        story_text = ("Once upon a time there lived a curious bunny named Hoppy. "
+                     "Hoppy loved to explore the garden. One day Hoppy met a wise old owl. "
+                     "'Hello little bunny,' said the owl. 'Be careful in the garden,' warned the owl.")
+        
+        story_file = create_timed_speech_file(tmp_path, text=story_text, filename="story.wav")
+        
+        processor = AudioProcessor()
+        audio_data = processor.load_audio(story_file)
+        
+        result = processor.extract_text(audio_data)
+        
+        # Verify basic transcription
+        assert isinstance(result.text, str)
+        assert len(result.text) > 0
+        
+        # Check for key story elements in the text
+        text = result.text.lower()
+        assert "once upon a time" in text, "Story opening not detected"
+        assert "hoppy" in text, "Main character name not detected"
+        assert "owl" in text, "Supporting character not detected"
+        
+        # Check segments for dialogue structure
+        segments = result.segments
+        assert len(segments) > 0, "No segments detected"
+        
+        # Look for dialogue markers in segments
+        dialogue_found = False
+        for segment in segments:
+            if any(marker in segment["text"].lower() 
+                   for marker in ["'", "said", "warned"]):
+                dialogue_found = True
+                break
+        assert dialogue_found, "No dialogue detected in segments"
+
+    def test_audio_processor_story_audio_quality(self, audio_analyzer, tmp_path):
+        """Integration test for audio quality checks for children's story content.
+        
+        Verifies that the audio meets quality requirements for:
+        - Sample rate appropriate for clear speech
+        - Channel configuration
+        - Speech rate appropriate for children's content
+        """
+        from media_analyzer.processors.audio.audio_processor import AudioProcessor
+        
+        # Create story audio with specific quality requirements
+        story_text = ("The little mouse learned about sharing. "
+                     "He shared his cheese with his forest friends. "
+                     "Everyone was happy and grateful.")
+        
+        story_file = create_timed_speech_file(
+            tmp_path, 
+            text=story_text, 
+            filename="quality_story.wav",
+            rate=180,
+            sample_rate=16000,
+            channels=1
+        )
+        
+        processor = AudioProcessor()
+        audio_data = processor.load_audio(story_file)
+        info = processor.get_audio_info(audio_data)
+        
+        # Verify audio properties match story requirements
+        assert info["sample_rate"] == 16000, \
+            "Incorrect sample rate for story audio"
+        assert info["channels"] == 1, \
+            "Incorrect channel count for story audio"
+        
+        # Check duration is appropriate for the story content
+        assert 5.0 <= info["duration"] <= 30.0, \
+            f"Story duration {info['duration']}s outside expected range"
+        
+        # Process audio and check segment lengths
+        result = processor.extract_text(audio_data)
+        
+        # Calculate average segment duration
+        segment_durations = [
+            seg["end"] - seg["start"] 
+            for seg in result.segments
+        ]
+        avg_duration = sum(segment_durations) / len(segment_durations)
+        
+        # Story segments should be appropriate length for children's comprehension
+        assert 1.0 <= avg_duration <= 6.0, \
+            f"Average segment duration {avg_duration}s not suitable for children's content"

@@ -1,42 +1,4 @@
-"""Unit tests for the audio processor module.
-
-This module contains unit tests for the AudioProcessor class, which handles core
-audio processing functionality including loading, validation, and text extraction.
-
-Test Categories:
-1. Initialization
-   - Default initialization
-   - Configuration handling
-
-2. Audio File Handling
-   - Format validation
-   - File loading
-   - Metadata extraction
-
-3. Text Extraction
-   - Basic text extraction
-   - Language support
-   - Confidence scoring
-
-4. Error Handling
-   - Invalid formats
-   - Loading failures
-   - Processing errors
-   - Language validation
-
-5. Audio Information
-   - Sample rate validation
-   - Channel information
-   - Duration calculation
-
-Dependencies:
-- pydub: For audio file handling
-- whisper: For speech recognition
-- conftest.py: Provides test fixtures
-
-Usage:
-    pytest tests/unit/processors/audio/test_audio_processor.py
-"""
+"""Unit tests for the audio processor module."""
 
 import pytest
 from pathlib import Path
@@ -48,6 +10,19 @@ from media_analyzer.processors.audio.audio_processor import AudioProcessor
 from media_analyzer.core.exceptions import AudioProcessingError
 from media_analyzer.models.audio import TranscriptionResult
 
+@pytest.fixture
+def test_config():
+    """Return test configuration."""
+    return {
+        "audio": {
+            "model": "base",
+            "device": "cpu", 
+            "sample_rate": 16000,
+            "chunk_size": 30,
+            "supported_formats": ["wav", "mp3"],
+            "max_duration": 3600
+        }
+    }
 
 def test_audio_processor_initialization():
     """Test that audio processor can be initialized with default config."""
