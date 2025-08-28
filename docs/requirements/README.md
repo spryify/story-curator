@@ -10,14 +10,9 @@ This framework provides a structured approach for defining, implementing, and va
 docs/requirements/
 ├── README.md                           # This file
 ├── TEMPLATE.md                         # Feature requirement template
-├── feature-specifications/             # Detailed feature specs
-│   └── FR-XXX-feature-name.md          # Feature specification
-├── user-stories/                       # User story templates and examples
-│   ├── template.md                     # User story template
-│   └── examples/                       # Example user stories
-└── acceptance-criteria/                # Acceptance criteria templates
-    ├── template.md                     # AC template
-    └── examples/                       # Example acceptance criteria
+└── feature-specifications/             # Detailed feature specs
+   └── FR-XXX-feature-name.md          # Feature specification
+
 ```
 
 ## Feature Development Workflow
