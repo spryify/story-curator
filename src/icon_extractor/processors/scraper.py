@@ -290,8 +290,8 @@ class YotoIconScraper:
                     primary_tag = onclick_data.get('primary_tag', '')
                     secondary_tag = onclick_data.get('secondary_tag', '')
                     artist = onclick_data.get('artist', '')
-                    artist_id = onclick_data.get('artist_id', '')
-                    
+                    num_downloads = onclick_data.get('num_downloads', '')
+
                     # Build comprehensive name from available data
                     name = self._build_icon_name(primary_tag, secondary_tag, icon_id)
                     
@@ -319,7 +319,7 @@ class YotoIconScraper:
                         'primary_tag': primary_tag,
                         'secondary_tag': secondary_tag,
                         'artist': artist,
-                        'artist_id': artist_id
+                        'num_down': num_downloads
                     }
                     
                     icon_data = IconData(
@@ -365,7 +365,7 @@ class YotoIconScraper:
                     'primary_tag': matches[2],
                     'secondary_tag': matches[3],
                     'artist': matches[4],
-                    'artist_id': matches[5]
+                    'num_down': matches[5]
                 }
             elif len(matches) >= 4:
                 return {
@@ -374,7 +374,7 @@ class YotoIconScraper:
                     'primary_tag': matches[2], 
                     'secondary_tag': matches[3],
                     'artist': '',
-                    'artist_id': ''
+                    'num_down': ''
                 }
             else:
                 return {}

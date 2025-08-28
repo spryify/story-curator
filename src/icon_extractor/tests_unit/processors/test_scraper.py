@@ -116,7 +116,7 @@ class TestYotoIconScraper:
             'primary_tag': 'dinosaur',
             'secondary_tag': 't-rex',
             'artist': 'pangolinpaw',
-            'artist_id': '1914'
+            'num_downloads': '1914'
         }
     
     def test_scraper_cleanup(self):

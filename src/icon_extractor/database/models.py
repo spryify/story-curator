@@ -35,8 +35,8 @@ class IconModel(Base):
     primary_tag = Column(String(100), nullable=True)  # Primary tag (e.g., 'dinosaur')
     secondary_tag = Column(String(100), nullable=True)  # Secondary tag (e.g., 't-rex')
     artist = Column(String(100), nullable=True)  # Artist username (e.g., 'pangolinpaw')
-    artist_id = Column(String(50), nullable=True)  # Artist ID from yotoicons (e.g., '1914')
-    
+    num_downloads = Column(String(50), nullable=True)  # Number of downloads from yotoicons (e.g., '1914')
+
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
     icon_metadata = Column(JSONB, default=lambda: {})  # Additional flexible metadata
@@ -63,7 +63,7 @@ class IconModel(Base):
         Index('idx_icon_primary_tag', 'primary_tag'),  # For tag-based searches
         Index('idx_icon_secondary_tag', 'secondary_tag'),  # For secondary tag searches
         Index('idx_icon_artist', 'artist'),  # For artist-based searches
-        Index('idx_icon_artist_id', 'artist_id'),  # For artist ID lookups
+        Index('idx_icon_num_downloads', 'num_downloads'),  # For number of downloads lookups
     )
     
     def __repr__(self) -> str:

@@ -265,8 +265,8 @@ class IconService:
             metadata['secondary_tag'] = model.secondary_tag
         if model.artist:
             metadata['artist'] = model.artist
-        if model.artist_id:
-            metadata['artist_id'] = model.artist_id
+        if model.num_downloads:
+            metadata['num_downloads'] = model.num_downloads
             
         return IconData(
             name=model.name,

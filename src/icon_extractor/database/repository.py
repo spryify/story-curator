@@ -71,7 +71,7 @@ class IconRepository:
                 existing.primary_tag = metadata.get('primary_tag')
                 existing.secondary_tag = metadata.get('secondary_tag')
                 existing.artist = metadata.get('artist')
-                existing.artist_id = metadata.get('artist_id')
+                existing.num_downloads = metadata.get('num_downloads')
                 existing.icon_metadata = metadata
                 
                 existing.updated_at = datetime.utcnow()
@@ -93,8 +93,8 @@ class IconRepository:
                     primary_tag=metadata.get('primary_tag'),
                     secondary_tag=metadata.get('secondary_tag'),
                     artist=metadata.get('artist'),
-                    artist_id=metadata.get('artist_id'),
-                    
+                    num_downloads=metadata.get('num_downloads'),
+
                     icon_metadata=metadata,
                 )
                 self.session.add(icon_model)

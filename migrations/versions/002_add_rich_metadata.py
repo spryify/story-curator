@@ -5,7 +5,7 @@ This migration adds the following columns to support rich metadata from yotoicon
 - primary_tag: Primary tag (e.g., 'dinosaur')
 - secondary_tag: Secondary tag (e.g., 't-rex')
 - artist: Artist username (e.g., 'pangolinpaw')
-- artist_id: Artist ID from yotoicons (e.g., '1914')
+- num_downloads: Number of downloads from yotoicons (e.g., '1914')
 """
 
 from sqlalchemy import text
@@ -37,7 +37,7 @@ class Migration002AddRichMetadata(BaseMigration):
             'primary_tag': 'VARCHAR(100)', 
             'secondary_tag': 'VARCHAR(100)',
             'artist': 'VARCHAR(100)',
-            'artist_id': 'VARCHAR(50)'
+            'num_downloads': 'VARCHAR(50)'
         }
         
         # Add columns that don't exist
@@ -72,7 +72,7 @@ class Migration002AddRichMetadata(BaseMigration):
         self.log_progress("Starting downgrade - removing rich metadata columns")
         
         # Remove the columns
-        columns_to_remove = ['yoto_icon_id', 'primary_tag', 'secondary_tag', 'artist', 'artist_id']
+        columns_to_remove = ['yoto_icon_id', 'primary_tag', 'secondary_tag', 'artist', 'num_downloads']
         
         for column_name in columns_to_remove:
             self.log_progress(f"Removing column: {column_name}")
