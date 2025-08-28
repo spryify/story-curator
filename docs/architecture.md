@@ -106,51 +106,45 @@ src/
 ```mermaid
 flowchart TD
     %% Input
-    A[📁 Audio Files<br/>WAV, MP3, M4A, AAC] --> B[🖥️ CLI Interface]
+    A[Audio Files<br/>WAV, MP3, M4A, AAC] --> B[CLI Interface]
     
     %% Main Pipeline
-    B --> C[🎵 Audio Icon Pipeline]
+    B --> C[Audio Icon Pipeline]
     
     %% Core Processing
-    C --> D[🎙️ Audio Processor<br/>Whisper Speech Recognition]
-    C --> E[🧠 Subject Identifier<br/>NER + Keywords + Topics]
-    C --> F[🔍 Icon Matcher<br/>Database Search & Scoring]
+    C --> D[Audio Processor<br/>Whisper Speech Recognition]
+    C --> E[Subject Identifier<br/>NER + Keywords + Topics]
+    C --> F[Icon Matcher<br/>Database Search & Scoring]
     
     %% Data Storage
-    G[(🗄️ PostgreSQL Database<br/>611+ Icons with Metadata)] --> F
+    G[(PostgreSQL Database<br/>611+ Icons with Metadata)] --> F
     
     %% Output
-    F --> H[📊 Results<br/>JSON, Text, Detailed]
+    F --> H[Results<br/>JSON, Text, Detailed]
     
-    %% Styling for better visibility
-    classDef inputNode fill:#4CAF50,stroke:#2E7D32,stroke-width:3px,color:#fff
-    classDef processNode fill:#2196F3,stroke:#1976D2,stroke-width:3px,color:#fff
-    classDef dataNode fill:#FF9800,stroke:#F57C00,stroke-width:3px,color:#fff
-    classDef outputNode fill:#9C27B0,stroke:#7B1FA2,stroke-width:3px,color:#fff
+    %% Clean black and white styling
+    classDef default fill:#fff,stroke:#000,stroke-width:2px,color:#000
     
-    class A,B inputNode
-    class C,D,E,F processNode
-    class G dataNode
-    class H outputNode
+    class A,B,C,D,E,F,G,H default
 ```
 
 ### Detailed Component Flow
 
 ```mermaid
 flowchart LR
-    subgraph "🎵 Media Analyzer"
+    subgraph "Media Analyzer"
         A1[Audio Processor] --> A2[Subject Identifier]
         A2 --> A3[NER Processor]
         A2 --> A4[Keyword Processor] 
         A2 --> A5[Topic Processor]
     end
     
-    subgraph "🔍 Icon Extractor"
+    subgraph "Icon Extractor"
         B1[Search Service] --> B2[Database Query]
         B2 --> B3[Result Ranking]
     end
     
-    subgraph "🎯 Audio Icon Matcher"
+    subgraph "Audio Icon Matcher"
         C1[Pipeline Orchestrator] --> C2[Icon Matcher]
         C2 --> C3[Result Ranker]
     end
@@ -159,13 +153,10 @@ flowchart LR
     C2 --> B1
     B3 --> C3
     
-    classDef analyzer fill:#E3F2FD,stroke:#1976D2,stroke-width:2px
-    classDef extractor fill:#FFF3E0,stroke:#F57C00,stroke-width:2px
-    classDef matcher fill:#F3E5F5,stroke:#7B1FA2,stroke-width:2px
+    %% Clean black and white styling
+    classDef default fill:#fff,stroke:#000,stroke-width:2px,color:#000
     
-    class A1,A2,A3,A4,A5 analyzer
-    class B1,B2,B3 extractor
-    class C1,C2,C3 matcher
+    class A1,A2,A3,A4,A5,B1,B2,B3,C1,C2,C3 default
 ```
 
 ### Component Responsibilities
@@ -252,32 +243,32 @@ flowchart LR
 
 ```mermaid
 sequenceDiagram
-    participant 👤 User
-    participant 🖥️ CLI
-    participant 🎵 Pipeline
-    participant 🎙️ Audio
-    participant 🧠 Subject
-    participant 🔍 Icons
-    participant 🗄️ DB
+    participant User
+    participant CLI
+    participant Pipeline
+    participant Audio
+    participant Subject
+    participant Icons
+    participant DB
     
-    👤->>🖥️: audio-to-icons story.wav
-    🖥️->>🎵: process(story.wav)
+    User->>CLI: audio-to-icons story.wav
+    CLI->>Pipeline: process(story.wav)
     
-    🎵->>🎙️: extract_text()
-    🎙️-->>🎵: "Once upon a time..."
+    Pipeline->>Audio: extract_text()
+    Audio-->>Pipeline: "Once upon a time..."
     
-    🎵->>🧠: identify_subjects()
-    🧠-->>🎵: ["story", "adventure", "magic"]
+    Pipeline->>Subject: identify_subjects()
+    Subject-->>Pipeline: ["story", "adventure", "magic"]
     
-    🎵->>🔍: find_icons(subjects)
-    🔍->>🗄️: search("story")
-    🗄️-->>🔍: [story icons]
-    🔍->>🗄️: search("adventure") 
-    🗄️-->>🔍: [adventure icons]
-    🔍-->>🎵: ranked_icon_matches
+    Pipeline->>Icons: find_icons(subjects)
+    Icons->>DB: search("story")
+    DB-->>Icons: [story icons]
+    Icons->>DB: search("adventure") 
+    DB-->>Icons: [adventure icons]
+    Icons-->>Pipeline: ranked_icon_matches
     
-    🎵-->>🖥️: AudioIconResult
-    🖥️-->>👤: Display results + save files
+    Pipeline-->>CLI: AudioIconResult
+    CLI-->>User: Display results + save files
 ```
 
 ### Processing Stages
@@ -324,7 +315,7 @@ Results → Format Selection → File Writing → Success Reporting
 **Subject Processing Extensions:**
 - Custom NLP algorithms and models
 - Domain-specific entity recognition (medical, legal, technical)
-- Alternative topic modeling approaches (LDA, BERT, GPT-based)
+- Alternative topic modeling approaches (BERT, GPT-based)
 - Custom keyword extraction strategies
 
 ### 2. Icon and Content Extensions
