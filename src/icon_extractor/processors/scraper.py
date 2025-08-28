@@ -319,7 +319,7 @@ class YotoIconScraper:
                         'primary_tag': primary_tag,
                         'secondary_tag': secondary_tag,
                         'artist': artist,
-                        'num_down': num_downloads
+                        'num_downloads': num_downloads
                     }
                     
                     icon_data = IconData(
@@ -365,7 +365,7 @@ class YotoIconScraper:
                     'primary_tag': matches[2],
                     'secondary_tag': matches[3],
                     'artist': matches[4],
-                    'num_down': matches[5]
+                    'num_downloads': matches[5]
                 }
             elif len(matches) >= 4:
                 return {
@@ -374,7 +374,7 @@ class YotoIconScraper:
                     'primary_tag': matches[2], 
                     'secondary_tag': matches[3],
                     'artist': '',
-                    'num_down': ''
+                    'num_downloads': ''
                 }
             else:
                 return {}
