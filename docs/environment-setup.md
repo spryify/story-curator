@@ -17,18 +17,18 @@ The Icon Curator feature requires PostgreSQL for both development and production
 
 3. **Create databases**:
    ```bash
-   createdb icon_curator_dev
-   createdb icon_curator_test
+   createdb story_curator_dev
+   createdb story_curator_test
    ```
 
 4. **Set environment variables** (optional):
    ```bash
    export DB_HOST=localhost
    export DB_PORT=5432
-   export DB_NAME=icon_curator_dev
+   export DB_NAME=story_curator_dev
    export DB_USER=postgres
    export DB_PASSWORD=your_password
-   export TEST_DATABASE_URL=postgresql://postgres:your_password@localhost:5432/icon_curator_test
+   export TEST_DATABASE_URL=postgresql://postgres:your_password@localhost:5432/story_curator_test
    ```
 
 ## Virtual Environment Setup

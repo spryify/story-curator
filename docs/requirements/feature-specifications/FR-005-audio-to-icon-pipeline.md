@@ -166,14 +166,14 @@ class AudioToIconPipeline:
 - **Supporting Templates**: processor_template.py, database_query_template.py, cli_command_template.py
 
 ### Required Examples
-- **Reference Examples**: icon_curator_demo.py (for database integration patterns)
+- **Reference Examples**: icon_extractor_demo.py (for database integration patterns)
 - **Similar Implementations**: media_analyzer CLI structure, subject identification patterns
 
 ### Implementation Steps
 1. **Setup Phase**
    - [ ] Read related ADRs: ADR-001, ADR-002, ADR-008, ADR-009
    - [ ] Review templates: pipeline_template.py, processor_template.py
-   - [ ] Study examples: icon_curator_demo.py, existing media_analyzer patterns
+   - [ ] Study examples: icon_cextractor_demo.py, existing media_analyzer patterns
 
 2. **Core Implementation**
    - [ ] Create AudioToIconPipeline class following pipeline patterns

@@ -26,8 +26,8 @@ def run_integration_tests():
     print("\n🔧 Running Core & Database Integration Tests...")
     result = subprocess.run([
         python_exe, "-m", "pytest", 
-        "tests/integration/icon_curator/test_core_integration.py",
-        "tests/integration/icon_curator/test_database_integration.py",
+        "tests/integration/icon_extractor/test_core_integration.py",
+        "tests/integration/icon_extractor/test_database_integration.py",
         "-v", "--tb=short"
     ], capture_output=True, text=True)
     
@@ -42,14 +42,14 @@ def run_integration_tests():
     print("\n🌐 Live Integration Tests (optional):")
     print("   To run live tests against yotoicons.com:")
     print("   export SKIP_LIVE_TESTS=false")
-    print(f"   {python_exe} -m pytest tests/integration/icon_curator/test_live_integration.py -v -s")
+    print(f"   {python_exe} -m pytest tests/integration/icon_extractor/test_live_integration.py -v -s")
     
     print("\n🗄️  Real Database Tests (optional):")
     print("   To run real PostgreSQL integration tests:")
-    print("   1. Set up PostgreSQL database: createdb icon_curator_test")
-    print("   2. export DATABASE_URL='postgresql://user:pass@localhost/icon_curator_test'")
+    print("   1. Set up PostgreSQL database: createdb story_curator_test")
+    print("   2. export DATABASE_URL='postgresql://user:pass@localhost/story_curator_test'")
     print("   3. export SKIP_DATABASE_TESTS=false")
-    print(f"   4. {python_exe} -m pytest tests/integration/icon_curator/test_database_integration.py::TestRealDatabaseIntegration -v")
+    print(f"   4. {python_exe} -m pytest tests/integration/icon_extractor/test_database_integration.py::TestRealDatabaseIntegration -v")
     
     print("\n📊 Integration Test Status:")
     print("✅ No SQLite dependencies - PostgreSQL only")

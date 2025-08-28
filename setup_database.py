@@ -9,13 +9,13 @@ from pathlib import Path
 src_path = Path(__file__).parent / "src"
 sys.path.insert(0, str(src_path))
 
-from icon_curator.database.connection import db_manager
-from icon_curator.core.exceptions import DatabaseError
+from icon_extractor.database.connection import db_manager
+from icon_extractor.core.exceptions import DatabaseError
 
 
 def setup_database():
     """Set up the database with tables and indexes."""
-    print("Setting up Icon Curator database...")
+    print("Setting up Story Curator database...")
     
     try:
         # Create tables
@@ -51,7 +51,7 @@ def main():
         print("Environment variables:")
         print(f"  DB_HOST: {os.getenv('DB_HOST', 'localhost')}")
         print(f"  DB_PORT: {os.getenv('DB_PORT', '5432')}")
-        print(f"  DB_NAME: {os.getenv('DB_NAME', 'icon_curator_dev')}")
+        print(f"  DB_NAME: {os.getenv('DB_NAME', 'story_curator_dev')}")
         print(f"  DB_USER: {os.getenv('DB_USER', 'postgres')}")
         print()
     

@@ -210,10 +210,10 @@ class IconModel(Base):
 ### Database Configuration
 ```python
 # Development and Production
-DATABASE_URL = "postgresql://user:password@localhost:5432/icon_curator"
+DATABASE_URL = "postgresql://user:password@localhost:5432/story_curator"
 
 # Test Database
-TEST_DATABASE_URL = "postgresql://user:password@localhost:5432/icon_curator_test"
+TEST_DATABASE_URL = "postgresql://user:password@localhost:5432/story_curator_test"
 ```
 
 ### Search Query Examples
