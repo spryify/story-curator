@@ -35,9 +35,9 @@ src/
 │   │       ├── identifier.py     # Multi-algorithm subject extraction
 │   │       ├── models.py         # Subject/Category models
 │   │       └── processors/       # Subject processing algorithms
-│   │           ├── lda.py        # Topic modeling with Latent Dirichlet Allocation
-│   │           ├── ner.py        # Named Entity Recognition with spaCy
-│   │           └── keywords.py   # TF-IDF keyword extraction
+│   │           ├── topic_processor.py  # Frequency-based topic extraction
+│   │           ├── ner.py              # Named Entity Recognition with spaCy  
+│   │           └── keywords.py         # NLTK-based keyword extraction
 │   ├── models/              # Data models and schemas
 │   ├── utils/               # Utility functions
 │   └── cli/                 # Command-line interface
@@ -104,73 +104,68 @@ src/
 ### System Architecture Diagram
 
 ```mermaid
-graph TB
-    %% Input Layer
-    AudioFile[Audio Files<br/>WAV, MP3, M4A, AAC]
-    CLI[Command Line Interface<br/>Rich Terminal UI]
+flowchart TD
+    %% Input
+    A[📁 Audio Files<br/>WAV, MP3, M4A, AAC] --> B[🖥️ CLI Interface]
     
-    %% Application Layer
-    subgraph "Audio Icon Matcher Pipeline"
-        AIM[Audio Icon Pipeline<br/>Orchestrator]
-        Matcher[Icon Matcher<br/>Subject-Icon Matching]
-        Ranker[Result Ranker<br/>Confidence Scoring]
+    %% Main Pipeline
+    B --> C[🎵 Audio Icon Pipeline]
+    
+    %% Core Processing
+    C --> D[🎙️ Audio Processor<br/>Whisper Speech Recognition]
+    C --> E[🧠 Subject Identifier<br/>NER + Keywords + Topics]
+    C --> F[🔍 Icon Matcher<br/>Database Search & Scoring]
+    
+    %% Data Storage
+    G[(🗄️ PostgreSQL Database<br/>611+ Icons with Metadata)] --> F
+    
+    %% Output
+    F --> H[📊 Results<br/>JSON, Text, Detailed]
+    
+    %% Styling for better visibility
+    classDef inputNode fill:#4CAF50,stroke:#2E7D32,stroke-width:3px,color:#fff
+    classDef processNode fill:#2196F3,stroke:#1976D2,stroke-width:3px,color:#fff
+    classDef dataNode fill:#FF9800,stroke:#F57C00,stroke-width:3px,color:#fff
+    classDef outputNode fill:#9C27B0,stroke:#7B1FA2,stroke-width:3px,color:#fff
+    
+    class A,B inputNode
+    class C,D,E,F processNode
+    class G dataNode
+    class H outputNode
+```
+
+### Detailed Component Flow
+
+```mermaid
+flowchart LR
+    subgraph "🎵 Media Analyzer"
+        A1[Audio Processor] --> A2[Subject Identifier]
+        A2 --> A3[NER Processor]
+        A2 --> A4[Keyword Processor] 
+        A2 --> A5[Topic Processor]
     end
     
-    %% Core Processing Layer
-    subgraph "Media Analyzer"
-        AP[Audio Processor<br/>Whisper Integration]
-        SI[Subject Identifier<br/>Multi-Algorithm Processing]
-        subgraph "Subject Processors"
-            NER[Named Entity Recognition<br/>spaCy]
-            KW[Keyword Extraction<br/>TF-IDF]
-            LDA[Topic Modeling<br/>Latent Dirichlet Allocation]
-        end
+    subgraph "🔍 Icon Extractor"
+        B1[Search Service] --> B2[Database Query]
+        B2 --> B3[Result Ranking]
     end
     
-    %% Data Layer
-    subgraph "Icon Extractor"
-        IS[Icon Search Service<br/>Full-Text Search]
-        IE[Icon Extractor<br/>Metadata Processing]
+    subgraph "🎯 Audio Icon Matcher"
+        C1[Pipeline Orchestrator] --> C2[Icon Matcher]
+        C2 --> C3[Result Ranker]
     end
     
-    subgraph "PostgreSQL Database"
-        IconDB[(Icon Database<br/>611+ Icons with Metadata)]
-    end
+    A2 --> C2
+    C2 --> B1
+    B3 --> C3
     
-    %% Output Layer
-    Results[Pipeline Results<br/>JSON, Text, Detailed]
+    classDef analyzer fill:#E3F2FD,stroke:#1976D2,stroke-width:2px
+    classDef extractor fill:#FFF3E0,stroke:#F57C00,stroke-width:2px
+    classDef matcher fill:#F3E5F5,stroke:#7B1FA2,stroke-width:2px
     
-    %% Connections
-    AudioFile --> CLI
-    CLI --> AIM
-    AIM --> AP
-    AIM --> SI
-    AIM --> Matcher
-    
-    AP --> SI
-    SI --> NER
-    SI --> KW  
-    SI --> LDA
-    
-    Matcher --> IS
-    IS --> IE
-    IE --> IconDB
-    
-    Matcher --> Ranker
-    Ranker --> Results
-    
-    %% Styling
-    classDef inputLayer fill:#e1f5fe
-    classDef appLayer fill:#f3e5f5
-    classDef coreLayer fill:#e8f5e8
-    classDef dataLayer fill:#fff3e0
-    classDef outputLayer fill:#fce4ec
-    
-    class AudioFile,CLI inputLayer
-    class AIM,Matcher,Ranker appLayer
-    class AP,SI,NER,KW,LDA coreLayer
-    class IS,IE,IconDB dataLayer
-    class Results outputLayer
+    class A1,A2,A3,A4,A5 analyzer
+    class B1,B2,B3 extractor
+    class C1,C2,C3 matcher
 ```
 
 ### Component Responsibilities
@@ -198,8 +193,8 @@ graph TB
   - Subject type classification (keywords, topics, entities)
 - **Subject Processing Algorithms**:
   - **NER Processor**: spaCy-based named entity recognition
-  - **Keyword Processor**: TF-IDF-based keyword extraction
-  - **LDA Processor**: Latent Dirichlet Allocation topic modeling
+  - **Keyword Processor**: NLTK-based keyword extraction with TF-IDF scoring
+  - **Topic Processor**: Frequency-based topic extraction with phrase scoring
 
 #### 3. Icon Extractor (Data Management)
 **Location:** `src/icon_extractor/`
@@ -257,40 +252,32 @@ graph TB
 
 ```mermaid
 sequenceDiagram
-    participant CLI as Command Line Interface
-    participant Pipeline as AudioIconPipeline
-    participant AudioProc as AudioProcessor
-    participant SubjectID as SubjectIdentifier
-    participant Matcher as IconMatcher
-    participant IconSvc as IconExtractionService
-    participant DB as PostgreSQL Database
-    participant Ranker as ResultRanker
+    participant 👤 User
+    participant 🖥️ CLI
+    participant 🎵 Pipeline
+    participant 🎙️ Audio
+    participant 🧠 Subject
+    participant 🔍 Icons
+    participant 🗄️ DB
     
-    CLI->>Pipeline: process(audio_file, options)
+    👤->>🖥️: audio-to-icons story.wav
+    🖥️->>🎵: process(story.wav)
     
-    Pipeline->>AudioProc: extract_text(audio_file)
-    AudioProc->>AudioProc: validate_file(audio_file)
-    AudioProc->>AudioProc: whisper_transcription()
-    AudioProc-->>Pipeline: TranscriptionResult(text, confidence, language)
+    🎵->>🎙️: extract_text()
+    🎙️-->>🎵: "Once upon a time..."
     
-    Pipeline->>SubjectID: identify_subjects(text)
-    SubjectID->>SubjectID: parallel_processing()
-    Note over SubjectID: NER + Keywords + LDA
-    SubjectID-->>Pipeline: SubjectResult(subjects, categories, metadata)
+    🎵->>🧠: identify_subjects()
+    🧠-->>🎵: ["story", "adventure", "magic"]
     
-    Pipeline->>Matcher: find_matching_icons(subjects)
-    loop For each subject
-        Matcher->>IconSvc: search_icons(subject_name)
-        IconSvc->>DB: full_text_search(query)
-        DB-->>IconSvc: matching_icons[]
-        IconSvc-->>Matcher: ranked_icons[]
-    end
-    Matcher-->>Pipeline: icon_matches[]
+    🎵->>🔍: find_icons(subjects)
+    🔍->>🗄️: search("story")
+    🗄️-->>🔍: [story icons]
+    🔍->>🗄️: search("adventure") 
+    🗄️-->>🔍: [adventure icons]
+    🔍-->>🎵: ranked_icon_matches
     
-    Pipeline->>Ranker: rank_and_deduplicate(icon_matches)
-    Ranker-->>Pipeline: final_results[]
-    
-    Pipeline-->>CLI: AudioIconResult(success, transcription, subjects, icons, metadata)
+    🎵-->>🖥️: AudioIconResult
+    🖥️-->>👤: Display results + save files
 ```
 
 ### Processing Stages
@@ -307,7 +294,7 @@ Audio Loading → Whisper Processing → Speech Recognition → Confidence Analy
 
 #### 3. Subject Extraction Stage
 ```
-Text Input → Parallel Processing → [NER | Keywords | LDA] → Subject Aggregation
+Text Input → Parallel Processing → [NER | Keywords | Topic Extraction] → Subject Aggregation
 ```
 
 #### 4. Icon Matching Stage
@@ -337,7 +324,7 @@ Results → Format Selection → File Writing → Success Reporting
 **Subject Processing Extensions:**
 - Custom NLP algorithms and models
 - Domain-specific entity recognition (medical, legal, technical)
-- Alternative topic modeling approaches (BERT, GPT-based)
+- Alternative topic modeling approaches (LDA, BERT, GPT-based)
 - Custom keyword extraction strategies
 
 ### 2. Icon and Content Extensions
@@ -690,4 +677,3 @@ logger.info("Pipeline started",
 - **Database Security**: Connection encryption, role-based access
 - **File Handling**: Secure temporary file management
 - **Audit Logging**: Comprehensive operation logging for compliance
-
