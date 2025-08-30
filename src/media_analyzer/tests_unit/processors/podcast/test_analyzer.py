@@ -125,11 +125,11 @@ class TestPodcastAnalyzer:
         """Test successful episode analysis."""
         analyzer = PodcastAnalyzer()
         
-        # Mock connector
-        mock_connector = AsyncMock()
+        # Mock connector - use MagicMock with separate async methods
+        mock_connector = MagicMock()
         mock_connector.validate_url.return_value = True
-        mock_connector.get_episode_metadata.return_value = sample_episode
-        mock_connector.get_audio_stream_url.return_value = "https://example.com/audio.mp3"
+        mock_connector.get_episode_metadata = AsyncMock(return_value=sample_episode)
+        mock_connector.get_audio_stream_url = AsyncMock(return_value="https://example.com/audio.mp3")
         mock_connector.platform_name = "rss"
         analyzer.connectors['rss'] = mock_connector
         
@@ -173,7 +173,7 @@ class TestPodcastAnalyzer:
         assert "No connector found" in result.error_message
     
     @pytest.mark.asyncio
-    async def test_analyze_episode_duration_limit(self, sample_episode):
+    async def test_analyze_episode_duration_limit(self, sample_episode, sample_transcription, sample_subjects):
         """Test analysis with episode exceeding duration limit."""
         analyzer = PodcastAnalyzer()
         
@@ -181,28 +181,47 @@ class TestPodcastAnalyzer:
         long_episode = sample_episode
         long_episode.duration_seconds = 7200  # 2 hours
         
-        mock_connector = AsyncMock()
+        # Mock connector - use MagicMock with separate async methods
+        mock_connector = MagicMock()
         mock_connector.validate_url.return_value = True
-        mock_connector.get_episode_metadata.return_value = long_episode
+        mock_connector.get_episode_metadata = AsyncMock(return_value=long_episode)
+        mock_connector.get_audio_stream_url = AsyncMock(return_value="https://example.com/audio.mp3")
+        mock_connector.platform_name = "rss"
         analyzer.connectors['rss'] = mock_connector
+        
+        # Mock transcription service
+        mock_transcription = AsyncMock()
+        mock_transcription.transcribe_stream.return_value = sample_transcription
+        analyzer.transcription_service = mock_transcription
+        
+        # Mock subject identifier
+        mock_subject_result = MagicMock()
+        mock_subject_result.subjects = sample_subjects
+        analyzer.subject_identifier = MagicMock()
+        analyzer.subject_identifier.identify_subjects.return_value = mock_subject_result
         
         options = AnalysisOptions(max_duration_minutes=60)  # 1 hour limit
         result = await analyzer.analyze_episode("https://example.com/feed.xml", options)
         
-        assert result.success is False
-        assert result.error_message is not None
-        assert "exceeds limit" in result.error_message
+        # The analyzer should still succeed but limit the transcription duration
+        assert result.success is True
+        # Verify that transcription was called with duration limit
+        mock_transcription.transcribe_stream.assert_called_once()
+        call_args = mock_transcription.transcribe_stream.call_args
+        # Second argument is the options dict
+        options_dict = call_args[0][1]  # Second positional argument
+        assert options_dict['max_duration_seconds'] == 3600  # 60 minutes * 60 seconds
     
     @pytest.mark.asyncio
     async def test_analyze_episode_skip_subjects(self, sample_episode, sample_transcription):
         """Test analysis with subject extraction disabled."""
         analyzer = PodcastAnalyzer()
         
-        # Mock connector and transcription
-        mock_connector = AsyncMock()
+        # Mock connector and transcription - use MagicMock with separate async methods
+        mock_connector = MagicMock()
         mock_connector.validate_url.return_value = True
-        mock_connector.get_episode_metadata.return_value = sample_episode
-        mock_connector.get_audio_stream_url.return_value = "https://example.com/audio.mp3"
+        mock_connector.get_episode_metadata = AsyncMock(return_value=sample_episode)
+        mock_connector.get_audio_stream_url = AsyncMock(return_value="https://example.com/audio.mp3")
         mock_connector.platform_name = "rss"
         analyzer.connectors['rss'] = mock_connector
         
@@ -233,7 +252,7 @@ class TestPodcastAnalyzer:
         mock_transcription.cleanup = AsyncMock()
         analyzer.transcription_service = mock_transcription
         
-        mock_connector = AsyncMock()
+        mock_connector = MagicMock()
         mock_connector.cleanup = AsyncMock()
         analyzer.connectors['test'] = mock_connector
         

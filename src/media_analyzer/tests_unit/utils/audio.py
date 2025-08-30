@@ -149,15 +149,27 @@ def create_timed_speech_file(
     """
     # If no text provided, generate text based on duration
     if text is None:
-        # Use shorter phrases for more precise timing control
-        base_phrase = "testing one two three"  # Takes roughly 1 second at 200 wpm
-        # Calculate number of phrases needed, accounting for the speaking rate
-        words_per_phrase = 4
-        words_per_minute = 200  # From the say command rate
+        # Use varied phrases to avoid confusing Whisper with repetitive content
+        base_phrases = [
+            "This is a test of the audio system",
+            "The weather is beautiful today",  
+            "Technology continues to advance rapidly",
+            "Natural speech recognition works well",
+            "We are testing different audio formats",
+            "Quality audio processing is important",
+            "Machine learning helps with transcription",
+            "Digital audio files contain speech data"
+        ]
+        
+        # Calculate timing - each phrase takes roughly 2-3 seconds at normal rate
+        words_per_minute = rate  # Use the actual rate parameter
         words_per_second = words_per_minute / 60
-        seconds_per_phrase = words_per_phrase / words_per_second
+        avg_words_per_phrase = 6  # Average words in our phrases
+        seconds_per_phrase = avg_words_per_phrase / words_per_second
         num_phrases = max(1, round((duration / 1000.0) / seconds_per_phrase))
-        phrases = [base_phrase] * num_phrases
+        
+        # Cycle through different phrases to create varied content
+        phrases = [base_phrases[i % len(base_phrases)] for i in range(num_phrases)]
         text = ". ".join(phrases) + "."  # Add periods for natural pauses
 
     # Generate the audio segment
