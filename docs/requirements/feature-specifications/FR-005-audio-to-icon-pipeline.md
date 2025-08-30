@@ -173,7 +173,7 @@ class AudioToIconPipeline:
 1. **Setup Phase**
    - [ ] Read related ADRs: ADR-001, ADR-002, ADR-008, ADR-009
    - [ ] Review templates: pipeline_template.py, processor_template.py
-   - [ ] Study examples: icon_cextractor_demo.py, existing media_analyzer patterns
+   - [ ] Study examples: icon_extractor_demo.py, existing media_analyzer patterns
 
 2. **Core Implementation**
    - [ ] Create AudioToIconPipeline class following pipeline patterns

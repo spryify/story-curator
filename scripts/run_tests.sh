@@ -6,7 +6,7 @@
 # Examples:
 #   ./scripts/run_tests.sh                          # Run all tests
 #   ./scripts/run_tests.sh media_analyzer           # Run all media_analyzer tests
-#   ./scripts/run_tests.sh icon_curator unit       # Run icon_curator unit tests only
+#   ./scripts/run_tests.sh icon_extractor unit       # Run icon_extractor unit tests only
 #   ./scripts/run_tests.sh media_analyzer integration test_audio  # Run audio integration tests
 
 set -e
