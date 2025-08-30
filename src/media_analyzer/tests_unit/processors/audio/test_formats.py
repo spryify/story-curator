@@ -185,35 +185,7 @@ def test_processor_configuration():
     assert processor.config == config
 
 
-def test_extract_text(sample_wav):
-    """Test text extraction from audio.
-    
-    Args:
-        sample_wav: Path to sample WAV file
-    """
-    processor = AudioProcessor()
-    
-    # Test with default options
-    audio = processor.load_audio(sample_wav)
-    result = processor.extract_text(audio)
-    
-    from media_analyzer.models.audio import TranscriptionResult
-    assert isinstance(result, TranscriptionResult)
-    assert isinstance(result.text, str)
-    assert isinstance(result.confidence, float)
-    assert 0 <= result.confidence <= 1
-    assert result.metadata is not None
-    assert result.language == "en"
-    
-    # Test with custom options
-    options = {
-        "language": "en",
-        "task": "transcribe"
-    }
-    result = processor.extract_text(audio, options)
-    assert isinstance(result.metadata, dict)
-    assert result.metadata.get("task") == "transcribe"
-    assert result.metadata.get("language") == "en"
+
 
 
 def test_error_handling(tmp_path):
@@ -254,3 +226,57 @@ def test_error_handling(tmp_path):
     finally:
         if corrupt_file.exists():
             corrupt_file.unlink()
+
+
+def test_extract_text_unit(sample_wav):
+    """Unit test for text extraction logic without Whisper dependency.
+    
+    This test focuses on the AudioProcessor's text extraction workflow
+    and result formatting, using patch to mock the actual Whisper model.
+    
+    Args:
+        sample_wav: Path to sample WAV file
+    """
+    from unittest.mock import patch, Mock
+    from media_analyzer.processors.audio.audio_processor import AudioProcessor
+    from media_analyzer.models.audio import TranscriptionResult
+    
+    # Mock the Whisper model at the module level
+    mock_transcribe_result = {
+        "text": "This is mocked transcribed text.",
+        "language": "en",
+        "segments": [
+            {"start": 0.0, "end": 2.0, "text": "This is mocked transcribed text."}
+        ]
+    }
+    
+    with patch('whisper.load_model') as mock_load_model:
+        mock_model = Mock()
+        mock_model.transcribe.return_value = mock_transcribe_result
+        mock_load_model.return_value = mock_model
+        
+        processor = AudioProcessor()
+        
+        # Test with default options
+        audio = processor.load_audio(sample_wav)
+        result = processor.extract_text(audio)
+        
+        assert isinstance(result, TranscriptionResult)
+        assert isinstance(result.text, str)
+        assert result.text == "This is mocked transcribed text."
+        assert result.language == "en"
+        assert isinstance(result.segments, list)
+        assert len(result.segments) == 1
+        
+        # Verify the mock was called
+        mock_load_model.assert_called_once()
+        mock_model.transcribe.assert_called()
+        
+        # Test with custom options
+        options = {
+            "language": "en",
+            "task": "transcribe"
+        }
+        result = processor.extract_text(audio, options)
+        assert result.metadata.get("task") == "transcribe"
+        assert result.metadata.get("language") == "en"

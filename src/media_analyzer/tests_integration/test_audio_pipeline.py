@@ -440,3 +440,38 @@ class TestAudioPipeline:
         # Story segments should be appropriate length for children's comprehension
         assert 1.0 <= avg_duration <= 6.0, \
             f"Average segment duration {avg_duration}s not suitable for children's content"
+
+    def test_audio_format_text_extraction_integration(self, tmp_path):
+        """Integration test for text extraction with different audio formats using real Whisper.
+        
+        This test ensures that the AudioProcessor can properly extract text from
+        different audio formats using the actual Whisper model.
+        """
+        from media_analyzer.processors.audio.audio_processor import AudioProcessor
+        from media_analyzer.models.audio import TranscriptionResult
+        
+        processor = AudioProcessor()
+        test_text = "This is a test audio file for format validation and transcription."
+        
+        # Test WAV format
+        wav_file = create_timed_speech_file(tmp_path, text=test_text, filename="test.wav")
+        audio_data = processor.load_audio(wav_file)
+        result = processor.extract_text(audio_data)
+        
+        assert isinstance(result, TranscriptionResult)
+        assert isinstance(result.text, str)
+        assert len(result.text) > 0
+        assert isinstance(result.confidence, float)
+        assert 0 <= result.confidence <= 1
+        assert result.metadata is not None
+        assert result.language == "en"
+        
+        # Test with custom options
+        options = {
+            "language": "en",
+            "task": "transcribe"
+        }
+        result = processor.extract_text(audio_data, options)
+        assert isinstance(result.metadata, dict)
+        assert result.metadata.get("task") == "transcribe"
+        assert result.metadata.get("language") == "en"
