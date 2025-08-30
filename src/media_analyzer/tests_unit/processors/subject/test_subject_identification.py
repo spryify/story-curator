@@ -241,8 +241,8 @@ class TestSubjectIdentification:
         assert len(detected) >= 2, f"Should detect multiple languages, found: {detected}"
 
     def test_specialized_domain(self, subject_identifier, specialized_domain_text):
-        """Test handling of specialized domain content (FR-002 requirement)."""
-        context = Context(domain="biotechnology", language="en", confidence=1.0)
+        """Test handling of specialized story domain content (FR-002 requirement)."""
+        context = Context(domain="storytelling", language="en", confidence=1.0)
         
         # Use real processors with predefined keywords
         test_identifier = SubjectIdentifier(timeout_ms=2000)
@@ -252,15 +252,15 @@ class TestSubjectIdentification:
         
         result = test_identifier.identify_subjects(specialized_domain_text, context)
         
-        # Verify domain-specific subject identification using terms from our predefined list
+        # Verify story-specific subject identification using terms from our story-focused list
         subjects = {s.name.lower() for s in result.subjects}
         found_terms = []
-        for term in ["crispr", "genome", "dna"]:
+        for term in ["princess", "kingdom", "treasure", "quest", "courage", "legend"]:
             if any(term in s for s in subjects):
                 found_terms.append(term)
                 
-        assert len(found_terms) >= 2, f"Should find at least 2 biotech terms, found: {found_terms}"
-        assert any(s.confidence > 0.8 for s in result.subjects), "Should have high confidence in domain-specific terms"
+        assert len(found_terms) >= 2, f"Should find at least 2 story terms, found: {found_terms}"
+        assert any(s.confidence > 0.8 for s in result.subjects), "Should have high confidence in story-specific terms"
 
     def test_subject_deduplication(self, subject_identifier, tech_discussion_text):
         """Test that similar subjects are properly deduplicated (FR-002 requirement)."""
