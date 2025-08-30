@@ -96,16 +96,18 @@ class RSSFeedConnector(PodcastPlatformConnector):
         # Validate that the audio URL is accessible
         try:
             session = await self._get_session()
-            async with session.head(audio_url, timeout=10) as response:
-                if response.status not in [200, 206]:  # 206 = Partial Content (streaming)
+            # Use allow_redirects=True to handle redirects automatically
+            async with session.head(audio_url, timeout=10, allow_redirects=True) as response:
+                if response.status not in [200, 206, 301, 302]:  # Include redirects
                     raise ConnectionError(f"Audio stream unavailable: HTTP {response.status}")
                 
-                # Check if it's actually an audio file
+                # Check if it's actually an audio file (but be lenient for testing)
                 content_type = response.headers.get('content-type', '').lower()
-                if not any(audio_type in content_type for audio_type in ['audio/', 'video/mp4', 'application/octet-stream']):
+                if content_type and not any(audio_type in content_type for audio_type in ['audio/', 'video/mp4', 'application/octet-stream', 'mpeg']):
                     logger.warning(f"Unexpected content type for audio: {content_type}")
                 
-                return audio_url
+                # Return the final URL after redirects
+                return str(response.url)
                 
         except aiohttp.ClientError as e:
             raise ConnectionError(f"Cannot access audio stream: {str(e)}")
@@ -284,7 +286,13 @@ class RSSFeedConnector(PodcastPlatformConnector):
             headers = {
                 'User-Agent': 'Story-Curator-Podcast-Analyzer/1.0'
             }
-            self.session = aiohttp.ClientSession(timeout=timeout, headers=headers)
+            # Create connector with redirect handling
+            connector = aiohttp.TCPConnector(limit=10, limit_per_host=10)
+            self.session = aiohttp.ClientSession(
+                timeout=timeout, 
+                headers=headers, 
+                connector=connector
+            )
         return self.session
     
     async def cleanup(self):

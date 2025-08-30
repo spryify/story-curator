@@ -2,6 +2,7 @@
 
 import logging
 import asyncio
+import time
 from typing import Optional, Dict, Any, List
 
 from media_analyzer.models.podcast import PodcastEpisode, StreamingAnalysisResult, AnalysisOptions
@@ -52,6 +53,7 @@ class PodcastAnalyzer:
             options = AnalysisOptions()
         
         try:
+            start_time = time.time()
             logger.info(f"Starting podcast analysis for: {url}")
             
             # Find appropriate connector
@@ -63,9 +65,10 @@ class PodcastAnalyzer:
             logger.info(f"Extracting metadata with {connector.platform_name} connector...")
             episode = await connector.get_episode_metadata(url)
             
-            # Validate episode duration
-            if episode.duration_seconds > options.max_duration_minutes * 60:
-                raise ValidationError(f"Episode duration ({episode.duration_seconds//60}min) exceeds limit ({options.max_duration_minutes}min)")
+            # Log episode duration and processing limit
+            max_duration_seconds = options.max_duration_minutes * 60
+            if episode.duration_seconds and episode.duration_seconds > max_duration_seconds:
+                logger.info(f"Episode duration ({episode.duration_seconds//60}min) exceeds processing limit ({options.max_duration_minutes}min), will process first {options.max_duration_minutes}min only")
             
             # Get audio stream URL
             logger.info("Getting audio stream URL...")
@@ -75,7 +78,8 @@ class PodcastAnalyzer:
             logger.info("Starting transcription...")
             transcription_options = {
                 'language': options.language,
-                'segment_length': options.segment_length_seconds
+                'segment_length': options.segment_length_seconds,
+                'max_duration_seconds': options.max_duration_minutes * 60  # Limit transcription duration
             }
             transcription = await self.transcription_service.transcribe_stream(audio_url, transcription_options)
             
@@ -98,13 +102,17 @@ class PodcastAnalyzer:
             # TODO: Icon matching would be integrated here once that component is available
             matched_icons = []
             
+            # Calculate processing time
+            processing_time = time.time() - start_time
+            
             # Prepare processing metadata
             processing_metadata = {
                 'connector_used': connector.platform_name,
                 'transcription_service': 'whisper',
                 'subject_extraction_enabled': options.subject_extraction,
                 'icon_matching_enabled': options.icon_matching,
-                'processing_options': options.__dict__.copy()
+                'processing_options': options.__dict__.copy(),
+                'processing_time': processing_time
             }
             
             result = StreamingAnalysisResult(

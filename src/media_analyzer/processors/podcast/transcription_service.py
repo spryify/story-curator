@@ -78,6 +78,14 @@ class WhisperStreamingService(StreamingTranscriptionService):
             # Download and process audio
             audio_data = await self._download_audio(audio_url)
             
+            # Truncate audio if max_duration_seconds is specified
+            max_duration_seconds = options.get('max_duration_seconds')
+            if max_duration_seconds:
+                max_duration_ms = max_duration_seconds * 1000
+                if len(audio_data) > max_duration_ms:
+                    logger.info(f"Truncating audio from {len(audio_data)/1000:.1f}s to {max_duration_seconds}s")
+                    audio_data = audio_data[:max_duration_ms]  # type: ignore[assignment]
+            
             # Process with chunking for large files
             segment_length = options.get('segment_length', 300)  # 5 minutes default
             

@@ -232,9 +232,22 @@ class SubjectIdentifier:
                 # Add subjects with adjusted confidence
                 if isinstance(results_dict, dict):
                     # First pass to find max confidence for normalization
-                    max_conf = max((v for v in results_dict.values() if isinstance(v, (int, float, str))), 
-                                 key=lambda x: float(x) if isinstance(x, str) else x, 
-                                 default=1.0)
+                    numeric_values = []
+                    for v in results_dict.values():
+                        if isinstance(v, (int, float)):
+                            numeric_values.append(v)
+                        elif isinstance(v, str):
+                            try:
+                                numeric_values.append(float(v))
+                            except ValueError:
+                                pass  # Skip non-numeric strings
+                        elif isinstance(v, dict) and 'confidence' in v:
+                            try:
+                                numeric_values.append(float(v['confidence']))
+                            except (ValueError, TypeError):
+                                pass
+                    
+                    max_conf = max(numeric_values) if numeric_values else 1.0
                                  
                     for name, confidence in results_dict.items():
                         # Normalize name for comparison
@@ -247,7 +260,15 @@ class SubjectIdentifier:
                         # Normalize confidence against max value
                         try:
                             max_conf_float = float(max_conf)
-                            norm_conf = float(confidence) / max_conf_float if max_conf_float > 0 else 0.5
+                            if isinstance(confidence, dict) and 'confidence' in confidence:
+                                conf_val = float(confidence['confidence'])
+                            elif isinstance(confidence, (int, float)):
+                                conf_val = float(confidence)
+                            elif isinstance(confidence, str):
+                                conf_val = float(confidence)
+                            else:
+                                conf_val = 0.5
+                            norm_conf = conf_val / max_conf_float if max_conf_float > 0 else 0.5
                         except (TypeError, ValueError):
                             norm_conf = 0.5
                             
