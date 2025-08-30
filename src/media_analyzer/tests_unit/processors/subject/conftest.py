@@ -115,6 +115,24 @@ def subject_identifier():
             subjects.extend(['technology', 'companies', 'artificial_intelligence'])
         if 'machine' in text_lower and 'learn' in text_lower:
             subjects.extend(['machine_learning', 'ai', 'technology'])
+
+        # Story elements for specialized domain
+        if 'princess' in text_lower:
+            subjects.extend(['princess', 'characters', 'royalty'])
+        if 'kingdom' in text_lower or 'eldoria' in text_lower:
+            subjects.extend(['kingdom', 'places', 'fantasy'])
+        if 'treasure' in text_lower:
+            subjects.extend(['treasure', 'objects', 'quest'])
+        if 'courage' in text_lower or 'brave' in text_lower:
+            subjects.extend(['courage', 'themes', 'heroism'])
+        if 'quest' in text_lower or 'journey' in text_lower:
+            subjects.extend(['quest', 'adventure', 'heroic_journey'])
+        if 'legend' in text_lower or 'prophecy' in text_lower:
+            subjects.extend(['legend', 'prophecy', 'mythology'])
+        if 'crystal' in text_lower and 'cave' in text_lower:
+            subjects.extend(['crystal', 'cave', 'mystical_places'])
+        if 'palace' in text_lower:
+            subjects.extend(['palace', 'places', 'architecture'])
             
         # Weather and educational content
         if 'weather' in text_lower:
@@ -235,12 +253,17 @@ def long_text():
 
 @pytest.fixture
 def specialized_domain_text():
-    """Provide text from a specialized domain."""
+    """Provide text from a specialized story domain."""
     return """
-    The CRISPR-Cas9 system enables precise genome editing through targeted DNA
-    cleavage. This revolutionary technique has applications in genetic engineering,
-    biotechnology, and medical research. The guide RNA sequence determines the
-    specificity of the nuclease activity.
+    In the enchanted kingdom of Eldoria, brave Princess Luna discovered an ancient treasure
+    map hidden deep within the palace library. The courageous princess embarked on a grand
+    quest through the magical forest, where she encountered wise woodland creatures who
+    taught her valuable lessons about persistence and friendship.
+
+    The ancient legend spoke of a golden crown hidden in a crystal cave, protected by
+    mystical guardians. With unwavering courage and the power of kindness, Princess Luna
+    overcame many challenges on her heroic journey to restore peace to all the lands
+    and fulfill the prophecy of the ages.
     """
 
 @pytest.fixture
