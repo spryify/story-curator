@@ -75,18 +75,18 @@ class TestPodcastIntegration:
 
     @pytest.mark.asyncio
     async def test_circle_round_short_audio_analysis(self, circle_round_feed_url, podcast_analyzer):
-        """Test complete podcast analysis with Circle Round (limited to first 2 minutes for speed)."""
+        """Test complete podcast analysis with Circle Round (limited to first 4 minutes for subject detection)."""
         
-        # Use options that limit processing for faster testing
+        # Use options that limit processing while allowing enough content for subject detection
         options = AnalysisOptions(
             language="en",
-            max_duration_minutes=2,  # Limit to 2 minutes for testing
+            max_duration_minutes=4,  # Increase to 4 minutes for better subject detection
             segment_length_seconds=60,  # 1-minute segments for faster processing
-            confidence_threshold=0.6,
+            confidence_threshold=0.5,  # Lower threshold for better subject detection
             subject_extraction=True  # Test subject extraction
         )
         
-        print(f"\n🎙️ Analyzing Circle Round episode (limited to 2 minutes)...")
+        print(f"\n🎙️ Analyzing Circle Round episode (limited to 4 minutes for subject detection)...")
         
         # Run full analysis
         result = await podcast_analyzer.analyze_episode(circle_round_feed_url, options)
@@ -105,13 +105,14 @@ class TestPodcastIntegration:
         
         # Check subject extraction
         assert isinstance(result.subjects, list), "Should return list of subjects"
-        # Note: Subjects might be empty if content doesn't have clear topics in first 2 minutes
+        # With 4 minutes of content, we should be able to detect at least some subjects
+        assert len(result.subjects) > 0, f"Should detect subjects in 4 minutes of Circle Round content. Transcription: {transcription.text[:300]}..."
         
         # Performance validation
         assert 'processing_time' in result.processing_metadata, "Should track processing time"
         processing_time = result.processing_metadata['processing_time']
         assert processing_time > 0, "Should track processing time"
-        assert processing_time < 300, "Processing should complete within 5 minutes"  # Generous limit for CI
+        assert processing_time < 600, "Processing should complete within 10 minutes"  # Generous limit for 4 minutes of audio
         
         print(f"✅ Analysis Results:")
         print(f"   Episode: {result.episode.title}")

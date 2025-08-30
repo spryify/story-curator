@@ -37,7 +37,9 @@ class PodcastAnalyzer:
         
         # Initialize subject identifier
         subject_config = self.config.get('subject_identification', {})
-        self.subject_identifier = SubjectIdentifier(subject_config)
+        max_workers = subject_config.get('max_workers', 3)
+        timeout_ms = subject_config.get('timeout_ms', 800)
+        self.subject_identifier = SubjectIdentifier(max_workers=max_workers, timeout_ms=timeout_ms)
     
     async def analyze_episode(self, url: str, options: Optional[AnalysisOptions] = None) -> StreamingAnalysisResult:
         """Analyze a single podcast episode from URL.

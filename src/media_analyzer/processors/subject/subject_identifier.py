@@ -235,7 +235,7 @@ class SubjectIdentifier:
                     numeric_values = []
                     for v in results_dict.values():
                         if isinstance(v, (int, float)):
-                            numeric_values.append(v)
+                            numeric_values.append(float(v))
                         elif isinstance(v, str):
                             try:
                                 numeric_values.append(float(v))
@@ -247,7 +247,13 @@ class SubjectIdentifier:
                             except (ValueError, TypeError):
                                 pass
                     
-                    max_conf = max(numeric_values) if numeric_values else 1.0
+                    # Ensure all values in numeric_values are actually numeric before calling max()
+                    clean_numeric_values = []
+                    for val in numeric_values:
+                        if isinstance(val, (int, float)) and not isinstance(val, bool):
+                            clean_numeric_values.append(float(val))
+                    
+                    max_conf = max(clean_numeric_values) if clean_numeric_values else 1.0
                                  
                     for name, confidence in results_dict.items():
                         # Normalize name for comparison
