@@ -17,7 +17,7 @@ from src.icon_extractor.database.connection import DatabaseManager
 from src.icon_extractor.core.exceptions import DatabaseError, ValidationError
 
 # Skip database tests if no test database is available
-TEST_DATABASE_URL = os.getenv('TEST_DATABASE_URL', 'postgresql://postgres:password@localhost:5432/icon_curator_test')
+TEST_DATABASE_URL = os.getenv('TEST_DATABASE_URL', 'postgresql://postgres:password@localhost:5432/story_curator_test')
 SKIP_DB_TESTS = os.getenv('SKIP_DATABASE_TESTS', 'true').lower() == 'true'
 
 pytestmark = pytest.mark.skipif(SKIP_DB_TESTS, reason="Database integration tests require PostgreSQL setup")
