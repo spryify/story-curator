@@ -109,10 +109,10 @@ class TestPodcastAnalyzer:
         """Test episode metadata extraction."""
         analyzer = PodcastAnalyzer()
         
-        # Mock the RSS connector
-        mock_connector = AsyncMock()
-        mock_connector.validate_url.return_value = True
-        mock_connector.get_episode_metadata.return_value = sample_episode
+        # Mock the RSS connector - use MagicMock for sync methods, AsyncMock for async methods
+        mock_connector = MagicMock()
+        mock_connector.validate_url.return_value = True  # Synchronous method
+        mock_connector.get_episode_metadata = AsyncMock(return_value=sample_episode)  # Async method
         analyzer.connectors['rss'] = mock_connector
         
         result = await analyzer.get_episode_metadata("https://example.com/feed.xml")
