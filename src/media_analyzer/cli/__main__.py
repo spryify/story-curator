@@ -1,5 +1,5 @@
 """
-Command line interface for media analysis operations.
+Main CLI entry point for media analysis operations.
 """
 
 import sys
@@ -13,6 +13,8 @@ from rich import print as rprint
 
 from media_analyzer.core.analyzer import Analyzer
 from media_analyzer.core.exceptions import ValidationError
+from media_analyzer.cli.audio import cli as audio_cli
+from media_analyzer.cli.podcast import cli as podcast_cli
 
 console = Console()
 
@@ -28,6 +30,10 @@ def print_success(message: str) -> None:
 def cli():
     """Media Analyzer CLI - Process and analyze audio files."""
     pass
+
+# Add subcommands
+cli.add_command(audio_cli, name='audio')
+cli.add_command(podcast_cli, name='podcast')
 
 @cli.command()
 @click.argument('file', type=click.Path(exists=True))
@@ -66,7 +72,7 @@ def analyze(file: str, language: str, summary_length: int, output: Optional[str]
                 "📝 [bold]Transcription Result[/bold]",
                 "",
                 "[bold blue]Full Transcription:[/bold blue]",
-                result.full_text,
+                result.text,
                 "",
                 "[bold green]Summary:[/bold green]",
                 result.summary,
@@ -87,7 +93,7 @@ def analyze(file: str, language: str, summary_length: int, output: Optional[str]
                 with output_path.open('w', encoding='utf-8') as f:
                     # Write plain text version
                     f.write(f"Transcription Result\n\n")
-                    f.write(f"Full Transcription:\n{result.full_text}\n\n")
+                    f.write(f"Full Transcription:\n{result.text}\n\n")
                     f.write(f"Summary:\n{result.summary}\n\n")
                     f.write("Metadata:\n")
                     f.write(f"Confidence: {result.confidence:.2%}\n")
@@ -103,9 +109,6 @@ def analyze(file: str, language: str, summary_length: int, output: Optional[str]
             
             print_success("\n✨ Analysis complete!")
             
-    except ValidationError as e:
-        print_error(f"Validation error: {e}")
-        sys.exit(1)
     except Exception as e:
         print_error(f"Processing failed: {e}")
         if verbose:

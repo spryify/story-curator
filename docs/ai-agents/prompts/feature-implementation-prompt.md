@@ -14,10 +14,9 @@ Implement the specified feature requirement following established project patter
 2. **Implementation Methodology**: 
    - `docs/ai-agents/workflows/tdd-workflow.md` (recommended for complex features)
    - `docs/ai-agents/workflows/development-workflow.md` (for simple features)
-3. **Project Context**: `docs/PROJECT_OVERVIEW.md`
-4. **Quality Standards**: `docs/CODING_STANDARDS.md`
+3. **Project Context**: `docs/project-overview.md`
+4. **Quality Standards**: `docs/coding-standards.md`
 5. **Related ADRs**: Specified in the feature requirement
-6. **API Contracts**: `docs/API_REFERENCE.md` (relevant sections)
 
 ## 🛠️ Implementation Process
 
