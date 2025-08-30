@@ -122,7 +122,11 @@ class TestPodcastIntegration:
         print(f"   Processing Time: {processing_time:.1f}s")
         
         if result.subjects:
-            print(f"   Top Subjects: {[s.name for s in result.subjects[:3]]}")
+            # Sort subjects by confidence and show more details
+            sorted_subjects = sorted(result.subjects, key=lambda x: x.confidence, reverse=True)
+            print(f"   Top Subjects (with confidence):")
+            for i, subject in enumerate(sorted_subjects[:5]):  # Show top 5 subjects
+                print(f"     {i+1}. {subject.name} ({subject.confidence:.2f}) - {subject.subject_type}")
         
         # Print first part of transcription for verification
         print(f"   Transcription Preview: {transcription.text[:200]}...")

@@ -48,50 +48,55 @@ class SubjectIdentifier:
     def _initialize_categories(self):
         """Initialize category mapping."""
         self.categories = {
-            Category("TECH", "Technology & Computing"),
-            Category("BIOTECH", "Biotechnology & Science"),
-            Category("FINANCE", "Finance & Economics"),
-            Category("BUSINESS", "Business & Industry")
+            Category("CHARACTERS", "Story Characters"),
+            Category("PLACES", "Locations & Places"),
+            Category("THEMES", "Story Themes & Values"),
+            Category("OBJECTS", "Important Objects"),
+            Category("CULTURE", "Cultural Elements")
         }
 
-        # Define category keywords with scores
+        # Define category keywords with scores - focused on storytelling elements
         self.category_keywords = {
-            "TECH": {
-                'artificial intelligence': 1.0, 'machine learning': 1.0,
-                'deep learning': 0.9, 'neural network': 0.9,
-                'cloud computing': 0.9, 'technology': 0.8,
-                'software': 0.8, 'data': 0.7, 'algorithm': 0.7,
-                'computing': 0.7, 'computer': 0.7, 'code': 0.6,
-                'programming': 0.8, 'developer': 0.7, 'system': 0.6,
-                'microsoft': 0.9, 'google': 0.9, 'amazon': 0.9,
-                'apple': 0.9, 'tech': 0.8, 'digital': 0.7
+            "CHARACTERS": {
+                'princess': 1.0, 'prince': 1.0, 'king': 1.0, 'queen': 1.0,
+                'emperor': 0.9, 'empress': 0.9, 'ruler': 0.8, 'hero': 0.9,
+                'heroine': 0.9, 'warrior': 0.8, 'knight': 0.8, 'dragon': 0.9,
+                'fairy': 0.8, 'witch': 0.8, 'wizard': 0.8, 'giant': 0.8,
+                'monster': 0.7, 'beast': 0.7, 'merchant': 0.7, 'farmer': 0.7,
+                'fisherman': 0.7, 'hunter': 0.7, 'mother': 0.6, 'father': 0.6,
+                'brother': 0.6, 'sister': 0.6, 'grandmother': 0.7, 'grandfather': 0.7
             },
-            "BIOTECH": {
-                'crispr': 1.0, 'genome': 0.9, 'dna': 0.9,
-                'genetic': 0.9, 'biology': 0.8, 'protein': 0.8,
-                'cell': 0.7, 'molecular': 0.8, 'biotechnology': 1.0,
-                'biotech': 0.9, 'research': 0.6, 'science': 0.7,
-                'scientific': 0.7, 'laboratory': 0.7, 'experiment': 0.6,
-                'clinical': 0.8, 'medical': 0.8, 'pharmaceutical': 0.9,
-                'drug': 0.8, 'vaccine': 0.9, 'therapy': 0.8
+            "PLACES": {
+                'kingdom': 1.0, 'palace': 0.9, 'castle': 0.9, 'village': 0.9,
+                'forest': 0.9, 'mountain': 0.8, 'river': 0.8, 'ocean': 0.8,
+                'desert': 0.8, 'cave': 0.8, 'temple': 0.8, 'tower': 0.8,
+                'bridge': 0.7, 'garden': 0.7, 'market': 0.7, 'inn': 0.7,
+                'island': 0.8, 'valley': 0.7, 'hill': 0.6, 'lake': 0.7,
+                'india': 0.9, 'china': 0.9, 'japan': 0.9, 'africa': 0.9,
+                'europe': 0.8, 'asia': 0.8, 'country': 0.6, 'land': 0.6
             },
-            "FINANCE": {
-                'market': 0.8, 'stock': 0.9, 'investment': 0.9,
-                'financial': 0.9, 'economy': 0.8, 'economic': 0.8,
-                'bank': 0.8, 'trading': 0.8, 'investor': 0.8,
-                'fund': 0.7, 'money': 0.7, 'price': 0.6,
-                'revenue': 0.8, 'profit': 0.8, 'growth': 0.6,
-                'market analysis': 0.9, 'stock market': 0.9,
-                'wall street': 0.9, 'banking': 0.8
+            "THEMES": {
+                'love': 0.9, 'courage': 1.0, 'bravery': 1.0, 'persistence': 1.0,
+                'kindness': 1.0, 'wisdom': 0.9, 'friendship': 0.9, 'loyalty': 0.9,
+                'honesty': 0.9, 'justice': 0.9, 'compassion': 0.9, 'generosity': 0.9,
+                'patience': 0.8, 'forgiveness': 0.8, 'sacrifice': 0.8, 'devotion': 0.9,
+                'determination': 0.9, 'perseverance': 0.9, 'strength': 0.8, 'hope': 0.8,
+                'faith': 0.7, 'trust': 0.7, 'respect': 0.7, 'responsibility': 0.7
             },
-            "BUSINESS": {
-                'business': 0.8, 'company': 0.8, 'industry': 0.8,
-                'corporate': 0.8, 'management': 0.7, 'strategy': 0.7,
-                'startup': 0.8, 'enterprise': 0.8, 'innovation': 0.7,
-                'market share': 0.8, 'competition': 0.7,
-                'product': 0.6, 'service': 0.6, 'customer': 0.6,
-                'partnership': 0.7, 'acquisition': 0.8, 'merger': 0.8,
-                'leadership': 0.7, 'executive': 0.7
+            "OBJECTS": {
+                'sword': 0.9, 'crown': 0.9, 'ring': 0.8, 'necklace': 0.8,
+                'gem': 0.8, 'jewel': 0.8, 'treasure': 0.9, 'gold': 0.8,
+                'silver': 0.7, 'mirror': 0.8, 'book': 0.7, 'scroll': 0.8,
+                'potion': 0.8, 'spell': 0.8, 'magic': 0.9, 'wand': 0.8,
+                'staff': 0.7, 'cloak': 0.7, 'boots': 0.6, 'key': 0.7,
+                'door': 0.6, 'chest': 0.7, 'box': 0.6
+            },
+            "CULTURE": {
+                'tradition': 0.8, 'ceremony': 0.8, 'festival': 0.8, 'celebration': 0.8,
+                'ritual': 0.8, 'custom': 0.7, 'legend': 0.9, 'myth': 0.9,
+                'folklore': 1.0, 'tale': 0.8, 'story': 0.7, 'dance': 0.7,
+                'music': 0.7, 'song': 0.7, 'prayer': 0.7, 'blessing': 0.7,
+                'ancient': 0.8, 'old': 0.6, 'wise': 0.7, 'sacred': 0.8
             }
         }
 
@@ -122,8 +127,11 @@ class SubjectIdentifier:
             if len(text) < 10:
                 raise InvalidInputError("Text too short for meaningful analysis")
 
+            # Preprocess text to focus on story content
+            processed_text = self._preprocess_for_story_content(text)
+            
             # Detect languages
-            languages = self._detect_languages(text)
+            languages = self._detect_languages(processed_text)
             
             # Process with each processor
             processor_results = {}
@@ -132,27 +140,26 @@ class SubjectIdentifier:
                 """Run a processor with error handling."""
                 try:
                     # Optimized caching with text length consideration
-                    text_length = len(text)
+                    text_length = len(processed_text)
                     # Use smaller sample for cache key if text is very long
-                    cache_text = text[:1000] if text_length > 1000 else text
+                    cache_text = processed_text[:1000] if text_length > 1000 else processed_text
                     cache_key = f"{proc_name}:{hash(cache_text)}"
                     
                     if cache_key in self._result_cache:
-                        cached_result = self._result_cache[cache_key]
-                        if text_length <= 1000 or proc_name != "entity":  # Full cache for short text or non-entity processors
-                            return cached_result
-                            
-                    # Process with optimized text chunks if needed
-                    if text_length > 5000 and proc_name == "entity":  # Only chunk for entity processor on long text
-                        chunk_size = 2000
-                        chunks = [text[i:i+chunk_size] for i in range(0, text_length, chunk_size)]
+                        return self._result_cache[cache_key]
+                    
+                    # For very long text, chunk processing for speed
+                    if text_length <= 1000 or proc_name != "entity":  # Full cache for short text or non-entity processors
+                        results = processor.process(processed_text)
+                    else:
+                        # Split into chunks for entity processor on long text
+                        chunks = [processed_text[i:i+800] for i in range(0, len(processed_text), 800)]
                         results = {}
+                        # Process only first few chunks to maintain speed
                         for chunk in chunks[:3]:  # Process only first 3 chunks for speed
                             chunk_results = processor.process(chunk)
                             results.update(chunk_results)
-                    else:
-                        results = processor.process(text)
-                        
+                    
                     self._result_cache[cache_key] = results
                     return results
                 except Exception as e:
@@ -343,7 +350,8 @@ class SubjectIdentifier:
             metadata = {
                 "processing_time_ms": processing_time,
                 "memory_usage_mb": memory_usage,
-                "text_length": len(text),
+                "text_length": len(processed_text),
+                "original_text_length": len(text),  # Track both original and processed length
                 "parallel_execution": True,
                 "languages_detected": languages
             }
@@ -454,3 +462,106 @@ class SubjectIdentifier:
             return True
             
         return False
+
+    def _preprocess_for_story_content(self, text: str) -> str:
+        """Preprocess text to focus on story content and filter out podcast metadata.
+        
+        Args:
+            text: Raw transcription text
+            
+        Returns:
+            Processed text focusing on story content
+        """
+        import re
+        
+        # Common podcast metadata patterns to remove or de-emphasize
+        metadata_patterns = [
+            # Host introductions and outros
+            r'hi,?\s+\w+\s+\w+\s+here\.?',
+            r'i\'?m\s+\w+\s+\w+',
+            r'this is \w+',
+            r'welcome to \w+',
+            r'thanks for listening',
+            # Tour and event announcements
+            r'going (?:back )?on tour',
+            r'live recordings?',
+            r'our (?:first|next) stop',
+            r'at the \w+ center',
+            r'club members are invited',
+            r'post-show meet',
+            # Dates and locations (when not part of story)
+            r'sunday,?\s+\w+ \d+(?:st|nd|rd|th)?',
+            r'in \w+, \w+(?:,\s+\w+)?',  # "in Parker, Colorado"
+            # Generic podcast structure
+            r'before we get to our story',
+            r'exciting news',
+            r'now let\'?s get to our story',
+            r'our story today',
+            r'let me tell you about',
+            # Circle Round specific patterns
+            r'circle round',
+            r'wbur',
+            r'rebecca sch?ie?r?'
+        ]
+        
+        lines = text.split('.')
+        filtered_lines = []
+        story_started = False
+        
+        for line in lines:
+            line = line.strip()
+            if not line:
+                continue
+                
+            # Check if this line contains metadata
+            is_metadata = False
+            line_lower = line.lower()
+            
+            for pattern in metadata_patterns:
+                if re.search(pattern, line_lower, re.IGNORECASE):
+                    is_metadata = True
+                    break
+            
+            # Look for story beginning indicators
+            story_indicators = [
+                r'once upon a time',
+                r'long ago',
+                r'there (?:was|were|lived)',
+                r'in a (?:far|distant|magical|ancient)',
+                r'many years? ago',
+                r'princess \w+',
+                r'king \w+',
+                r'queen \w+',
+                r'prince \w+',
+                r'in (?:the )?(?:kingdom|land|village|forest) of',
+                # Story transition phrases
+                r'our story (?:begins|takes place)',
+                r'let\'?s begin',
+                r'the story goes'
+            ]
+            
+            # Check if story content is starting
+            for indicator in story_indicators:
+                if re.search(indicator, line_lower, re.IGNORECASE):
+                    story_started = True
+                    break
+            
+            # Keep non-metadata lines, or all lines once story starts
+            if not is_metadata or story_started:
+                filtered_lines.append(line)
+            
+            # If we detect clear story content, prioritize everything after this point
+            if story_started:
+                # From here on, include everything (even if it matches metadata patterns)
+                # as it might be part of the story context
+                pass
+        
+        processed_text = '. '.join(filtered_lines).strip()
+        
+        # If we removed too much content, fall back to original
+        if len(processed_text) < len(text) * 0.3:  # Less than 30% remaining
+            logger.warning("Story content filtering removed too much text, using original")
+            return text
+            
+        logger.debug(f"Story content filtering: {len(text)} -> {len(processed_text)} characters")
+        return processed_text if processed_text else text
