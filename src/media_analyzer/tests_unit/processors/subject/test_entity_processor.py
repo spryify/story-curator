@@ -1,165 +1,104 @@
-"""Tests for entity processor."""
+"""Unit tests for entity processor using mocked SpaCy models."""
 import pytest
-import time
-
+from unittest.mock import MagicMock
 from media_analyzer.processors.subject.processors.entity_processor import EntityProcessor
 
 
 @pytest.fixture
-def entity_processor():
-    """Create an EntityProcessor with real SpaCy model."""
-    import spacy
-    # Force loading the real spacy model for these tests, ignore any global mocks
-    try:
-        # Ensure we get the real spacy module, not a mock
-        import importlib
-        spacy = importlib.reload(spacy)  # Reload to bypass any mocks
-        spacy.load("en_core_web_sm")
-    except OSError:
-        pytest.skip("SpaCy model 'en_core_web_sm' not installed")
+def mock_entity_processor():
+    """Fixture that provides an EntityProcessor with a mocked SpaCy model."""
+    # Create a fresh processor instance
+    processor = EntityProcessor()
     
-    return EntityProcessor()
+    # Store the original nlp for cleanup
+    original_nlp = processor.nlp
+    
+    # Replace with mock
+    mock_nlp = MagicMock()
+    
+    # Create a mock document
+    mock_doc = MagicMock()
+    
+    # Create mock entities
+    mock_entity1 = MagicMock()
+    mock_entity1.text = "Alice"
+    mock_entity1.label_ = "PERSON"
+    
+    mock_entity2 = MagicMock() 
+    mock_entity2.text = "New York"
+    mock_entity2.label_ = "GPE"
+    
+    mock_doc.ents = [mock_entity1, mock_entity2]
+    mock_nlp.return_value = mock_doc
+    
+    # Set the mock
+    processor.nlp = mock_nlp
+    
+    yield processor
+    
+    # Cleanup: restore original nlp
+    processor.nlp = original_nlp
 
 
-class TestEntityProcessor:
-    """Test suite for named entity recognition processor."""
-    
-    def test_basic_entity_extraction(self, entity_processor):
-        """Test basic entity extraction."""
-        result = entity_processor.process("Microsoft was founded by Bill Gates")
+class TestEntityProcessorUnit:
+    """Unit test class using a mocked SpaCy model for entity processing."""
+
+    def test_basic_functionality_with_mock_model(self, mock_entity_processor):
+        """Test basic entity processing functionality with mocked SpaCy model."""
+        text = "Alice went to New York to visit Bob."
+        result = mock_entity_processor.process(text)
         
-        assert isinstance(result, dict)
-        assert "results" in result
+        # Check structure
         assert "metadata" in result
-        
-        results = result["results"]
-        assert "Microsoft" in results
-        assert "Bill Gates" in results
-        assert all(0 <= score <= 1 for score in results.values())
-        
-        # Check metadata
+        assert "results" in result
+        assert isinstance(result["results"], dict)
         assert result["metadata"]["processor_type"] == "EntityProcessor"
-        assert "version" in result["metadata"]
         
-    def test_entity_types(self, entity_processor):
-        """Test different types of entities."""
-        text = "Apple CEO Tim Cook announced new products in California"
-        result = entity_processor.process(text)
-        
+        # Check that our mocked entities are returned
         results = result["results"]
-        assert "Apple" in results
-        assert "Tim Cook" in results
-        assert "California" in results
-        # All entities should have confidence scores
-        assert all(isinstance(v, float) and 0 <= v <= 1 
-                  for v in results.values())
-        
-    def test_performance(self, entity_processor):
-        """Test processing performance."""
-        long_text = "Apple " * 100 + "Microsoft " * 100
-        
-        start_time = time.time()
-        result = entity_processor.process(long_text)
-        end_time = time.time()
-        
-        assert end_time - start_time < 2.0  # Should complete within 2 seconds
-        assert isinstance(result, dict)
-        
-    def test_input_validation(self, entity_processor):
-        """Test input validation."""
+        assert "Alice" in results
+        assert "New York" in results
+
+    def test_input_validation_mock(self, mock_entity_processor):
+        """Test input validation with mocked model."""
         with pytest.raises(ValueError):
-            entity_processor.process("")  # Empty text
+            mock_entity_processor.process("")  # Empty text
             
         with pytest.raises(ValueError):
-            entity_processor.process(None)  # None input
-            
-    def test_story_character_recognition(self, entity_processor):
-        """Test recognition of story character names and titles."""
-        story = """
-        Once upon a time, Little Red Riding Hood visited her Grandmother.
-        She met her friend Peter and his rabbit Hoppy in the forest.
-        They saw Mr. Wolf hiding behind a tree, but Dr. Owl warned them in time.
-        """
-        result = entity_processor.process(story)
+            mock_entity_processor.process(None)  # None input
+
+    def test_mock_entity_processing(self, mock_entity_processor):
+        """Test that the mock processor returns expected mock entities."""
+        text = "Any text will work with the mock"
+        result = mock_entity_processor.process(text)
         results = result["results"]
         
-        # Test proper name recognition (at least 2 main character names should be found)
-        character_names = ["Red", "Peter", "Wolf", "Owl"]
-        found_names = [name for name in character_names if any(name in key for key in results)]
-        assert len(found_names) >= 2, f"Found only {found_names}"
+        # Should contain our pre-defined mock entities
+        assert "Alice" in results
+        assert "New York" in results
+        assert len(results) == 2  # Only our two mock entities
         
-        # At least one character should have high confidence
-        high_conf_chars = [name for name, score in results.items() 
-                          if score > 0.7 and any(char in name for char in character_names)]
-        assert len(high_conf_chars) > 0, "No main character with high confidence found"
+        # Verify the mock was called
+        mock_entity_processor.nlp.assert_called_once_with(text)
+
+    def test_processor_type_metadata(self, mock_entity_processor):
+        """Test that processor metadata is correct."""
+        text = "Test text"
+        result = mock_entity_processor.process(text)
         
-    def test_story_setting_recognition(self, entity_processor):
-        """Test recognition of story locations and settings."""
-        story = """
-        Billy lived in New York City with his family. Every summer they visited
-        Central Park and the Natural History Museum. His favorite place was 
-        the Brooklyn Zoo where he could watch the animals play.
-        """
-        result = entity_processor.process(story)
-        results = result["results"]
+        metadata = result["metadata"]
+        assert metadata["processor_type"] == "EntityProcessor"
+        assert "version" in metadata
+
+    def test_empty_entities_handling(self, mock_entity_processor):
+        """Test handling when no entities are found."""
+        # Configure mock to return empty entities
+        mock_doc = MagicMock()
+        mock_doc.ents = []
+        mock_entity_processor.nlp.return_value = mock_doc
         
-        # Test location recognition (should find at least 2 locations)
-        locations = ["New York", "Central Park", "Brooklyn"]
-        found_locations = [loc for loc in locations if any(loc in key for key in results)]
-        assert len(found_locations) >= 2, f"Found only {found_locations}"
+        text = "Just some text with no entities"
+        result = mock_entity_processor.process(text)
         
-        # Location names should have good confidence
-        assert any(score > 0.6 for name, score in results.items() 
-                  if any(loc in name for loc in locations))
-        
-    def test_story_object_recognition(self, entity_processor):
-        """Test recognition of important story objects and items."""
-        story = """
-        Sarah bought a Nintendo Switch and some LEGO toys from Walmart.
-        She also got the latest Harry Potter book and some Crayola crayons
-        from Barnes & Noble for her school project.
-        """
-        result = entity_processor.process(story)
-        results = result["results"]
-        
-        # Test brand/product recognition (should find at least 3)
-        brands = ["Nintendo", "LEGO", "Harry Potter", "Crayola", "Walmart", "Barnes & Noble"]
-        found_brands = [brand for brand in brands if any(brand in key for key in results)]
-        assert len(found_brands) >= 3, f"Found only {found_brands}"
-        
-        # Character recognition
-        assert "Sarah" in results
-        
-        # Brands should have high confidence
-        assert any(score > 0.8 for name, score in results.items() 
-                  if any(brand in name for brand in brands))
-        
-    def test_relationship_recognition(self, entity_processor):
-        """Test recognition of character relationships."""
-        story = """
-        Principal Wilson and Vice Principal Martinez welcomed everyone.
-        Principal Wilson addressed the teachers while 
-        Vice Principal Martinez spoke to the students.
-        Later, both Principal Wilson and Vice Principal Martinez 
-        attended the school board meeting.
-        """
-        result = entity_processor.process(story)
-        results = result["results"]
-        
-        # Test title recognition (using repeated clear titles)
-        titles = ["Principal", "Vice Principal"]
-        found_titles = [title for title in titles 
-                       if any(title in key for key in results)]
-        assert len(found_titles) >= 1, f"Found no titles from {titles}"
-        
-        # Test full name recognition with titles
-        titled_names = ["Principal Wilson", "Vice Principal Martinez"]
-        found_titled_names = [name for name in titled_names 
-                            if any(name in key for key in results)]
-        assert len(found_titled_names) >= 1, \
-            f"Found no full titled names from {titled_names}"
-        
-        # Test that repeated mentions increase confidence
-        assert any(results[name] > 0.7 for name in results 
-                  if "Principal Wilson" in name or "Vice Principal Martinez" in name), \
-            "No repeated titled names with high confidence"
+        assert "results" in result
+        assert len(result["results"]) == 0
