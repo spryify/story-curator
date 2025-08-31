@@ -66,11 +66,17 @@ Each ADR follows a consistent format:
    - Keyword extraction
    - Performance optimization
 
-9. [ADR-009: Database Design](ADR-009-database-design.md)
+9. [ADR-009: Database Design Strategy](ADR-009-database-design.md)
    - PostgreSQL schema design
-   - Indexing strategy
-   - Data modeling
+   - Migration strategy
    - Performance optimization
+   - Data integrity constraints
+
+10. [ADR-010: Podcast Analysis Architecture](ADR-010-podcast-analysis-architecture.md)
+    - RSS feed processing strategy
+    - Streaming audio transcription
+    - Component orchestration patterns
+    - Configuration management
 
 ## For AI Agents
 

@@ -100,6 +100,21 @@ This document outlines the key technical decisions made for the Story Curator pr
    - Cons: Cost, requires internet connection
    - Decision: Available as an option through SpeechRecognition interface
 
+### Podcast Processing and RSS Analysis
+
+**Architecture Decision**: See [ADR-010: Podcast Analysis Architecture](adr/ADR-010-podcast-analysis-architecture.md) for complete technical details.
+
+**Key Library Choices**:
+- **aiohttp (>= 3.8.0)**: Async HTTP client for RSS feed fetching
+- **xml.etree.ElementTree**: Standard library XML parsing for RSS feeds
+- **OpenAI Whisper**: Streaming audio transcription from podcast URLs
+
+**Benefits**:
+- Async processing prevents blocking on network requests
+- Standard library XML parsing provides security and reliability
+- Direct audio stream transcription avoids local file storage
+- Configurable Whisper model sizes balance accuracy vs performance
+
 ### Text Processing
 
 1. **Transformers (Hugging Face)**
@@ -118,11 +133,16 @@ This document outlines the key technical decisions made for the Story Curator pr
    - Consider adding PyTorch/TensorFlow for custom model development
    - Potential for fine-tuning Whisper models
 
-2. **Scalability**
+2. **Podcast Analysis Enhancements**
+   - Real-time podcast stream processing
+   - Speaker identification and diarization
+   - Content classification for age-appropriate filtering
+
+3. **Scalability**
    - Monitor performance with large audio files
    - Consider adding support for distributed processing
 
-3. **Additional Features**
-   - Speaker diarization libraries
+4. **Additional Features**
    - Emotion detection in speech
-   - Multiple language support
+   - Multiple language support enhancement
+   - Advanced RSS feed caching strategies

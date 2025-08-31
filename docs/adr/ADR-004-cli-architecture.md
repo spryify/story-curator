@@ -13,6 +13,7 @@ We will implement a modular CLI architecture using Click and Rich libraries with
 ```
 cli/
 ├── audio.py     # Audio processing commands
+├── podcast.py   # Podcast analysis commands (see ADR-010)
 └── README.md    # CLI documentation
 ```
 

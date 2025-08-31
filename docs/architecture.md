@@ -30,6 +30,7 @@ src/
 │   │   └── exceptions.py    # Custom exceptions
 │   ├── processors/
 │   │   ├── audio/           # Audio processing (Whisper integration)
+│   │   ├── podcast/         # Podcast RSS feed analysis (see ADR-010)
 │   │   ├── text/            # Text processing modules
 │   │   └── subject/         # Subject identification modules
 │   │       ├── subject_identifier.py     # Multi-algorithm subject extraction
@@ -107,25 +108,33 @@ src/
 flowchart TD
     %% Input
     A[Audio Files<br/>WAV, MP3, M4A, AAC] --> B[CLI Interface]
+    P[Podcast RSS Feeds] --> B
     
     %% Main Pipeline
     B --> C[Audio Icon Pipeline]
+    B --> PC[Podcast Analysis Pipeline]
     
     %% Core Processing
     C --> D[Audio Processor<br/>Whisper Speech Recognition]
     C --> E[Subject Identifier<br/>NER + Keywords + Topics]
     C --> F[Icon Matcher<br/>Database Search & Scoring]
     
+    %% Podcast Processing  
+    PC --> PR[RSS Connector<br/>Feed Parsing & Metadata]
+    PC --> PT[Whisper Streaming<br/>Direct Audio Transcription]
+    PT --> E
+    
     %% Data Storage
     G[(PostgreSQL Database<br/>611+ Icons with Metadata)] --> F
     
     %% Output
     F --> H[Results<br/>JSON, Text, Detailed]
+    PT --> PS[Podcast Results<br/>Transcription + Subjects]
     
     %% Clean black and white styling
     classDef default fill:#fff,stroke:#000,stroke-width:2px,color:#000
     
-    class A,B,C,D,E,F,G,H default
+    class A,B,C,D,E,F,G,H,P,PC,PR,PT,PS default
 ```
 
 ### Detailed Component Flow
@@ -134,6 +143,9 @@ flowchart TD
 flowchart LR
     subgraph "Media Analyzer"
         A1[Audio Processor] --> A2[Subject Identifier]
+        P1[Podcast Analyzer] --> P2[RSS Connector]
+        P1 --> P3[Whisper Streaming]
+        P3 --> A2
         A2 --> A3[NER Processor]
         A2 --> A4[Keyword Processor] 
         A2 --> A5[Topic Processor]
@@ -178,6 +190,11 @@ flowchart LR
   - Multi-format support (WAV, MP3, M4A, AAC)
   - File validation and format conversion
   - Confidence scoring and language detection
+- **PodcastAnalyzer**: Complete podcast episode analysis (see [ADR-010](adr/ADR-010-podcast-analysis-architecture.md))
+  - RSS feed parsing and metadata extraction
+  - Streaming audio transcription via Whisper
+  - Integration with subject identification pipeline
+  - Async processing with error isolation
 - **SubjectIdentifier**: Multi-algorithm subject extraction
   - Parallel processing with timeout handling
   - Confidence-based result aggregation
@@ -543,6 +560,10 @@ pytest src/*/tests_integration/ -v       # Integration tests (requires macOS for
   - macOS: `say` command (built-in)
   - Optional: `ffmpeg` for advanced audio processing
   - Whisper: Automatic installation via openai-whisper package
+- **Podcast Processing** (see [ADR-010](adr/ADR-010-podcast-analysis-architecture.md)):
+  - aiohttp: Async HTTP for RSS feed fetching
+  - pydub: Audio format conversion for streaming
+  - langdetect: Multilingual content detection
 
 **Hardware Recommendations:**
 - **CPU**: Multi-core (parallel subject processing)

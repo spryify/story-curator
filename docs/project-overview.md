@@ -5,33 +5,36 @@ The Media Content Analyzer is an intelligent Python-based system designed to ana
 
 ## Current Scope (Phase 1)
 - Audio file analysis with focus on text extraction and summarization
+- **Podcast RSS feed analysis** with streaming transcription (see [ADR-010](adr/ADR-010-podcast-analysis-architecture.md))
 - Support for common audio formats (WAV, MP3, etc.)
 - Specialized handling for different content types (e.g., children's stories)
 - Command-line interface for processing audio files
 - Robust error handling and logging
-- Comprehensive test coverage following [ADR-006 Testing Strategy](docs/adr/ADR-006-testing-strategy.md)
+- Comprehensive test coverage following [ADR-006 Testing Strategy](adr/ADR-006-testing-strategy.md)
 - Clear documentation and API specifications
 
 ## Future Scope
+- Enhanced podcast analysis with batch processing and real-time streams
 - Theme extraction from audio content
-- Visual representation generation
+- Visual representation generation  
 - Video file analysis capabilities
 - API for integration with other systems
 - Web interface for file processing
-- Batch processing capabilities
+- Advanced content classification and age-appropriate filtering
 
 ## Technical Stack
-- **Language**: Python 3.x
+- **Language**: Python 3.10+
 - **Development Approach**:
   - Documentation-First Development
   - Test-Driven Development (TDD)
   - AI Agent-Assisted Development
-- **Key Libraries** (Initial Planning):
-  - Speech Recognition: speech_recognition, whisper
-  - Audio Processing: pydub
-  - Text Processing: nltk, spacy
-  - Testing: pytest
-  - Documentation: Sphinx
+- **Key Libraries**: See [Technical Decisions](technical_decisions.md) for complete library rationale
+  - **Speech Recognition**: OpenAI Whisper for transcription
+  - **Audio Processing**: pydub for format handling
+  - **Text Processing**: spaCy (NLP), langdetect (multilingual)
+  - **Podcast Processing**: aiohttp (async RSS), xml.etree (parsing)
+  - **Testing**: pytest with comprehensive mocking strategy
+  - **Database**: PostgreSQL with full-text search
 
 ## Development Standards
 - All features must have complete documentation before implementation
