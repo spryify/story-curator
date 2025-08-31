@@ -70,9 +70,17 @@ class TestIconMatcher:
         
         with patch.object(matcher.icon_service, 'search_icons', return_value=mock_icons):
             subjects = {
-                'keywords': ['animal', 'pet'],
-                'topics': ['pets'],
-                'entities': ['dog', 'cat'],
+                'keywords': [
+                    {'name': 'animal', 'confidence': 0.8, 'type': 'KEYWORD', 'context': {}},
+                    {'name': 'pet', 'confidence': 0.7, 'type': 'KEYWORD', 'context': {}}
+                ],
+                'topics': [
+                    {'name': 'pets', 'confidence': 0.6, 'type': 'TOPIC', 'context': {}}
+                ],
+                'entities': [
+                    {'name': 'dog', 'confidence': 0.9, 'type': 'ENTITY', 'context': {}},
+                    {'name': 'cat', 'confidence': 0.8, 'type': 'ENTITY', 'context': {}}
+                ],
                 'categories': ['Animals']
             }
             
@@ -112,7 +120,9 @@ class TestIconMatcher:
         
         with patch.object(matcher.icon_service, 'search_icons', side_effect=Exception("Search failed")):
             subjects = {
-                'keywords': ['test'],
+                'keywords': [
+                    {'name': 'test', 'confidence': 0.8, 'type': 'KEYWORD', 'context': {}}
+                ],
                 'topics': [],
                 'entities': [],
                 'categories': []
@@ -365,8 +375,8 @@ class TestAudioIconPipeline:
         assert len(formats) > 0
         assert "wav" in formats or "mp3" in formats
     
-    def test_convert_subject_result_to_dict(self, pipeline, mock_subject_identifier):
-        """Test conversion of SubjectAnalysisResult to dict."""
+    def test_convert_subject_result_to_rich_dict(self, pipeline, mock_subject_identifier):
+        """Test conversion of SubjectAnalysisResult to rich dict format."""
         # Create a more realistic mock with both keywords and topics
         from media_analyzer.models.subject.identification import Subject, SubjectType
         
@@ -380,8 +390,8 @@ class TestAudioIconPipeline:
         subject_result.categories = set()
         subject_result.metadata = {}
         
-        # Convert to dict
-        subjects_dict = pipeline._convert_subject_result_to_dict(subject_result)
+        # Convert to rich dict format
+        subjects_dict = pipeline._convert_subject_result_to_rich_dict(subject_result)
         
         assert isinstance(subjects_dict, dict)
         assert 'keywords' in subjects_dict
@@ -389,13 +399,18 @@ class TestAudioIconPipeline:
         assert 'entities' in subjects_dict
         assert 'categories' in subjects_dict
         
-        # Check that subjects were properly categorized
+        # Check that subjects were properly categorized with rich metadata
         keywords = subjects_dict['keywords']
         topics = subjects_dict['topics']
         
-        # Should have at least one keyword entry
+        # Should have at least one keyword entry with rich format
         assert len(keywords) > 0
-        # Topics might be empty depending on the mock setup, so just check structure
+        keyword = keywords[0]
+        assert 'name' in keyword
+        assert 'confidence' in keyword
+        assert 'type' in keyword
+        
+        # Topics should be properly formatted
         assert isinstance(topics, list)
     
     def test_process_unexpected_error_handling(self, pipeline):
@@ -428,7 +443,11 @@ class TestAudioIconResult:
             success=True,
             transcription="Test transcription",
             transcription_confidence=0.9,
-            subjects={'keywords': ['test']},
+            subjects={
+                'keywords': [
+                    {'name': 'test', 'confidence': 0.8, 'type': 'KEYWORD', 'context': {}}
+                ]
+            },
             icon_matches=[],
             processing_time=1.5,
             metadata={'version': '1.0'}
@@ -437,7 +456,11 @@ class TestAudioIconResult:
         assert result.success is True
         assert result.transcription == "Test transcription"
         assert result.transcription_confidence == 0.9
-        assert result.subjects == {'keywords': ['test']}
+        assert result.subjects == {
+            'keywords': [
+                {'name': 'test', 'confidence': 0.8, 'type': 'KEYWORD', 'context': {}}
+            ]
+        }
         assert result.icon_matches == []
         assert result.processing_time == 1.5
         assert result.metadata == {'version': '1.0'}

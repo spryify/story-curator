@@ -421,53 +421,6 @@ class AudioIconPipeline:
         
         return subjects_dict
     
-    def _convert_subject_result_to_dict(self, subject_result: SubjectAnalysisResult) -> Dict[str, Any]:
-        """Convert SubjectAnalysisResult to simple dict format for backward compatibility.
-        
-        Note: This is the legacy conversion method. Use _convert_subject_result_to_rich_dict
-        for enhanced metadata and confidence information.
-        
-        Args:
-            subject_result: SubjectAnalysisResult object
-            
-        Returns:
-            Dictionary representation of subjects (simplified format)
-        """
-        subjects_dict = {
-            'keywords': [],
-            'topics': [],
-            'entities': [],
-            'categories': []
-        }
-        
-        # Group subjects by type (simple format)
-        for subject in subject_result.subjects:
-            subject_info = {
-                'name': subject.name,
-                'confidence': subject.confidence
-            }
-            
-            if hasattr(subject, 'subject_type') and subject.subject_type:
-                subject_type_str = str(subject.subject_type).lower()
-                
-                # Handle enum values that may include the class name
-                if 'keyword' in subject_type_str:
-                    subjects_dict['keywords'].append(subject_info)
-                elif 'topic' in subject_type_str:
-                    subjects_dict['topics'].append(subject_info)
-                elif 'entity' in subject_type_str:
-                    subjects_dict['entities'].append(subject_info)
-                else:
-                    subjects_dict['keywords'].append(subject_info)  # Default to keywords
-            else:
-                subjects_dict['keywords'].append(subject_info)  # Default to keywords
-        
-        # Add categories (simple format)
-        for category in subject_result.categories:
-            subjects_dict['categories'].append(str(category.name) if hasattr(category, 'name') else str(category))
-        
-        return subjects_dict
-
     def _convert_podcast_subjects_to_dict(self, subjects: List) -> Dict[str, Any]:
         """Convert podcast subjects list to dict format for compatibility.
         
