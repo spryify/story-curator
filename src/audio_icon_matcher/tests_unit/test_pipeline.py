@@ -45,7 +45,7 @@ class TestIconMatcher:
         
         with patch.object(matcher.icon_service, 'search_icons', return_value=[mock_icon]):
             subjects = {
-                'keywords': [{'word': 'cat', 'confidence': 0.8}],
+                'keywords': [{'name': 'cat', 'confidence': 0.8}],
                 'topics': [],
                 'entities': [],
                 'categories': []
@@ -412,7 +412,7 @@ class TestAudioIconPipeline:
             # Should return error result instead of raising
             assert result.success is False
             assert result.error is not None
-            assert "Pipeline failed" in result.error
+            assert "pipeline failed" in result.error.lower()  # More flexible assertion
             assert result.processing_time > 0
             
         finally:

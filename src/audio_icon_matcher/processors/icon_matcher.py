@@ -46,29 +46,53 @@ class IconMatcher:
             # Search for icons using different subject types
             search_terms = []
             
-            # Add keywords with high confidence (>0.7)
+            # Add keywords with confidence filtering
             for keyword in keywords:
-                if isinstance(keyword, dict) and keyword.get('confidence', 0) > 0.7:
-                    search_terms.append((keyword['name'], 'keyword', keyword['confidence']))
-                elif isinstance(keyword, str):
-                    search_terms.append((keyword, 'keyword', 0.8))
+                if isinstance(keyword, dict):
+                    confidence = keyword.get('confidence', 0)
+                    name = keyword.get('name', str(keyword))
+                    keyword_type = keyword.get('type', 'KEYWORD')
+                    context = keyword.get('context', {})
                     
-            # Add topics
+                    # Use higher threshold for better quality matches
+                    if confidence > 0.5:  # Reduced from 0.7 to include more good matches
+                        search_terms.append((name, 'keyword', confidence, keyword_type, context))
+                elif isinstance(keyword, str):
+                    search_terms.append((keyword, 'keyword', 0.8, 'KEYWORD', {}))
+                    
+            # Add topics with enhanced metadata
             for topic in topics:
                 if isinstance(topic, dict):
-                    search_terms.append((topic.get('name', str(topic)), 'topic', topic.get('confidence', 0.7)))
+                    name = topic.get('name', str(topic))
+                    confidence = topic.get('confidence', 0.7)
+                    topic_type = topic.get('type', 'TOPIC')
+                    context = topic.get('context', {})
+                    search_terms.append((name, 'topic', confidence, topic_type, context))
                 elif isinstance(topic, str):
-                    search_terms.append((topic, 'topic', 0.7))
+                    search_terms.append((topic, 'topic', 0.7, 'TOPIC', {}))
                     
-            # Add entities
+            # Add entities with enhanced metadata
             for entity in entities:
                 if isinstance(entity, dict):
-                    search_terms.append((entity.get('name', str(entity)), 'entity', entity.get('confidence', 0.6)))
+                    name = entity.get('name', str(entity))
+                    confidence = entity.get('confidence', 0.6)
+                    entity_type = entity.get('type', 'ENTITY')
+                    context = entity.get('context', {})
+                    search_terms.append((name, 'entity', confidence, entity_type, context))
                 elif isinstance(entity, str):
-                    search_terms.append((entity, 'entity', 0.6))
+                    search_terms.append((entity, 'entity', 0.6, 'ENTITY', {}))
             
             # Search for icons using each search term
-            for term, term_type, base_confidence in search_terms:
+            for term_data in search_terms:
+                if len(term_data) == 5:
+                    # Enhanced format with metadata
+                    term, term_type, base_confidence, subject_type, context = term_data
+                else:
+                    # Legacy format for backward compatibility
+                    term, term_type, base_confidence = term_data[:3]
+                    subject_type = term_type.upper()
+                    context = {}
+                
                 try:
                     # Search icons by term
                     icons = self.icon_service.search_icons(
@@ -94,9 +118,9 @@ class IconMatcher:
                     
                     # Create IconMatch objects
                     for icon in all_icons:
-                        # Calculate confidence based on term type and match quality
-                        confidence = self._calculate_confidence(
-                            term, icon, term_type, base_confidence
+                        # Calculate confidence with enhanced metadata
+                        confidence = self._calculate_confidence_enhanced(
+                            term, icon, term_type, base_confidence, subject_type, context
                         )
                         
                         # Avoid duplicates
@@ -131,6 +155,79 @@ class IconMatcher:
         except Exception as e:
             logger.error(f"Icon matching failed: {e}")
             raise IconMatchingError(f"Failed to find matching icons: {e}") from e
+    
+    def _calculate_confidence_enhanced(
+        self, 
+        term: str, 
+        icon: IconData, 
+        term_type: str, 
+        base_confidence: float,
+        subject_type: str,
+        context: Dict[str, Any]
+    ) -> float:
+        """Enhanced confidence calculation with subject metadata.
+        
+        Args:
+            term: Search term used
+            icon: Matched icon
+            term_type: Type of term (keyword, topic, entity)
+            base_confidence: Base confidence from subject identification
+            subject_type: Enhanced subject type (KEYWORD, NER, etc.)
+            context: Additional context information
+            
+        Returns:
+            Calculated confidence score (0.0-1.0)
+        """
+        # Start with the base calculation
+        confidence = self._calculate_confidence(term, icon, term_type, base_confidence)
+        
+        # Enhanced scoring based on subject type
+        if subject_type:
+            subject_type_lower = subject_type.lower()
+            
+            # Boost for high-quality subject types
+            if subject_type_lower in ['ner', 'entity']:
+                confidence += 0.08  # Named entities are very reliable
+            elif subject_type_lower in ['keyword', 'keywords']:
+                confidence += 0.05  # Keywords are reliable
+            elif subject_type_lower in ['topic', 'topics']:
+                confidence += 0.03  # Topics are moderately reliable
+        
+        # Context-based enhancements
+        if context:
+            domain = context.get('domain')
+            language = context.get('language', 'en')
+            
+            # Boost for relevant domains
+            if domain and any(domain_word in icon.name.lower() or 
+                            (icon.tags and any(domain_word in tag.lower() for tag in icon.tags))
+                            for domain_word in domain.lower().split()):
+                confidence += 0.05
+            
+            # Language consistency boost
+            if language == 'en':  # English content typically has better icon coverage
+                confidence += 0.02
+        
+        # Boost for exact or near-exact matches
+        term_lower = term.lower()
+        if icon.name.lower() == term_lower:
+            confidence += 0.15  # Exact name match is very strong
+        elif term_lower in icon.name.lower().split():
+            confidence += 0.12  # Word match in name
+        
+        # Boost for strong tag matches
+        if icon.tags:
+            exact_tag_matches = sum(1 for tag in icon.tags if tag.lower() == term_lower)
+            if exact_tag_matches > 0:
+                confidence += 0.10 * min(exact_tag_matches, 3)  # Cap at 3 tag matches
+            else:
+                # Partial tag matches
+                partial_matches = sum(1 for tag in icon.tags if term_lower in tag.lower())
+                if partial_matches > 0:
+                    confidence += 0.05 * min(partial_matches, 2)  # Cap at 2 partial matches
+        
+        # Cap at 1.0
+        return min(confidence, 1.0)
     
     def _calculate_confidence(
         self, 

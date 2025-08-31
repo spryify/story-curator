@@ -241,12 +241,12 @@ class AudioIconPipeline:
             try:
                 subject_result = self.subject_identifier.identify_subjects(transcription)
                 
-                if not subject_result:
+                if not subject_result or not subject_result.subjects:
                     logger.warning("Subject identification produced no results")
                     subjects = {}
                 else:
-                    # Convert SubjectAnalysisResult to dict format for compatibility
-                    subjects = self._convert_subject_result_to_dict(subject_result)
+                    # Convert SubjectAnalysisResult to rich dict format (same as podcast processing)
+                    subjects = self._convert_subject_result_to_rich_dict(subject_result)
                 
                 logger.info(f"Subject identification complete. Found {len(subjects)} subject types")
                 logger.debug(f"Subjects: {subjects}")
@@ -356,14 +356,17 @@ class AudioIconPipeline:
         """
         return list(self.audio_processor.SUPPORTED_FORMATS)
     
-    def _convert_subject_result_to_dict(self, subject_result: SubjectAnalysisResult) -> Dict[str, Any]:
-        """Convert SubjectAnalysisResult to dict format for compatibility.
+    def _convert_subject_result_to_rich_dict(self, subject_result: SubjectAnalysisResult) -> Dict[str, Any]:
+        """Convert SubjectAnalysisResult to rich dict format with confidence and metadata.
+        
+        This provides the same rich format as podcast processing, with confidence scores
+        and type information for better icon matching.
         
         Args:
             subject_result: SubjectAnalysisResult object
             
         Returns:
-            Dictionary representation of subjects
+            Dictionary representation with rich metadata
         """
         subjects_dict = {
             'keywords': [],
@@ -372,7 +375,72 @@ class AudioIconPipeline:
             'categories': []
         }
         
-        # Group subjects by type
+        # Group subjects by type with rich metadata
+        for subject in subject_result.subjects:
+            # Clean up the type field to just show the enum value
+            subject_type_clean = subject.subject_type.value if hasattr(subject, 'subject_type') and subject.subject_type else 'keyword'
+            
+            subject_info = {
+                'name': subject.name,
+                'confidence': subject.confidence,
+                'type': subject_type_clean.upper()
+            }
+            
+            # Add context if available
+            if hasattr(subject, 'context') and subject.context:
+                subject_info['context'] = {
+                    'domain': getattr(subject.context, 'domain', None),
+                    'language': getattr(subject.context, 'language', 'en')
+                }
+            
+            # Route to appropriate category based on subject type
+            if hasattr(subject, 'subject_type') and subject.subject_type:
+                subject_type_str = str(subject.subject_type).lower()
+                
+                # Handle enum values that may include the class name
+                if 'keyword' in subject_type_str:
+                    subjects_dict['keywords'].append(subject_info)
+                elif 'topic' in subject_type_str:
+                    subjects_dict['topics'].append(subject_info)
+                elif 'entity' in subject_type_str:
+                    subjects_dict['entities'].append(subject_info)
+                else:
+                    # Default unknown types to keywords
+                    subjects_dict['keywords'].append(subject_info)
+            else:
+                # Default to keywords if no type specified
+                subjects_dict['keywords'].append(subject_info)
+        
+        # Add categories with metadata
+        for category in subject_result.categories:
+            category_info = {
+                'name': str(category.name) if hasattr(category, 'name') else str(category),
+                'id': getattr(category, 'id', None)
+            }
+            subjects_dict['categories'].append(category_info)
+        
+        return subjects_dict
+    
+    def _convert_subject_result_to_dict(self, subject_result: SubjectAnalysisResult) -> Dict[str, Any]:
+        """Convert SubjectAnalysisResult to simple dict format for backward compatibility.
+        
+        Note: This is the legacy conversion method. Use _convert_subject_result_to_rich_dict
+        for enhanced metadata and confidence information.
+        
+        Args:
+            subject_result: SubjectAnalysisResult object
+            
+        Returns:
+            Dictionary representation of subjects (simplified format)
+        """
+        subjects_dict = {
+            'keywords': [],
+            'topics': [],
+            'entities': [],
+            'categories': []
+        }
+        
+        # Group subjects by type (simple format)
         for subject in subject_result.subjects:
             subject_info = {
                 'name': subject.name,
@@ -380,19 +448,21 @@ class AudioIconPipeline:
             }
             
             if hasattr(subject, 'subject_type') and subject.subject_type:
-                subject_type = str(subject.subject_type).lower()
-                if subject_type == 'keyword':
+                subject_type_str = str(subject.subject_type).lower()
+                
+                # Handle enum values that may include the class name
+                if 'keyword' in subject_type_str:
                     subjects_dict['keywords'].append(subject_info)
-                elif subject_type == 'topic':
+                elif 'topic' in subject_type_str:
                     subjects_dict['topics'].append(subject_info)
-                elif subject_type == 'entity':
+                elif 'entity' in subject_type_str:
                     subjects_dict['entities'].append(subject_info)
                 else:
                     subjects_dict['keywords'].append(subject_info)  # Default to keywords
             else:
                 subjects_dict['keywords'].append(subject_info)  # Default to keywords
         
-        # Add categories
+        # Add categories (simple format)
         for category in subject_result.categories:
             subjects_dict['categories'].append(str(category.name) if hasattr(category, 'name') else str(category))
         
