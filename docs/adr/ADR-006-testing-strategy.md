@@ -36,14 +36,48 @@ src/component/tests_unit/
 **Philosophy**: Real component interaction validation with actual dependencies
 
 **Organization:**
+## Directory Structure
+
+Tests are organized to mirror the source code structure for easy navigation:
+
 ```
-src/component/tests_integration/
-├── test_audio_pipeline.py              # Real Whisper + SpaCy processing
-├── test_podcast_analysis.py            # Real RSS + database operations  
-├── test_subject_pipeline.py            # Real NLP pipeline
-└── processors/
-    └── subject/
-        └── test_entity_processor_integration.py  # Real SpaCy models
+src/media_analyzer/
+├── processors/
+│   ├── audio/
+│   │   └── audio_processor.py
+│   ├── podcast/  
+│   │   ├── analyzer.py
+│   │   └── rss_connector.py
+│   ├── subject/
+│   │   ├── processors/
+│   │   │   ├── entity_processor.py
+│   │   │   ├── keyword_processor.py
+│   │   │   └── topic_processor.py
+│   │   └── subject_identifier.py
+│   └── text/
+│       └── text_processor.py
+├── tests_unit/                    # Fast, isolated unit tests
+│   └── processors/
+│       ├── audio/
+│       ├── podcast/
+│       ├── subject/
+│       │   ├── test_entity_processor.py         # Mocked SpaCy
+│       │   ├── test_keyword_processor.py
+│       │   ├── test_topic_processor.py
+│       │   └── test_subject_identification.py   # Mocked dependencies
+│       └── text/
+└── tests_integration/             # Real dependency integration tests
+    └── processors/
+        ├── audio/
+        │   └── test_audio_processor_integration.py      # Real Whisper
+        ├── podcast/
+        │   └── test_podcast_analyzer_integration.py     # Real RSS feeds
+        ├── subject/
+        │   ├── processors/
+        │   │   └── test_entity_processor_integration.py # Real SpaCy model
+        │   ├── test_subject_identifier_integration.py   # Real external deps
+        │   └── test_subject_pipeline_integration.py     # Full audio->subjects
+        └── text/
 ```
 
 **Real Component Strategy:**
@@ -56,18 +90,28 @@ src/component/tests_integration/
 
 **Unit Tests** - Development Workflow:
 ```bash
-# Fast feedback during development (runs in ~30 seconds)
-pytest src/component/tests_unit/ -v
-pytest src/media_analyzer/tests_unit/ -v       # Mocked SpaCy/Whisper
-pytest src/icon_extractor/tests_unit/ -v       # Mocked database
+# Fast feedback during development (runs in ~12 seconds)
+pytest src/media_analyzer/tests_unit/ -v              # All unit tests
+pytest src/media_analyzer/tests_unit/processors/subject/ -v  # Subject processing only
+pytest src/media_analyzer/tests_unit/processors/audio/ -v   # Audio processing only
 ```
 
 **Integration Tests** - Validation Workflow:
 ```bash
-# Real component validation (slower, more comprehensive)
-pytest src/component/tests_integration/ -v
-pytest src/media_analyzer/tests_integration/ -v    # Real SpaCy + Whisper
-pytest src/icon_extractor/tests_integration/ -v    # Real PostgreSQL
+# Real component validation (slower, more comprehensive ~63 seconds)
+pytest src/media_analyzer/tests_integration/ -v       # All integration tests
+pytest src/media_analyzer/tests_integration/processors/subject/ -v  # Subject integration
+pytest src/media_analyzer/tests_integration/processors/audio/ -v    # Audio integration
+```
+
+**Specific Test Categories**:
+```bash
+# Test specific processors with both unit and integration
+pytest src/media_analyzer/tests_unit/processors/subject/test_entity_processor.py -v
+pytest src/media_analyzer/tests_integration/processors/subject/processors/test_entity_processor_integration.py -v
+
+# Test complete pipelines (integration only)
+pytest src/media_analyzer/tests_integration/processors/subject/test_subject_pipeline_integration.py -v
 ```
 
 ### 4. Coverage Requirements

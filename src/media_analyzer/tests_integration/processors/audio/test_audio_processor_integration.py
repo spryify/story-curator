@@ -7,7 +7,7 @@ import pytest
 from media_analyzer.core.analyzer import Analyzer
 from media_analyzer.core.exceptions import ValidationError
 from media_analyzer.models.audio import TranscriptionResult
-from ..tests_unit.utils.audio import create_timed_speech_file, create_wav_file
+from media_analyzer.tests_unit.utils.audio import create_timed_speech_file, create_wav_file
 
 
 @pytest.fixture
