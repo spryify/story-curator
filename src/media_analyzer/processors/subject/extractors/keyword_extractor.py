@@ -7,7 +7,7 @@ import string
 from collections import Counter
 
 
-class KeywordProcessor:
+class KeywordExtractor:
     """Identifies subjects based on keyword matching."""
     
     def __init__(self):
@@ -81,7 +81,7 @@ class KeywordProcessor:
             "metadata": {
                 "total_words": total_words,
                 "unique_keywords": len(results),
-                "processor_type": "KeywordProcessor",
+                "processor_type": "KeywordExtractor",
                 "version": "1.0"
             }
         }

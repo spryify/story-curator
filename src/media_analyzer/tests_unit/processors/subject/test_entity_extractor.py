@@ -1,14 +1,14 @@
 """Unit tests for entity processor using mocked SpaCy models."""
 import pytest
 from unittest.mock import MagicMock
-from media_analyzer.processors.subject.processors.entity_processor import EntityProcessor
+from media_analyzer.processors.subject.extractors.entity_extractor import EntityExtractor
 
 
 @pytest.fixture
 def mock_entity_processor():
-    """Fixture that provides an EntityProcessor with a mocked SpaCy model."""
+    """Fixture that provides an EntityExtractor with a mocked SpaCy model."""
     # Create a fresh processor instance
-    processor = EntityProcessor()
+    processor = EntityExtractor()
     
     # Store the original nlp for cleanup
     original_nlp = processor.nlp
@@ -40,7 +40,7 @@ def mock_entity_processor():
     processor.nlp = original_nlp
 
 
-class TestEntityProcessorUnit:
+class TestEntityExtractorUnit:
     """Unit test class using a mocked SpaCy model for entity processing."""
 
     def test_basic_functionality_with_mock_model(self, mock_entity_processor):
@@ -52,7 +52,7 @@ class TestEntityProcessorUnit:
         assert "metadata" in result
         assert "results" in result
         assert isinstance(result["results"], dict)
-        assert result["metadata"]["processor_type"] == "EntityProcessor"
+        assert result["metadata"]["processor_type"] == "EntityExtractor"
         
         # Check that our mocked entities are returned
         results = result["results"]
@@ -87,7 +87,7 @@ class TestEntityProcessorUnit:
         result = mock_entity_processor.process(text)
         
         metadata = result["metadata"]
-        assert metadata["processor_type"] == "EntityProcessor"
+        assert metadata["processor_type"] == "EntityExtractor"
         assert "version" in metadata
 
     def test_empty_entities_handling(self, mock_entity_processor):

@@ -15,9 +15,9 @@ from media_analyzer.models.subject import (
     SubjectAnalysisResult,
     SubjectType
 )
-from media_analyzer.processors.subject.processors.keyword_processor import KeywordProcessor
-from media_analyzer.processors.subject.processors.topic_processor import TopicProcessor
-from media_analyzer.processors.subject.processors.entity_processor import EntityProcessor
+from media_analyzer.processors.subject.extractors.keyword_extractor import KeywordExtractor
+from media_analyzer.processors.subject.extractors.topic_extractor import TopicExtractor
+from media_analyzer.processors.subject.extractors.entity_extractor import EntityExtractor
 from media_analyzer.processors.subject.exceptions import (
     ProcessingError,
     SubjectProcessingError,
@@ -37,9 +37,9 @@ class SubjectIdentifier:
             max_workers: Maximum number of parallel processors
             timeout_ms: Overall timeout in milliseconds. Default 800ms per FR-002.
         """
-        self.keyword_processor = KeywordProcessor()
-        self.topic_processor = TopicProcessor()
-        self.entity_processor = EntityProcessor()
+        self.keyword_processor = KeywordExtractor()
+        self.topic_processor = TopicExtractor()
+        self.entity_processor = EntityExtractor()
         self.max_workers = max_workers
         self.timeout_ms = timeout_ms
         self._initialize_categories()

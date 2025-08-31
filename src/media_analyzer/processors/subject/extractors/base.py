@@ -1,10 +1,10 @@
-"""Base class for text processors."""
+"""Base class for text extractors."""
 from abc import ABC, abstractmethod
 from typing import Dict, Any
 
 
-class BaseProcessor(ABC):
-    """Abstract base class for all text processors."""
+class BaseExtractor(ABC):
+    """Abstract base class for all text extractors."""
     
     @abstractmethod
     def process(self, text: str) -> Dict[str, Any]:
@@ -38,7 +38,7 @@ class BaseProcessor(ABC):
             raise ValueError("Input must be a non-empty string")
             
     def _get_metadata(self) -> Dict[str, Any]:
-        """Get basic metadata about the processor."""
+        """Get basic metadata about the extractor."""
         return {
             "processor_type": self.__class__.__name__,
             "version": "1.0.0"

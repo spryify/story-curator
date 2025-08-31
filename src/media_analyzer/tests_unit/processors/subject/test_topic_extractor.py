@@ -2,15 +2,15 @@
 import pytest
 import time
 
-from media_analyzer.processors.subject.processors.topic_processor import TopicProcessor
+from media_analyzer.processors.subject.extractors.topic_extractor import TopicExtractor
 
 
-class TestTopicProcessor:
-    """Test suite for topic modeling processor."""
+class TestTopicExtractor:
+    """Test suite for topic modeling extractor."""
     
     def test_basic_processing(self):
         """Test basic topic extraction."""
-        processor = TopicProcessor()
+        processor = TopicExtractor()
         result = processor.process("This is a sample text about technology and science")
         
         assert isinstance(result, dict)
@@ -24,12 +24,12 @@ class TestTopicProcessor:
         assert all(0 <= v <= 1 for v in results.values())
         
         # Check metadata
-        assert result["metadata"]["processor_type"] == "TopicProcessor"
+        assert result["metadata"]["processor_type"] == "TopicExtractor"
         assert "version" in result["metadata"]
         
     def test_topic_coherence(self):
         """Test that extracted topics are coherent."""
-        processor = TopicProcessor()
+        processor = TopicExtractor()
         text = "Artificial intelligence and machine learning are transforming industries"
         result = processor.process(text)
         
@@ -42,7 +42,7 @@ class TestTopicProcessor:
         
     def test_performance(self):
         """Test processing time requirements."""
-        processor = TopicProcessor()
+        processor = TopicExtractor()
         text = "Sample text " * 1000  # Create longer text
         
         start_time = time.time()
@@ -53,7 +53,7 @@ class TestTopicProcessor:
         
     def test_input_validation(self):
         """Test handling of invalid inputs."""
-        processor = TopicProcessor()
+        processor = TopicExtractor()
         
         with pytest.raises(ValueError):
             processor.process("")  # Empty text
@@ -63,7 +63,7 @@ class TestTopicProcessor:
         
     def test_empty_text(self):
         """Test handling of empty text."""
-        processor = TopicProcessor()
+        processor = TopicExtractor()
         
         with pytest.raises(ValueError):
             processor.process("")

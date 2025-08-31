@@ -4,7 +4,7 @@ from pathlib import Path
 
 from media_analyzer.core.analyzer import AudioAnalyzer
 from media_analyzer.processors.audio.audio_processor import AudioProcessor
-from media_analyzer.processors.subject.subject_identifier import SubjectIdentifier
+from media_analyzer.processors.subject.identifier import SubjectIdentifier
 
 @pytest.fixture
 def audio_file_path(tmp_path) -> Path:

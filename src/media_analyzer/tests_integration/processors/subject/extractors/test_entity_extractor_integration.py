@@ -1,18 +1,18 @@
 """Integration tests for entity processor using real SpaCy models."""
 import pytest
-from media_analyzer.processors.subject.processors.entity_processor import EntityProcessor
+from media_analyzer.processors.subject.extractors.entity_extractor import EntityExtractor
 
 
 @pytest.fixture
 def entity_processor():
-    """Fixture that provides an EntityProcessor using the real SpaCy model."""
+    """Fixture that provides an EntityExtractor using the real SpaCy model."""
     try:
-        return EntityProcessor()
+        return EntityExtractor()
     except OSError:
         pytest.skip("SpaCy model 'en_core_web_sm' not available")
 
 
-class TestEntityProcessorIntegration:
+class TestEntityExtractorIntegration:
     """Integration test class using the real SpaCy model for entity processing."""
 
     def test_basic_functionality_with_real_model(self, entity_processor):
@@ -24,7 +24,7 @@ class TestEntityProcessorIntegration:
         assert "metadata" in result
         assert "results" in result
         assert isinstance(result["results"], dict)
-        assert result["metadata"]["processor_type"] == "EntityProcessor"
+        assert result["metadata"]["processor_type"] == "EntityExtractor"
 
     def test_input_validation_real(self, entity_processor):
         """Test input validation with real model."""

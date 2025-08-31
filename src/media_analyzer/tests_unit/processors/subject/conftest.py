@@ -1,7 +1,7 @@
 """Test fixtures for subject identification."""
 import pytest
 from typing import Dict, Any
-from media_analyzer.processors.subject.subject_identifier import SubjectIdentifier
+from media_analyzer.processors.subject.identifier import SubjectIdentifier
 from media_analyzer.models.subject.identification import Context
 
 

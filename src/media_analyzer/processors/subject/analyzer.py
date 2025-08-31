@@ -15,9 +15,9 @@ from media_analyzer.processors.subject.models import (
     SubjectAnalysisResult,
     SubjectType
 )
-from media_analyzer.processors.subject.processors.keyword_processor import KeywordProcessor
-from media_analyzer.processors.subject.processors.topic_processor import TopicProcessor
-from media_analyzer.processors.subject.processors.entity_processor import EntityProcessor
+from media_analyzer.processors.subject.extractors.keyword_extractor import KeywordExtractor
+from media_analyzer.processors.subject.extractors.topic_extractor import TopicExtractor
+from media_analyzer.processors.subject.extractors.entity_extractor import EntityExtractor
 from media_analyzer.processors.subject.exceptions import (
     ProcessingError,
     SubjectProcessingError,
@@ -32,9 +32,9 @@ class SubjectIdentifier:
 
     def __init__(self, max_workers: int = 3, timeout_ms: int = 500):
         """Initialize identifier with config."""
-        self.keyword_processor = KeywordProcessor()
-        self.topic_processor = TopicProcessor()
-        self.entity_processor = EntityProcessor()
+        self.keyword_processor = KeywordExtractor()
+        self.topic_processor = TopicExtractor()
+        self.entity_processor = EntityExtractor()
         self.max_workers = max_workers
         self.timeout_ms = timeout_ms
         self.individual_timeout = timeout_ms / 3  # Each processor gets 1/3rd of total time

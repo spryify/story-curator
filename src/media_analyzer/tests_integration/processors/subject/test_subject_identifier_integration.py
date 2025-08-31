@@ -2,7 +2,7 @@
 import pytest
 from pathlib import Path
 
-from media_analyzer.processors.subject.subject_identifier import SubjectIdentifier
+from media_analyzer.processors.subject.identifier import SubjectIdentifier
 from media_analyzer.models.subject import Context, SubjectType
 
 

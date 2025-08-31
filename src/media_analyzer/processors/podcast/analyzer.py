@@ -9,7 +9,7 @@ from media_analyzer.models.podcast import PodcastEpisode, StreamingAnalysisResul
 from media_analyzer.processors.podcast.platform_connector import PodcastPlatformConnector
 from media_analyzer.processors.podcast.rss_connector import RSSFeedConnector
 from media_analyzer.processors.podcast.transcription_service import WhisperStreamingService
-from media_analyzer.processors.subject.subject_identifier import SubjectIdentifier
+from media_analyzer.processors.subject.identifier import SubjectIdentifier
 from media_analyzer.core.exceptions import ValidationError, AudioProcessingError
 
 logger = logging.getLogger(__name__)

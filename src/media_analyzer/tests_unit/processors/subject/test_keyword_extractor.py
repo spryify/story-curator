@@ -2,15 +2,15 @@
 import pytest
 import time
 
-from media_analyzer.processors.subject.processors.keyword_processor import KeywordProcessor
+from media_analyzer.processors.subject.extractors.keyword_extractor import KeywordExtractor
 
 
-class TestKeywordProcessor:
+class TestKeywordExtractor:
     """Test suite for keyword extraction processor."""
     
     def test_basic_keyword_extraction(self):
         """Test basic keyword extraction."""
-        processor = KeywordProcessor()
+        processor = KeywordExtractor()
         result = processor.process(
             "Artificial intelligence and machine learning are key technologies"
         )
@@ -29,12 +29,12 @@ class TestKeywordProcessor:
                   for v in results.values())
         
         # Check metadata
-        assert result["metadata"]["processor_type"] == "KeywordProcessor"
+        assert result["metadata"]["processor_type"] == "KeywordExtractor"
         assert "version" in result["metadata"]
         
     def test_keyword_scoring(self):
         """Test keyword scoring mechanism."""
-        processor = KeywordProcessor()
+        processor = KeywordExtractor()
         result = processor.process(
             "The quick brown fox jumps over the lazy dog. "
             "The fox is quick and brown. The dog is lazy."
@@ -50,7 +50,7 @@ class TestKeywordProcessor:
         
     def test_stopword_handling(self):
         """Test proper handling of stopwords."""
-        processor = KeywordProcessor()
+        processor = KeywordExtractor()
         result = processor.process("The and or but however therefore consequently")
         
         # Should not extract stopwords as keywords
@@ -65,7 +65,7 @@ class TestKeywordProcessor:
                       
     def test_childrens_story_themes(self):
         """Test keyword extraction from children's story content."""
-        processor = KeywordProcessor()
+        processor = KeywordExtractor()
         story_text = """
         Once upon a time, there was a friendly little rabbit named Hoppy.
         Hoppy loved to hop and play in the garden. One day, Hoppy found a 
@@ -93,7 +93,7 @@ class TestKeywordProcessor:
         
     def test_educational_content(self):
         """Test keyword extraction from educational children's content."""
-        processor = KeywordProcessor()
+        processor = KeywordExtractor()
         educational_text = """
         Let's learn about colors! The sky is blue, just like blueberries.
         The grass is green, like fresh lettuce. The sun is bright yellow,
@@ -120,7 +120,7 @@ class TestKeywordProcessor:
         
     def test_repetitive_phrases(self):
         """Test handling of repetitive phrases common in children's content."""
-        processor = KeywordProcessor()
+        processor = KeywordExtractor()
         story_text = """
         The little train went up the hill.
         Choo choo! Up the hill.
@@ -146,7 +146,7 @@ class TestKeywordProcessor:
         
     def test_age_appropriate_content(self):
         """Test handling of age-appropriate vs complex content."""
-        processor = KeywordProcessor()
+        processor = KeywordExtractor()
         
         # Simple, age-appropriate content
         simple_text = "The happy puppy played with the red ball in the park."

@@ -2,16 +2,16 @@
 
 from typing import Dict, Any, Set, Tuple
 import spacy
-from spacy import Language
+from spacy.language import Language
 import logging
 
 logger = logging.getLogger(__name__)
 
 
-from .base import BaseProcessor
+from .base import BaseExtractor
 
-class EntityProcessor(BaseProcessor):
-    """Named entity recognition processor using spaCy."""
+class EntityExtractor(BaseExtractor):
+    """Named entity recognition extractor using spaCy."""
 
     def __init__(self):
         """Initialize the NER processor with spaCy model."""

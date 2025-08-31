@@ -16,7 +16,7 @@ from ..processors.result_ranker import ResultRanker
 
 # Import existing components
 from media_analyzer.processors.audio.audio_processor import AudioProcessor
-from media_analyzer.processors.subject.subject_identifier import SubjectIdentifier
+from media_analyzer.processors.subject.identifier import SubjectIdentifier
 from media_analyzer.models.subject.identification import SubjectAnalysisResult
 
 logger = logging.getLogger(__name__)

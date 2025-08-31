@@ -11,11 +11,11 @@ from typing import Dict, Any
 from media_analyzer.models.subject.identification import (
     Context, SubjectAnalysisResult
 )
-from media_analyzer.processors.subject.subject_identifier import SubjectIdentifier
+from media_analyzer.processors.subject.identifier import SubjectIdentifier
 from media_analyzer.processors.subject.exceptions import ProcessingError
-from media_analyzer.processors.subject.processors.topic_processor import TopicProcessor
-from media_analyzer.processors.subject.processors.entity_processor import EntityProcessor
-from media_analyzer.processors.subject.processors.keyword_processor import KeywordProcessor
+from media_analyzer.processors.subject.extractors.topic_extractor import TopicExtractor
+from media_analyzer.processors.subject.extractors.entity_extractor import EntityExtractor
+from media_analyzer.processors.subject.extractors.keyword_extractor import KeywordExtractor
 
 
 # subject_identifier fixture is now defined in conftest.py
@@ -36,9 +36,9 @@ class TestSubjectIdentification:
         """Test subject identification with technology-focused text."""
         # Use real processors with the subject identifier
         test_identifier = SubjectIdentifier(timeout_ms=5000)  # Increase timeout for more reliable testing
-        test_identifier.keyword_processor = KeywordProcessor()
-        test_identifier.entity_processor = EntityProcessor()
-        test_identifier.topic_processor = TopicProcessor()
+        test_identifier.keyword_processor = KeywordExtractor()
+        test_identifier.entity_processor = EntityExtractor()
+        test_identifier.topic_processor = TopicExtractor()
         
         result = test_identifier.identify_subjects(tech_discussion_text)
         
@@ -67,9 +67,9 @@ class TestSubjectIdentification:
         """Test handling of text with multiple disparate topics."""
         # Use real processors
         test_identifier = SubjectIdentifier(timeout_ms=2000)
-        test_identifier.keyword_processor = KeywordProcessor()
-        test_identifier.entity_processor = EntityProcessor()
-        test_identifier.topic_processor = TopicProcessor()
+        test_identifier.keyword_processor = KeywordExtractor()
+        test_identifier.entity_processor = EntityExtractor()
+        test_identifier.topic_processor = TopicExtractor()
         
         result = test_identifier.identify_subjects(mixed_topic_text)
         
@@ -94,9 +94,9 @@ class TestSubjectIdentification:
         """Test that subject identification meets performance requirements."""
         # Use real processors
         test_identifier = SubjectIdentifier(timeout_ms=5000)
-        test_identifier.keyword_processor = KeywordProcessor()
-        test_identifier.entity_processor = EntityProcessor()
-        test_identifier.topic_processor = TopicProcessor()
+        test_identifier.keyword_processor = KeywordExtractor()
+        test_identifier.entity_processor = EntityExtractor()
+        test_identifier.topic_processor = TopicExtractor()
         
         start_time = time.time()
         result = test_identifier.identify_subjects(tech_discussion_text)
@@ -139,15 +139,15 @@ class TestSubjectIdentification:
         
     def test_error_handling(self, subject_identifier, tech_discussion_text):
         """Test error handling and recovery."""
-        class FailingProcessor(TopicProcessor):
+        class FailingProcessor(TopicExtractor):
             def process(self, text: str) -> Dict[str, Any]:
                 self._validate_input(text)
                 raise Exception("Processing failed")
 
         # Use real processors but inject a failing one
         test_identifier = SubjectIdentifier(timeout_ms=2000)
-        test_identifier.keyword_processor = KeywordProcessor()
-        test_identifier.entity_processor = EntityProcessor()
+        test_identifier.keyword_processor = KeywordExtractor()
+        test_identifier.entity_processor = EntityExtractor()
         test_identifier.topic_processor = FailingProcessor()
         
         # Should still get results from other processors
@@ -173,9 +173,9 @@ class TestSubjectIdentification:
         """Test performance with long text (FR-002 requirement: <800ms for 10k words)."""
         # Use real processors
         test_identifier = SubjectIdentifier(timeout_ms=2000)
-        test_identifier.keyword_processor = KeywordProcessor()
-        test_identifier.entity_processor = EntityProcessor()
-        test_identifier.topic_processor = TopicProcessor()
+        test_identifier.keyword_processor = KeywordExtractor()
+        test_identifier.entity_processor = EntityExtractor()
+        test_identifier.topic_processor = TopicExtractor()
         
         start_time = time.time()
         result = test_identifier.identify_subjects(long_text)
@@ -201,9 +201,9 @@ class TestSubjectIdentification:
         
         # Use real processors
         test_identifier = SubjectIdentifier(timeout_ms=2000)
-        test_identifier.keyword_processor = KeywordProcessor()
-        test_identifier.entity_processor = EntityProcessor()
-        test_identifier.topic_processor = TopicProcessor()
+        test_identifier.keyword_processor = KeywordExtractor()
+        test_identifier.entity_processor = EntityExtractor()
+        test_identifier.topic_processor = TopicExtractor()
         
         # Run identification
         result = test_identifier.identify_subjects(tech_discussion_text)
@@ -221,9 +221,9 @@ class TestSubjectIdentification:
         """Test handling of multilingual content (FR-002 edge case)."""
         # Use real processors
         test_identifier = SubjectIdentifier(timeout_ms=2000)
-        test_identifier.keyword_processor = KeywordProcessor()
-        test_identifier.entity_processor = EntityProcessor()
-        test_identifier.topic_processor = TopicProcessor()
+        test_identifier.keyword_processor = KeywordExtractor()
+        test_identifier.entity_processor = EntityExtractor()
+        test_identifier.topic_processor = TopicExtractor()
         
         result = test_identifier.identify_subjects(multilingual_text)
         
@@ -248,9 +248,9 @@ class TestSubjectIdentification:
         
         # Use real processors with predefined keywords
         test_identifier = SubjectIdentifier(timeout_ms=2000)
-        test_identifier.keyword_processor = KeywordProcessor()
-        test_identifier.entity_processor = EntityProcessor()
-        test_identifier.topic_processor = TopicProcessor()
+        test_identifier.keyword_processor = KeywordExtractor()
+        test_identifier.entity_processor = EntityExtractor()
+        test_identifier.topic_processor = TopicExtractor()
         
         result = test_identifier.identify_subjects(specialized_domain_text, context)
         
