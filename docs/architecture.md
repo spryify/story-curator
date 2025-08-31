@@ -476,99 +476,39 @@ LIMIT %s;
 
 ### Testing Strategy Overview
 
-The Story Curator follows a comprehensive testing strategy with **no mocks in integration tests** to ensure real-world reliability.
+The Story Curator implements a **strict two-tier testing strategy** with complete separation between unit and integration tests to ensure both fast development feedback and real-world reliability.
 
-#### 1. Unit Tests
-**Focus**: Individual component isolation and behavior
-- **Component Isolation**: Each component tested independently
-- **Mock External Dependencies**: Database calls, file I/O, external APIs
-- **Coverage Requirements**: >90% code coverage for core components
-- **Fast Execution**: Complete unit test suite runs in <30 seconds
+**For complete testing strategy details, implementation examples, and guidelines, see [ADR-006: Testing Strategy](adr/ADR-006-testing-strategy.md).**
 
-**Examples:**
-- `AudioProcessor` validation logic
-- `SubjectIdentifier` algorithm correctness
-- `IconMatcher` scoring calculations
-- `ResultRanker` deduplication logic
+#### Quick Summary
 
-#### 2. Integration Tests ✨
-**Philosophy**: **NO MOCKS - Real Components Only**
-- **Real Audio Generation**: macOS `say` command generates children's stories
-- **Real Speech Recognition**: Actual Whisper processing
-- **Real Database Operations**: PostgreSQL queries and transactions
-- **Real Pipeline Execution**: End-to-end component interaction
+**Unit Tests (`tests_unit/`)**: Mock all dependencies for fast, isolated testing
+- **Coverage**: 95%+ required
+- **Execution**: <30 seconds for full suite
+- **Dependencies**: All external dependencies mocked (SpaCy, Whisper, PostgreSQL)
 
-**Test Categories:**
-```
-Audio Content Tests:
-├── Children's Stories (Magic Garden, Animal Friends, Weather, Ocean, Space)
-├── Educational Content (Counting, Colors, Science)
-└── Performance Scenarios (Large files, Concurrent processing)
+**Integration Tests (`tests_integration/`)**: Real components for end-to-end validation  
+- **Coverage**: 80%+ required
+- **Execution**: Slower with real model loading
+- **Dependencies**: Real SpaCy models, PostgreSQL database, Whisper processing
 
-Pipeline Integration Tests:
-├── End-to-End Processing (Real audio → Real transcription → Real icons)
-├── Error Handling (Invalid files, Processing failures)
-├── Configuration Testing (Different parameters, Output formats)
-└── Performance Testing (Processing time limits, Memory usage)
+#### Test Execution Commands
 
-Component Integration Tests:
-├── Audio-Subject Pipeline (AudioProcessor + SubjectIdentifier)
-├── Subject-Icon Pipeline (SubjectIdentifier + IconMatcher)
-└── Database Integration (IconExtractionService + PostgreSQL)
+```bash
+# Unit tests (fast development feedback)
+pytest src/media_analyzer/tests_unit/ -v
+
+# Integration tests (real component validation)
+pytest src/media_analyzer/tests_integration/ -v
+
+# Full test suite
+pytest src/*/tests_unit/ src/*/tests_integration/ -v
 ```
 
-**Sample Integration Test Flow:**
-```python
-@pytest.fixture
-def story_audio_files(tmp_path, children_story_texts):
-    """Generate real audio files using macOS 'say' command."""
-    for story_name, story_text in children_story_texts.items():
-        audio_path = tmp_path / f"{story_name}.wav"
-        create_story_audio_file(audio_path, story_text, voice="Samantha")
-        yield audio_path
-
-def test_children_story_scenarios(story_audio_files):
-    """Test pipeline with real children's stories."""
-    pipeline = AudioIconPipeline()
-    for story_name, audio_path in story_audio_files.items():
-        result = pipeline.process(str(audio_path))
-        assert result.success
-        assert len(result.transcription) > 0
-        # Verify story-specific themes were captured
-        assert expected_themes_found_in(result, story_name)
-```
-
-#### 3. Test Data Strategy
-**Real Audio Content:**
-- **Generated Stories**: macOS `say` command with children's content
-- **Multiple Voices**: Different speakers (Samantha, Victoria, Alex)
-- **Varied Content**: Educational, storytelling, descriptive scenarios
-- **Format Variety**: WAV, MP3, M4A across different durations
-
-**Database Content:**
-- **Production-Like Data**: 611+ real icons with metadata
-- **Migration Testing**: Schema changes and data integrity
-- **Search Testing**: Full-text search accuracy and performance
-
-#### 4. Performance Benchmarks
-**Integration Test Performance Targets:**
-- **Single Audio File**: <60 seconds end-to-end processing
-- **Concurrent Processing**: 3 files simultaneously without errors
-- **Memory Usage**: <500MB peak during processing
-- **Database Queries**: <100ms average search response time
-
-#### 5. Continuous Integration
-**Automated Test Execution:**
-- **Unit Tests**: Every commit (fast feedback)
-- **Integration Tests**: Pull requests and main branch
-- **Performance Tests**: Nightly runs with trend analysis
-- **Test Environment**: Real PostgreSQL database with test data
-
-**Quality Gates:**
-- All unit tests pass
-- Integration tests complete successfully (may skip if external services unavailable)
-- No performance regressions beyond 20% baseline
-- Code coverage maintained above thresholds
+#### Current Test Status
+- **Unit Tests**: ✅ 99 passed, 2 skipped
+- **Integration Tests**: ✅ 34 passed
+- **Entity Processor**: ✅ Unit (5/5) + Integration (6/6) passing
 
 ## Deployment Architecture
 

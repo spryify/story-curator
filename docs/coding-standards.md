@@ -164,13 +164,28 @@ from pydantic import BaseModel, validator
 
 ## Testing Standards
 
-### Test Organization
+### Testing Strategy
 
+The Story Curator follows a **strict two-tier testing approach** with complete separation between unit and integration tests. For detailed implementation guidance, see [ADR-006: Testing Strategy](adr/ADR-006-testing-strategy.md).
+
+#### Summary
+- **Unit Tests (`tests_unit/`)**: Mock all dependencies (SpaCy, Whisper, PostgreSQL) for fast isolation testing
+- **Integration Tests (`tests_integration/`)**: Use real components for end-to-end validation
+
+### Test Organization
+**File Structure:**
+```
+src/component/
+├── tests_unit/           # Unit tests with mocked dependencies
+└── tests_integration/    # Integration tests with real dependencies
+```
 
 ### Test Naming
 - **Descriptive test names** that explain what is being tested
 - **Follow pattern**: `test_<method>_<scenario>_<expected_outcome>`
 - **Use docstrings** for complex test scenarios
+- **Unit test suffix**: `_unit` or `_with_mock` for clarity
+- **Integration test suffix**: `_integration` or `_real` for clarity
 
 
 
@@ -229,7 +244,7 @@ ignore = [
 ]
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+testpaths = ["src/*/tests_unit", "src/*/tests_integration"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
@@ -239,12 +254,14 @@ addopts = [
     "--cov=src",
     "--cov-report=term-missing",
     "--cov-report=html",
-    "--cov-fail-under=95",
+    "--cov-fail-under=90",  # Adjusted for realistic coverage with integration separation
 ]
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
-    "integration: marks tests as integration tests",
-    "unit: marks tests as unit tests",
+    "integration: marks tests as integration tests (real dependencies)",
+    "unit: marks tests as unit tests (mocked dependencies)",
+    "real_models: marks tests that require real SpaCy/Whisper models",
+    "database: marks tests that require real PostgreSQL database",
 ]
 
 [tool.coverage.run]

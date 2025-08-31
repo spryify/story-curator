@@ -9,7 +9,7 @@ The Media Content Analyzer is an intelligent Python-based system designed to ana
 - Specialized handling for different content types (e.g., children's stories)
 - Command-line interface for processing audio files
 - Robust error handling and logging
-- Comprehensive test coverage with strict separation of unit tests (mocked dependencies) and integration tests (real components)
+- Comprehensive test coverage following [ADR-006 Testing Strategy](docs/adr/ADR-006-testing-strategy.md)
 - Clear documentation and API specifications
 
 ## Future Scope
@@ -35,8 +35,7 @@ The Media Content Analyzer is an intelligent Python-based system designed to ana
 
 ## Development Standards
 - All features must have complete documentation before implementation
-- **Test coverage requirement**: 90%+ unit tests (mocked), 80%+ integration tests (real components)
-- **Testing strategy**: Strict separation between unit tests (fast, mocked dependencies) and integration tests (real components)
+- **Testing**: Two-tier strategy with 95%+ unit test coverage and 80%+ integration test coverage (see [ADR-006](docs/adr/ADR-006-testing-strategy.md))
 - Code review required for all changes
 - Continuous Integration/Deployment pipelines
 - Regular security audits

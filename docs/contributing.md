@@ -110,14 +110,28 @@ test(core): add edge cases for multiplication
 
 ## Testing Guidelines
 
-### Test Structure
+### Testing Strategy
 
+The Story Curator follows a **strict two-tier testing approach**. For complete details, see [ADR-006: Testing Strategy](adr/ADR-006-testing-strategy.md).
+
+#### Quick Summary
+- **Unit Tests (`tests_unit/`)**: Mock all dependencies for fast, isolated testing
+- **Integration Tests (`tests_integration/`)**: Real components for end-to-end validation
+
+#### Test Commands
+```bash
+# Unit tests (fast development feedback)
+pytest src/component/tests_unit/ -v
+
+# Integration tests (real component validation) 
+pytest src/component/tests_integration/ -v
+```
 
 ### Test Categories
-- **Unit Tests**: Test individual classes/methods in isolation
-- **Integration Tests**: Test component interactions
-- **End-to-End Tests**: Test complete workflows
-- **Performance Tests**: Benchmark critical operations
+- **Unit Tests**: Test individual classes/methods in isolation with mocks
+- **Integration Tests**: Test component interactions with real dependencies
+- **End-to-End Tests**: Test complete workflows with real audio and database
+- **Performance Tests**: Benchmark critical operations with real components
 - **Security Tests**: Test input validation and error handling
 
 ## Code Review Guidelines
