@@ -4,10 +4,31 @@
 Accepted
 
 ## Context
-The Story Curator system needs to analyze podcast episodes containing children's stories to extract metadata, transcribe audio content, and identify subjects for icon matching. This requires handling RSS feed parsing, streaming audio transcription, and integration with the existing subject identification pipeline.
+
+The media analyzer system needs to support podcast episode analysis, including RSS feed processing, audio transcription, and content analysis. This capability extends the existing subject identification system to handle audio content from podcast feeds.
+
+**Current System Capabilities:**
+- Subject identification from text content
+- Database storage for analyzed content
+- CLI interface for content analysis
+- Modular processor architecture
+
+**New Requirements:**
+- RSS feed parsing and episode discovery
+- Audio transcription from streaming sources
+- Integration with existing subject identification
+- Scalable processing for large podcast archives
+
+**Technical Constraints:**
+- Memory efficient processing for large audio files
+- Network resilient for unreliable podcast feeds
+- Configurable transcription quality vs performance
+- Integration with existing CLI and processor patterns
 
 ## Decision
-We will implement a **modular podcast analysis pipeline** with clear separation of concerns across RSS processing, audio transcription, and subject identification.
+
+We will implement a comprehensive podcast analysis architecture with four core components: PodcastAnalyzer for orchestration, RSSFeedConnector for feed processing, WhisperStreamingService for transcription, and integration with the existing SubjectIdentifier for content analysis.
+
 
 ### 1. Component Architecture
 
@@ -103,6 +124,31 @@ config = {
         'timeout_ms': 800
     }
 }
+```
+
+**AnalysisOptions Defaults:**
+- **Language**: 'en' (audio language for transcription)
+- **Max Duration**: 180 minutes (episode length limit)
+- **Segment Length**: 300 seconds (audio processing chunk size)
+- **Confidence Threshold**: 0.5 (minimum confidence for subject extraction)
+- **Subject Extraction**: enabled (toggle topic analysis)
+
+### 7. CLI Integration
+
+**Command Structure** (see [ADR-004](ADR-004-cli-architecture.md) for full CLI architecture):
+```bash
+# Basic episode analysis
+python -m media_analyzer.cli podcast analyze "https://example.com/podcast.rss"
+
+# With configuration options
+python -m media_analyzer.cli podcast analyze "https://feeds.megaphone.fm/example" \
+    --language en \
+    --max-duration 120 \
+    --confidence-threshold 0.7 \
+    --output results.json
+
+# Metadata-only extraction
+python -m media_analyzer.cli podcast metadata "https://example.com/podcast.rss"
 ```
 
 ## Implementation Rationale

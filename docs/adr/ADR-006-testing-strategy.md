@@ -112,6 +112,10 @@ pytest src/media_analyzer/tests_integration/processors/subject/processors/test_e
 
 # Test complete pipelines (integration only)
 pytest src/media_analyzer/tests_integration/processors/subject/test_subject_pipeline_integration.py -v
+
+# Test podcast analysis components
+pytest src/media_analyzer/tests_unit/processors/podcast/ -v     # Unit tests with mocks
+pytest src/media_analyzer/tests_integration/processors/podcast/ -v  # Real RSS feeds
 ```
 
 ### 4. Coverage Requirements
