@@ -1,7 +1,8 @@
 """Unit tests for AudioIconPipeline processor."""
 
 import pytest
-from unittest.mock import Mock, patch, MagicMock
+import asyncio
+from unittest.mock import Mock, patch, MagicMock, AsyncMock
 from pathlib import Path
 import tempfile
 import os
@@ -18,6 +19,7 @@ from media_analyzer.models.audio.transcription import TranscriptionResult
 from media_analyzer.models.subject.identification import (
     SubjectAnalysisResult, Subject, Category, SubjectType
 )
+from media_analyzer.models.podcast import PodcastEpisode, StreamingAnalysisResult
 from icon_extractor.models.icon import IconData
 
 
@@ -459,6 +461,201 @@ class TestIconMatch:
         assert match.confidence == 0.8
         assert match.match_reason == "keyword match"
         assert match.subjects_matched == ["test", "example"]
+
+
+        assert match.subjects_matched == ["test", "example"]
+
+
+class TestPodcastIntegration:
+    """Test podcast functionality in AudioIconPipeline."""
+    
+    def test_is_url_detection(self):
+        """Test URL detection logic."""
+        pipeline = AudioIconPipeline()
+        
+        # Valid URLs
+        assert pipeline._is_url("https://example.com/feed.xml")
+        assert pipeline._is_url("http://example.com/podcast.rss")
+        
+        # Invalid URLs
+        assert not pipeline._is_url("/path/to/file.mp3")
+        assert not pipeline._is_url("file.wav")
+        assert not pipeline._is_url("")
+    
+    def test_validate_podcast_url(self):
+        """Test podcast URL validation."""
+        pipeline = AudioIconPipeline()
+        
+        with patch.object(pipeline.podcast_analyzer, '_get_connector_for_url') as mock_get_connector:
+            # Valid URL with connector
+            mock_get_connector.return_value = Mock()
+            assert pipeline.validate_podcast_url("https://example.com/feed.xml")
+            
+            # Invalid URL without connector
+            mock_get_connector.return_value = None
+            assert not pipeline.validate_podcast_url("https://invalid.com/notfeed")
+            
+            # Non-URL
+            assert not pipeline.validate_podcast_url("/path/to/file.mp3")
+    
+    @pytest.mark.asyncio
+    async def test_process_podcast_url_success(self):
+        """Test successful podcast URL processing."""
+        pipeline = AudioIconPipeline()
+        
+        # Mock podcast episode
+        mock_episode = PodcastEpisode(
+            platform="rss",
+            episode_id="test123",
+            url="https://example.com/feed.xml",
+            title="Test Episode",
+            description="Test Description",
+            duration_seconds=300,
+            publication_date=None,
+            show_name="Test Show"
+        )
+        
+        # Mock transcription result
+        mock_transcription = TranscriptionResult(
+            text="This is a test story about cats and dogs",
+            language="en",
+            segments=[],
+            confidence=0.9,
+            metadata={}
+        )
+        
+        # Mock subjects
+        mock_subjects = [
+            Subject(name="cat", confidence=0.8, subject_type=SubjectType.KEYWORD),
+            Subject(name="dog", confidence=0.7, subject_type=SubjectType.KEYWORD)
+        ]
+        
+        # Mock podcast analysis result
+        mock_podcast_result = StreamingAnalysisResult(
+            episode=mock_episode,
+            transcription=mock_transcription,
+            subjects=mock_subjects,
+            matched_icons=[],
+            processing_metadata={},
+            success=True
+        )
+        
+        # Mock icon matches
+        mock_icon = IconData(name="Cat", url="test.svg", tags=["animal"], category="Animals")
+        mock_icon_match = IconMatch(
+            icon=mock_icon,
+            confidence=0.8,
+            match_reason="keyword match",
+            subjects_matched=["cat"]
+        )
+        
+        with patch.object(pipeline.podcast_analyzer, 'analyze_episode', new_callable=AsyncMock) as mock_analyze:
+            with patch.object(pipeline.icon_matcher, 'find_matching_icons') as mock_find_icons:
+                with patch.object(pipeline.result_ranker, 'rank_results') as mock_rank:
+                    mock_analyze.return_value = mock_podcast_result
+                    mock_find_icons.return_value = [mock_icon_match]
+                    mock_rank.return_value = [mock_icon_match]
+                    
+                    result = await pipeline._process_podcast_url(
+                        "https://example.com/feed.xml", 
+                        max_icons=10, 
+                        confidence_threshold=0.3
+                    )
+                    
+                    assert result.success
+                    assert result.transcription == "This is a test story about cats and dogs"
+                    assert result.transcription_confidence == 0.9
+                    assert len(result.icon_matches) == 1
+                    assert result.metadata['source_type'] == 'podcast'
+                    assert result.metadata['episode_title'] == "Test Episode"
+                    assert result.metadata['show_name'] == "Test Show"
+    
+    @pytest.mark.asyncio
+    async def test_process_podcast_url_failure(self):
+        """Test podcast URL processing failure."""
+        pipeline = AudioIconPipeline()
+        
+        # Create mock episode for failed result
+        mock_episode = PodcastEpisode(
+            platform="rss",
+            episode_id="failed123",
+            url="https://invalid.com/feed.xml",
+            title="Failed Episode",
+            description="",
+            duration_seconds=0,
+            publication_date=None,
+            show_name="Failed Show"
+        )
+        
+        # Create empty transcription for failed result
+        mock_transcription = TranscriptionResult(
+            text="",
+            language="en",
+            segments=[],
+            confidence=0.0,
+            metadata={}
+        )
+        
+        # Mock failed podcast analysis
+        mock_podcast_result = StreamingAnalysisResult(
+            episode=mock_episode,
+            transcription=mock_transcription,
+            subjects=[],
+            matched_icons=[],
+            processing_metadata={},
+            success=False,
+            error_message="Failed to fetch RSS feed"
+        )
+        
+        with patch.object(pipeline.podcast_analyzer, 'analyze_episode', new_callable=AsyncMock) as mock_analyze:
+            mock_analyze.return_value = mock_podcast_result
+            
+            result = await pipeline._process_podcast_url(
+                "https://invalid.com/feed.xml",
+                max_icons=10,
+                confidence_threshold=0.3
+            )
+            
+            assert not result.success
+            assert result.error is not None
+            assert "Podcast analysis failed" in result.error
+            assert result.metadata['source_type'] == 'podcast'
+    
+    def test_convert_podcast_subjects_to_dict(self):
+        """Test conversion of podcast subjects to dict format."""
+        pipeline = AudioIconPipeline()
+        
+        subjects = [
+            Subject(name="cat", confidence=0.8, subject_type=SubjectType.KEYWORD),
+            Subject(name="animal behavior", confidence=0.7, subject_type=SubjectType.TOPIC),
+            Subject(name="Fluffy", confidence=0.6, subject_type=SubjectType.ENTITY)
+        ]
+        
+        result = pipeline._convert_podcast_subjects_to_dict(subjects)
+        
+        assert 'keywords' in result
+        assert 'topics' in result  
+        assert 'entities' in result
+        assert 'categories' in result
+        
+        assert len(result['keywords']) == 1
+        assert result['keywords'][0]['name'] == "cat"
+        assert result['keywords'][0]['confidence'] == 0.8
+        
+        assert len(result['topics']) == 1
+        assert result['topics'][0]['name'] == "animal behavior"
+        
+        assert len(result['entities']) == 1
+        assert result['entities'][0]['name'] == "Fluffy"
+    
+    @pytest.mark.asyncio
+    async def test_cleanup(self):
+        """Test pipeline cleanup."""
+        pipeline = AudioIconPipeline()
+        
+        with patch.object(pipeline.podcast_analyzer, 'cleanup', new_callable=AsyncMock) as mock_cleanup:
+            await pipeline.cleanup()
+            mock_cleanup.assert_called_once()
 
 
 # Integration tests that require the full pipeline

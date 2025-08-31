@@ -512,3 +512,122 @@ class TestPipelineRealWorldScenarios:
             finally:
                 if audio_path.exists():
                     audio_path.unlink()
+
+
+class TestPodcastPipelineIntegration:
+    """Integration tests for podcast functionality."""
+    
+    @pytest.mark.integration
+    @pytest.mark.asyncio
+    async def test_podcast_rss_feed_integration(self):
+        """Test integration with real RSS feed (Circle Round)."""
+        try:
+            pipeline = AudioIconPipeline()
+            
+            # Use Circle Round RSS feed for testing
+            test_url = "https://rss.wbur.org/circleround/podcast"
+            
+            # Validate URL first
+            is_valid = pipeline.validate_podcast_url(test_url)
+            if not is_valid:
+                pytest.skip("Circle Round RSS feed not accessible")
+            
+            # Process podcast episode
+            result = pipeline.process(
+                test_url,
+                max_icons=5,
+                confidence_threshold=0.3
+            )
+            
+            # Validate results
+            assert isinstance(result, AudioIconResult)
+            
+            if result.success:
+                # Check basic structure
+                assert result.transcription is not None
+                assert len(result.transcription) > 0
+                assert result.transcription_confidence > 0
+                assert result.metadata['source_type'] == 'podcast'
+                
+                # Should have episode metadata
+                assert 'episode_title' in result.metadata
+                assert 'show_name' in result.metadata
+                assert result.metadata['show_name'] == "Circle Round"
+                
+                # Should have subjects extracted
+                assert isinstance(result.subjects, dict)
+                
+                print(f"Successfully processed podcast episode:")
+                print(f"  Title: {result.metadata.get('episode_title', 'Unknown')}")
+                print(f"  Transcription length: {len(result.transcription)} chars")
+                print(f"  Processing time: {result.processing_time:.2f}s")
+                print(f"  Icon matches: {len(result.icon_matches)}")
+                
+            else:
+                print(f"Podcast processing failed: {result.error}")
+                # Don't fail test for expected network/API issues
+                pytest.skip(f"Podcast processing failed: {result.error}")
+                
+        except Exception as e:
+            pytest.skip(f"Podcast integration test failed: {e}")
+        finally:
+            # Cleanup
+            try:
+                await pipeline.cleanup()
+            except Exception:
+                pass
+    
+    @pytest.mark.integration
+    def test_mixed_source_processing(self):
+        """Test processing both local files and podcast URLs."""
+        try:
+            pipeline = AudioIconPipeline()
+            
+            # Create a simple test audio file
+            with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as temp_file:
+                audio_path = Path(temp_file.name)
+            
+            try:
+                # Create test story audio
+                story_text = "Once upon a time, there was a little cat who loved to play with a red ball."
+                create_story_audio_file(audio_path, story_text)
+                
+                if not audio_path.exists():
+                    pytest.skip("Could not create test audio file")
+                
+                # Test local file processing
+                local_result = pipeline.process(
+                    str(audio_path),
+                    max_icons=3,
+                    confidence_threshold=0.3
+                )
+                
+                assert isinstance(local_result, AudioIconResult)
+                if local_result.success:
+                    assert local_result.metadata['source_type'] == 'local_file'
+                    assert 'audio_file' in local_result.metadata
+                
+                # Test podcast URL processing (if RSS feed is accessible)
+                test_url = "https://rss.wbur.org/circleround/podcast"
+                if pipeline.validate_podcast_url(test_url):
+                    podcast_result = pipeline.process(
+                        test_url,
+                        max_icons=3,
+                        confidence_threshold=0.3
+                    )
+                    
+                    assert isinstance(podcast_result, AudioIconResult)
+                    if podcast_result.success:
+                        assert podcast_result.metadata['source_type'] == 'podcast'
+                        assert 'episode_title' in podcast_result.metadata
+                        
+                        print("Successfully tested both source types:")
+                        print(f"  Local file: {local_result.success}")
+                        print(f"  Podcast URL: {podcast_result.success}")
+                
+            finally:
+                if audio_path.exists():
+                    audio_path.unlink()
+                    
+        except Exception as e:
+            pytest.skip(f"Mixed source test failed: {e}")

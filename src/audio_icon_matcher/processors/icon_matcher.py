@@ -49,7 +49,7 @@ class IconMatcher:
             # Add keywords with high confidence (>0.7)
             for keyword in keywords:
                 if isinstance(keyword, dict) and keyword.get('confidence', 0) > 0.7:
-                    search_terms.append((keyword['word'], 'keyword', keyword['confidence']))
+                    search_terms.append((keyword['name'], 'keyword', keyword['confidence']))
                 elif isinstance(keyword, str):
                     search_terms.append((keyword, 'keyword', 0.8))
                     
@@ -63,7 +63,7 @@ class IconMatcher:
             # Add entities
             for entity in entities:
                 if isinstance(entity, dict):
-                    search_terms.append((entity.get('text', str(entity)), 'entity', entity.get('confidence', 0.6)))
+                    search_terms.append((entity.get('name', str(entity)), 'entity', entity.get('confidence', 0.6)))
                 elif isinstance(entity, str):
                     search_terms.append((entity, 'entity', 0.6))
             

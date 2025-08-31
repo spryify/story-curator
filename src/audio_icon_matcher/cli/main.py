@@ -17,19 +17,32 @@ def audio_icon_matcher_commands():
 
 
 @audio_icon_matcher_commands.command("process")
-@click.argument("audio_file", type=click.Path(exists=True, path_type=Path))
+@click.argument("audio_source", type=str)
 @click.option("--max-icons", type=int, default=10, help="Maximum number of icons to return")
 @click.option("--confidence-threshold", type=float, default=0.3, help="Minimum confidence threshold")
 @click.option("--output-format", type=click.Choice(["json", "table", "summary"]), default="table", help="Output format")
 @click.option("--output-file", type=click.Path(path_type=Path), help="Output file (if not specified, prints to stdout)")
-def process_audio(audio_file, max_icons, confidence_threshold, output_format, output_file):
-    """Process audio file to find matching icons."""
+def process_audio(audio_source, max_icons, confidence_threshold, output_format, output_file):
+    """Process audio source (local file or podcast URL) to find matching icons."""
     try:
         pipeline = AudioIconPipeline()
         
-        # Process the audio file
+        # Validate audio source
+        if audio_source.startswith(('http://', 'https://')):
+            # Podcast URL validation
+            if not pipeline.validate_podcast_url(audio_source):
+                raise AudioIconValidationError(f"Invalid or unsupported podcast URL: {audio_source}")
+            click.echo(f"Processing podcast episode: {audio_source}")
+        else:
+            # Local file validation
+            audio_path = Path(audio_source)
+            if not audio_path.exists():
+                raise AudioIconValidationError(f"Audio file not found: {audio_source}")
+            click.echo(f"Processing audio file: {audio_source}")
+        
+        # Process the audio source
         result = pipeline.process(
-            str(audio_file),
+            audio_source,
             max_icons=max_icons,
             confidence_threshold=confidence_threshold
         )
@@ -60,6 +73,86 @@ def process_audio(audio_file, max_icons, confidence_threshold, output_format, ou
         sys.exit(1)
     except Exception as e:
         click.echo(f"Unexpected error: {e}", err=True)
+        sys.exit(1)
+
+
+@audio_icon_matcher_commands.command("process-podcast")
+@click.argument("podcast_url", type=str)
+@click.option("--max-icons", type=int, default=10, help="Maximum number of icons to return")
+@click.option("--confidence-threshold", type=float, default=0.3, help="Minimum confidence threshold")
+@click.option("--output-format", type=click.Choice(["json", "table", "summary"]), default="table", help="Output format")
+@click.option("--output-file", type=click.Path(path_type=Path), help="Output file (if not specified, prints to stdout)")
+def process_podcast(podcast_url, max_icons, confidence_threshold, output_format, output_file):
+    """Process podcast episode URL to find matching icons."""
+    try:
+        pipeline = AudioIconPipeline()
+        
+        # Validate podcast URL
+        if not pipeline.validate_podcast_url(podcast_url):
+            raise AudioIconValidationError(f"Invalid or unsupported podcast URL: {podcast_url}")
+        
+        click.echo(f"Processing podcast episode: {podcast_url}")
+        
+        # Process the podcast URL
+        result = pipeline.process(
+            podcast_url,
+            max_icons=max_icons,
+            confidence_threshold=confidence_threshold
+        )
+        
+        # Format output
+        if output_format == "json":
+            output_data = _format_json_output(result)
+        elif output_format == "table":
+            output_data = _format_table_output(result)
+        elif output_format == "summary":
+            output_data = _format_summary_output(result)
+        else:
+            output_data = _format_table_output(result)  # Default fallback
+        
+        # Output results
+        if output_file:
+            with open(output_file, 'w', encoding='utf-8') as f:
+                f.write(output_data)
+            click.echo(f"Results written to {output_file}")
+        else:
+            click.echo(output_data)
+            
+    except AudioIconValidationError as e:
+        click.echo(f"Validation Error: {e}", err=True)
+        sys.exit(1)
+    except AudioIconProcessingError as e:
+        click.echo(f"Processing Error: {e}", err=True)
+        sys.exit(1)
+    except Exception as e:
+        click.echo(f"Unexpected error: {e}", err=True)
+        sys.exit(1)
+
+
+@audio_icon_matcher_commands.command("validate")
+@click.argument("audio_source", type=str)
+def validate_audio_source(audio_source):
+    """Validate audio source (local file or podcast URL)."""
+    try:
+        pipeline = AudioIconPipeline()
+        
+        if audio_source.startswith(('http://', 'https://')):
+            # Validate podcast URL
+            is_valid = pipeline.validate_podcast_url(audio_source)
+            source_type = "podcast URL"
+        else:
+            # Validate local file
+            is_valid = pipeline.validate_audio_file(audio_source)
+            source_type = "audio file"
+        
+        if is_valid:
+            click.echo(f"✓ Valid {source_type}: {audio_source}")
+        else:
+            click.echo(f"✗ Invalid {source_type}: {audio_source}")
+            sys.exit(1)
+            
+    except Exception as e:
+        click.echo(f"Validation error: {e}", err=True)
         sys.exit(1)
 
 
@@ -102,6 +195,20 @@ def _format_table_output(result) -> str:
     
     # Basic information
     output_lines.append(f"Success: {'✓' if result.success else '✗'}")
+    
+    # Source information
+    source_type = result.metadata.get('source_type', 'local_file')
+    if source_type == 'podcast':
+        output_lines.append(f"Source: Podcast URL")
+        if 'episode_title' in result.metadata and result.metadata['episode_title']:
+            output_lines.append(f"Episode: {result.metadata['episode_title']}")
+        if 'show_name' in result.metadata and result.metadata['show_name']:
+            output_lines.append(f"Show: {result.metadata['show_name']}")
+    else:
+        output_lines.append(f"Source: Local Audio File")
+        if 'audio_file' in result.metadata:
+            output_lines.append(f"File: {result.metadata['audio_file']}")
+    
     if result.transcription:
         output_lines.append(f"Transcription: {result.transcription[:100]}{'...' if len(result.transcription) > 100 else ''}")
         output_lines.append(f"Transcription Confidence: {result.transcription_confidence:.2f}")
@@ -163,12 +270,21 @@ def _format_summary_output(result) -> str:
     
     # Summary header
     status = "SUCCESS" if result.success else "FAILED"
-    output_lines.append(f"AUDIO-TO-ICON PROCESSING {status}")
+    source_type = result.metadata.get('source_type', 'local_file')
+    source_desc = "PODCAST" if source_type == 'podcast' else "LOCAL FILE"
+    output_lines.append(f"AUDIO-TO-ICON PROCESSING {status} ({source_desc})")
     output_lines.append("=" * 50)
     
     if not result.success:
         output_lines.append(f"Error: {result.error}")
         return "\n".join(output_lines)
+    
+    # Source information
+    if source_type == 'podcast':
+        if 'episode_title' in result.metadata and result.metadata['episode_title']:
+            output_lines.append(f"Episode: {result.metadata['episode_title']}")
+        if 'show_name' in result.metadata and result.metadata['show_name']:
+            output_lines.append(f"Show: {result.metadata['show_name']}")
     
     # Key metrics
     output_lines.append(f"Processing time: {result.processing_time:.2f}s")
@@ -188,26 +304,6 @@ def _format_summary_output(result) -> str:
             output_lines.append(f"  {i}. {match.icon.name} (confidence: {match.confidence:.2f})")
     
     return "\n".join(output_lines)
-
-
-@audio_icon_matcher_commands.command("validate")
-@click.argument("audio_file", type=click.Path(exists=True, path_type=Path))
-def validate_audio(audio_file):
-    """Validate an audio file for processing."""
-    try:
-        pipeline = AudioIconPipeline()
-        
-        is_valid = pipeline.validate_audio_file(str(audio_file))
-        
-        if is_valid:
-            click.echo(f"✓ {audio_file} is a valid audio file")
-        else:
-            click.echo(f"✗ {audio_file} is not a valid audio file")
-            sys.exit(1)
-            
-    except Exception as e:
-        click.echo(f"Error validating file: {e}", err=True)
-        sys.exit(1)
 
 
 @audio_icon_matcher_commands.command("formats")
@@ -231,15 +327,22 @@ def show_info():
     """Show information about the audio-icon matcher."""
     click.echo("AUDIO-ICON MATCHER")
     click.echo("=" * 50)
-    click.echo("A tool for processing audio files and finding matching icons")
+    click.echo("A tool for processing audio files and podcast episodes to find matching icons")
     click.echo("based on the audio content and identified subjects.")
     click.echo("")
     click.echo("Features:")
+    click.echo("  • Local audio file processing (WAV, MP3, M4A)")
+    click.echo("  • Podcast episode analysis from RSS feeds")
     click.echo("  • Audio transcription using Whisper")
     click.echo("  • Subject identification (keywords, topics, entities)")
     click.echo("  • Icon matching with confidence scoring")
     click.echo("  • Multiple output formats (JSON, table, summary)")
     click.echo("  • Configurable confidence thresholds")
+    click.echo("")
+    click.echo("Supported Sources:")
+    click.echo("  • Local audio files: WAV, MP3, M4A formats")
+    click.echo("  • Podcast RSS feeds: Standard podcast RSS/XML feeds")
+    click.echo("  • Direct episode URLs: Direct links to audio files")
     click.echo("")
     click.echo("For help with specific commands, use:")
     click.echo("  audio-icon-matcher COMMAND --help")
