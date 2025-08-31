@@ -167,38 +167,41 @@ class IconMatcher:
     ) -> float:
         """Enhanced confidence calculation with subject metadata.
         
+        This method builds on the base confidence calculation and adds
+        metadata-aware enhancements for richer subject analysis.
+        
         Args:
             term: Search term used
             icon: Matched icon
             term_type: Type of term (keyword, topic, entity)
             base_confidence: Base confidence from subject identification
-            subject_type: Enhanced subject type (KEYWORD, NER, etc.)
-            context: Additional context information
+            subject_type: Enhanced subject type (KEYWORD, ENTITY, TOPIC, etc.)
+            context: Additional context information (domain, language, etc.)
             
         Returns:
             Calculated confidence score (0.0-1.0)
         """
-        # Start with the base calculation
+        # Start with the base calculation (handles core matching logic)
         confidence = self._calculate_confidence(term, icon, term_type, base_confidence)
         
-        # Enhanced scoring based on subject type
+        # Enhanced scoring based on rich subject type metadata
         if subject_type:
             subject_type_lower = subject_type.lower()
             
-            # Boost for high-quality subject types
+            # Boost for high-quality subject types (beyond base term_type handling)
             if subject_type_lower in ['ner', 'entity']:
                 confidence += 0.08  # Named entities are very reliable
             elif subject_type_lower in ['keyword', 'keywords']:
-                confidence += 0.05  # Keywords are reliable
+                confidence += 0.03  # Additional boost for verified keywords (base method already adds 0.05)
             elif subject_type_lower in ['topic', 'topics']:
-                confidence += 0.03  # Topics are moderately reliable
+                confidence += 0.02  # Additional boost for verified topics (base method already adds 0.03)
         
-        # Context-based enhancements
+        # Context-based enhancements (new functionality not in base method)
         if context:
             domain = context.get('domain')
             language = context.get('language', 'en')
             
-            # Boost for relevant domains
+            # Boost for relevant domain matching
             if domain and any(domain_word in icon.name.lower() or 
                             (icon.tags and any(domain_word in tag.lower() for tag in icon.tags))
                             for domain_word in domain.lower().split()):
@@ -208,23 +211,14 @@ class IconMatcher:
             if language == 'en':  # English content typically has better icon coverage
                 confidence += 0.02
         
-        # Boost for exact or near-exact matches
+        # Additional exact matching enhancements (builds on base method's name matching)
         term_lower = term.lower()
-        if icon.name.lower() == term_lower:
-            confidence += 0.15  # Exact name match is very strong
-        elif term_lower in icon.name.lower().split():
-            confidence += 0.12  # Word match in name
         
-        # Boost for strong tag matches
+        # Enhanced tag matching (more granular than base method)
         if icon.tags:
             exact_tag_matches = sum(1 for tag in icon.tags if tag.lower() == term_lower)
-            if exact_tag_matches > 0:
-                confidence += 0.10 * min(exact_tag_matches, 3)  # Cap at 3 tag matches
-            else:
-                # Partial tag matches
-                partial_matches = sum(1 for tag in icon.tags if term_lower in tag.lower())
-                if partial_matches > 0:
-                    confidence += 0.05 * min(partial_matches, 2)  # Cap at 2 partial matches
+            if exact_tag_matches > 1:  # Only boost if more than 1 exact match (base method covers 1 match)
+                confidence += 0.05 * min(exact_tag_matches - 1, 2)  # Additional boost for multiple exact matches
         
         # Cap at 1.0
         return min(confidence, 1.0)
