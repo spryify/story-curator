@@ -376,7 +376,7 @@ class TestAudioIconPipeline:
         assert "wav" in formats or "mp3" in formats
     
     def test_convert_subject_result_to_rich_dict(self, pipeline, mock_subject_identifier):
-        """Test conversion of SubjectAnalysisResult to rich dict format."""
+        """Test conversion of SubjectAnalysisResult to rich dict format using unified method."""
         # Create a more realistic mock with both keywords and topics
         from media_analyzer.models.subject.identification import Subject, SubjectType
         
@@ -390,8 +390,8 @@ class TestAudioIconPipeline:
         subject_result.categories = set()
         subject_result.metadata = {}
         
-        # Convert to rich dict format
-        subjects_dict = pipeline._convert_subject_result_to_rich_dict(subject_result)
+        # Convert to rich dict format using unified method
+        subjects_dict = pipeline._convert_subjects_to_rich_dict(subject_result)
         
         assert isinstance(subjects_dict, dict)
         assert 'keywords' in subjects_dict
@@ -644,8 +644,8 @@ class TestPodcastIntegration:
             assert "Podcast analysis failed" in result.error
             assert result.metadata['source_type'] == 'podcast'
     
-    def test_convert_podcast_subjects_to_dict(self):
-        """Test conversion of podcast subjects to dict format."""
+    def test_convert_subjects_to_rich_dict(self):
+        """Test the unified subjects conversion method."""
         pipeline = AudioIconPipeline()
         
         subjects = [
@@ -654,7 +654,7 @@ class TestPodcastIntegration:
             Subject(name="Fluffy", confidence=0.6, subject_type=SubjectType.ENTITY)
         ]
         
-        result = pipeline._convert_podcast_subjects_to_dict(subjects)
+        result = pipeline._convert_subjects_to_rich_dict(subjects)
         
         assert 'keywords' in result
         assert 'topics' in result  

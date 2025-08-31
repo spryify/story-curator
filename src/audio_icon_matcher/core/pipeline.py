@@ -40,6 +40,117 @@ class AudioIconPipeline:
         # Initialize podcast analyzer for streaming content
         self.podcast_analyzer = PodcastAnalyzer()
     
+    def _match_subjects_to_icons(
+        self, 
+        subjects: Dict[str, Any], 
+        max_icons: int
+    ) -> List[IconMatch]:
+        """Match subjects to icons and rank results.
+        
+        Args:
+            subjects: Subject identification results
+            max_icons: Maximum number of icons to return
+            
+        Returns:
+            Ranked list of icon matches
+        """
+        # Step 3: Match subjects to icons
+        logger.info("Step 3: Matching subjects to icons...")
+        icon_matches = self.icon_matcher.find_matching_icons(
+            subjects, 
+            limit=max_icons * 2  # Get more matches for better ranking
+        )
+        
+        logger.info(f"Found {len(icon_matches)} potential icon matches")
+        
+        # Step 4: Rank and filter results
+        logger.info("Step 4: Ranking and filtering results...")
+        ranked_matches = self.result_ranker.rank_results(
+            icon_matches, 
+            subjects, 
+            limit=max_icons
+        )
+        
+        return ranked_matches
+    
+    def _filter_by_confidence(
+        self, 
+        matches: List[IconMatch], 
+        confidence_threshold: float
+    ) -> List[IconMatch]:
+        """Filter matches by confidence threshold.
+        
+        Args:
+            matches: List of icon matches to filter
+            confidence_threshold: Minimum confidence required
+            
+        Returns:
+            Filtered list of matches
+        """
+        return [
+            match for match in matches 
+            if match.confidence >= confidence_threshold
+        ]
+    
+    def _create_success_result(
+        self,
+        transcription: str,
+        transcription_confidence: float,
+        subjects: Dict[str, Any],
+        filtered_matches: List[IconMatch],
+        processing_time: float,
+        metadata: Dict[str, Any]
+    ) -> AudioIconResult:
+        """Create a successful AudioIconResult.
+        
+        Args:
+            transcription: Transcribed text
+            transcription_confidence: Confidence of transcription
+            subjects: Identified subjects
+            filtered_matches: Final filtered icon matches
+            processing_time: Total processing time
+            metadata: Additional metadata
+            
+        Returns:
+            AudioIconResult for success case
+        """
+        return AudioIconResult(
+            success=True,
+            transcription=transcription,
+            transcription_confidence=transcription_confidence,
+            subjects=subjects,
+            icon_matches=filtered_matches,
+            processing_time=processing_time,
+            metadata=metadata
+        )
+    
+    def _create_error_result(
+        self,
+        error_message: str,
+        processing_time: float,
+        metadata: Dict[str, Any]
+    ) -> AudioIconResult:
+        """Create an error AudioIconResult.
+        
+        Args:
+            error_message: Error description
+            processing_time: Time taken before error
+            metadata: Additional metadata
+            
+        Returns:
+            AudioIconResult for error case
+        """
+        return AudioIconResult(
+            success=False,
+            error=error_message,
+            transcription="",
+            transcription_confidence=0.0,
+            subjects={},
+            icon_matches=[],
+            processing_time=processing_time,
+            metadata=metadata
+        )
+
     def process(
         self, 
         audio_source: str, 
@@ -112,34 +223,15 @@ class AudioIconPipeline:
             transcription = podcast_result.transcription.text if podcast_result.transcription else ""
             transcription_confidence = podcast_result.transcription.confidence if podcast_result.transcription else 0.0
             
-            # Convert subjects to dict format for icon matching
-            subjects = self._convert_podcast_subjects_to_dict(podcast_result.subjects)
+            # Convert subjects to dict format for icon matching (unified method)
+            subjects = self._convert_subjects_to_rich_dict(podcast_result.subjects)
             
             logger.info(f"Podcast analysis complete. Transcription length: {len(transcription)}")
             logger.info(f"Found {len(subjects)} subject types from podcast")
             
-            # Step 3: Match subjects to icons
-            logger.info("Step 3: Matching subjects to icons...")
-            icon_matches = self.icon_matcher.find_matching_icons(
-                subjects, 
-                limit=max_icons * 2  # Get more matches for better ranking
-            )
-            
-            logger.info(f"Found {len(icon_matches)} potential icon matches")
-            
-            # Step 4: Rank and filter results
-            logger.info("Step 4: Ranking and filtering results...")
-            ranked_matches = self.result_ranker.rank_results(
-                icon_matches, 
-                subjects, 
-                limit=max_icons
-            )
-            
-            # Apply confidence threshold
-            filtered_matches = [
-                match for match in ranked_matches 
-                if match.confidence >= confidence_threshold
-            ]
+            # Use common icon matching and ranking logic
+            ranked_matches = self._match_subjects_to_icons(subjects, max_icons)
+            filtered_matches = self._filter_by_confidence(ranked_matches, confidence_threshold)
             
             processing_time = time.time() - start_time
             
@@ -149,48 +241,39 @@ class AudioIconPipeline:
             )
             
             # Create result with podcast metadata
-            result = AudioIconResult(
-                success=True,
-                transcription=transcription,
-                transcription_confidence=transcription_confidence,
-                subjects=subjects,
-                icon_matches=filtered_matches,
-                processing_time=processing_time,
-                metadata={
-                    'source_type': 'podcast',
-                    'source_url': url,
-                    'episode_title': podcast_result.episode.title if podcast_result.episode else None,
-                    'show_name': podcast_result.episode.show_name if podcast_result.episode else None,
-                    'max_icons_requested': max_icons,
-                    'confidence_threshold': confidence_threshold,
-                    'total_matches_found': len(icon_matches),
-                    'matches_after_ranking': len(ranked_matches),
-                    'matches_after_filtering': len(filtered_matches),
-                    'pipeline_version': '1.1'
-                }
-            )
+            metadata = {
+                'source_type': 'podcast',
+                'source_url': url,
+                'episode_title': podcast_result.episode.title if podcast_result.episode else None,
+                'show_name': podcast_result.episode.show_name if podcast_result.episode else None,
+                'max_icons_requested': max_icons,
+                'confidence_threshold': confidence_threshold,
+                'total_matches_found': len(ranked_matches),
+                'matches_after_filtering': len(filtered_matches),
+                'pipeline_version': '1.1'
+            }
             
-            return result
+            return self._create_success_result(
+                transcription, transcription_confidence, subjects,
+                filtered_matches, processing_time, metadata
+            )
             
         except Exception as e:
             logger.error(f"Unexpected error in podcast pipeline: {e}")
             processing_time = time.time() - start_time
             
             # Return error result
-            return AudioIconResult(
-                success=False,
-                error=f"Podcast pipeline failed: {e}",
-                transcription="",
-                transcription_confidence=0.0,
-                subjects={},
-                icon_matches=[],
-                processing_time=processing_time,
-                metadata={
-                    'source_type': 'podcast',
-                    'source_url': url,
-                    'error_type': type(e).__name__,
-                    'pipeline_version': '1.1'
-                }
+            error_metadata = {
+                'source_type': 'podcast',
+                'source_url': url,
+                'error_type': type(e).__name__,
+                'pipeline_version': '1.1'
+            }
+            
+            return self._create_error_result(
+                f"Podcast pipeline failed: {e}",
+                processing_time,
+                error_metadata
             )
     
     def _process_local_file(
@@ -245,8 +328,8 @@ class AudioIconPipeline:
                     logger.warning("Subject identification produced no results")
                     subjects = {}
                 else:
-                    # Convert SubjectAnalysisResult to rich dict format (same as podcast processing)
-                    subjects = self._convert_subject_result_to_rich_dict(subject_result)
+                    # Convert SubjectAnalysisResult to rich dict format (unified method)
+                    subjects = self._convert_subjects_to_rich_dict(subject_result)
                 
                 logger.info(f"Subject identification complete. Found {len(subjects)} subject types")
                 logger.debug(f"Subjects: {subjects}")
@@ -256,28 +339,9 @@ class AudioIconPipeline:
                 # Continue with empty subjects rather than failing completely
                 subjects = {}
             
-            # Step 3: Match subjects to icons
-            logger.info("Step 3: Matching subjects to icons...")
-            icon_matches = self.icon_matcher.find_matching_icons(
-                subjects, 
-                limit=max_icons * 2  # Get more matches for better ranking
-            )
-            
-            logger.info(f"Found {len(icon_matches)} potential icon matches")
-            
-            # Step 4: Rank and filter results
-            logger.info("Step 4: Ranking and filtering results...")
-            ranked_matches = self.result_ranker.rank_results(
-                icon_matches, 
-                subjects, 
-                limit=max_icons
-            )
-            
-            # Apply confidence threshold
-            filtered_matches = [
-                match for match in ranked_matches 
-                if match.confidence >= confidence_threshold
-            ]
+            # Use common icon matching and ranking logic
+            ranked_matches = self._match_subjects_to_icons(subjects, max_icons)
+            filtered_matches = self._filter_by_confidence(ranked_matches, confidence_threshold)
             
             processing_time = time.time() - start_time
             
@@ -286,27 +350,21 @@ class AudioIconPipeline:
                 f"Returning {len(filtered_matches)} icon matches"
             )
             
-            # Create result
-            result = AudioIconResult(
-                success=True,
-                transcription=transcription,
-                transcription_confidence=transcription_confidence,
-                subjects=subjects,
-                icon_matches=filtered_matches,
-                processing_time=processing_time,
-                metadata={
-                    'source_type': 'local_file',
-                    'audio_file': str(audio_path),
-                    'max_icons_requested': max_icons,
-                    'confidence_threshold': confidence_threshold,
-                    'total_matches_found': len(icon_matches),
-                    'matches_after_ranking': len(ranked_matches),
-                    'matches_after_filtering': len(filtered_matches),
-                    'pipeline_version': '1.1'
-                }
-            )
+            # Create result metadata
+            metadata = {
+                'source_type': 'local_file',
+                'audio_file': str(audio_path),
+                'max_icons_requested': max_icons,
+                'confidence_threshold': confidence_threshold,
+                'total_matches_found': len(ranked_matches),
+                'matches_after_filtering': len(filtered_matches),
+                'pipeline_version': '1.1'
+            }
             
-            return result
+            return self._create_success_result(
+                transcription, transcription_confidence, subjects,
+                filtered_matches, processing_time, metadata
+            )
             
         except (AudioIconValidationError, AudioIconProcessingError):
             # Re-raise validation and audio processing errors
@@ -316,20 +374,17 @@ class AudioIconPipeline:
             processing_time = time.time() - start_time
             
             # Return error result
-            return AudioIconResult(
-                success=False,
-                error=f"Local file pipeline failed: {e}",
-                transcription="",
-                transcription_confidence=0.0,
-                subjects={},
-                icon_matches=[],
-                processing_time=processing_time,
-                metadata={
-                    'source_type': 'local_file',
-                    'audio_file': audio_file,
-                    'error_type': type(e).__name__,
-                    'pipeline_version': '1.1'
-                }
+            error_metadata = {
+                'source_type': 'local_file',
+                'audio_file': audio_file,
+                'error_type': type(e).__name__,
+                'pipeline_version': '1.1'
+            }
+            
+            return self._create_error_result(
+                f"Local file pipeline failed: {e}",
+                processing_time,
+                error_metadata
             )
     
     def validate_audio_file(self, audio_file: str) -> bool:
@@ -356,14 +411,14 @@ class AudioIconPipeline:
         """
         return list(self.audio_processor.SUPPORTED_FORMATS)
     
-    def _convert_subject_result_to_rich_dict(self, subject_result: SubjectAnalysisResult) -> Dict[str, Any]:
-        """Convert SubjectAnalysisResult to rich dict format with confidence and metadata.
+    def _convert_subjects_to_rich_dict(self, subjects_source: Union[SubjectAnalysisResult, List]) -> Dict[str, Any]:
+        """Convert subjects to rich dict format with confidence and metadata.
         
-        This provides the same rich format as podcast processing, with confidence scores
-        and type information for better icon matching.
+        This unified method handles both SubjectAnalysisResult (from local files) 
+        and List[Subject] (from podcast analysis) to produce consistent rich metadata.
         
         Args:
-            subject_result: SubjectAnalysisResult object
+            subjects_source: SubjectAnalysisResult object or List of Subject objects
             
         Returns:
             Dictionary representation with rich metadata
@@ -375,15 +430,31 @@ class AudioIconPipeline:
             'categories': []
         }
         
+        # Handle different input types
+        if isinstance(subjects_source, list):
+            # Podcast analysis case: List[Subject]
+            subjects_list = subjects_source
+            categories_list = []
+        else:
+            # Local file case: SubjectAnalysisResult
+            subjects_list = subjects_source.subjects
+            categories_list = subjects_source.categories
+        
         # Group subjects by type with rich metadata
-        for subject in subject_result.subjects:
+        for subject in subjects_list:
             # Clean up the type field to just show the enum value
-            subject_type_clean = subject.subject_type.value if hasattr(subject, 'subject_type') and subject.subject_type else 'keyword'
+            subject_type_clean = 'KEYWORD'  # Default
+            if hasattr(subject, 'subject_type') and subject.subject_type:
+                if hasattr(subject.subject_type, 'value'):
+                    subject_type_clean = subject.subject_type.value.upper()
+                else:
+                    subject_type_clean = str(subject.subject_type).upper()
             
             subject_info = {
                 'name': subject.name,
                 'confidence': subject.confidence,
-                'type': subject_type_clean.upper()
+                'type': subject_type_clean,
+                'context': {}  # Default empty context
             }
             
             # Add context if available
@@ -394,73 +465,24 @@ class AudioIconPipeline:
                 }
             
             # Route to appropriate category based on subject type
-            if hasattr(subject, 'subject_type') and subject.subject_type:
-                subject_type_str = str(subject.subject_type).lower()
-                
-                # Handle enum values that may include the class name
-                if 'keyword' in subject_type_str:
-                    subjects_dict['keywords'].append(subject_info)
-                elif 'topic' in subject_type_str:
-                    subjects_dict['topics'].append(subject_info)
-                elif 'entity' in subject_type_str:
-                    subjects_dict['entities'].append(subject_info)
-                else:
-                    # Default unknown types to keywords
-                    subjects_dict['keywords'].append(subject_info)
+            subject_type_str = subject_type_clean.lower()
+            if 'keyword' in subject_type_str:
+                subjects_dict['keywords'].append(subject_info)
+            elif 'topic' in subject_type_str:
+                subjects_dict['topics'].append(subject_info)
+            elif 'entity' in subject_type_str:
+                subjects_dict['entities'].append(subject_info)
             else:
-                # Default to keywords if no type specified
+                # Default unknown types to keywords
                 subjects_dict['keywords'].append(subject_info)
         
-        # Add categories with metadata
-        for category in subject_result.categories:
+        # Add categories with metadata (if available)
+        for category in categories_list:
             category_info = {
                 'name': str(category.name) if hasattr(category, 'name') else str(category),
                 'id': getattr(category, 'id', None)
             }
             subjects_dict['categories'].append(category_info)
-        
-        return subjects_dict
-    
-    def _convert_podcast_subjects_to_dict(self, subjects: List) -> Dict[str, Any]:
-        """Convert podcast subjects list to dict format for compatibility.
-        
-        Args:
-            subjects: List of Subject objects from podcast analysis
-            
-        Returns:
-            Dictionary representation of subjects
-        """
-        subjects_dict = {
-            'keywords': [],
-            'topics': [],
-            'entities': [],
-            'categories': []
-        }
-        
-        # Group subjects by type
-        for subject in subjects:
-            subject_info = {
-                'name': subject.name,
-                'confidence': subject.confidence
-            }
-            
-            if hasattr(subject, 'subject_type') and subject.subject_type:
-                # Handle enum values properly
-                if hasattr(subject.subject_type, 'value'):
-                    subject_type = subject.subject_type.value.lower()
-                else:
-                    subject_type = str(subject.subject_type).lower()
-                
-                if subject_type == 'keyword':
-                    subjects_dict['keywords'].append(subject_info)
-                elif subject_type == 'topic':
-                    subjects_dict['topics'].append(subject_info)
-                elif subject_type == 'entity':
-                    subjects_dict['entities'].append(subject_info)
-                else:
-                    subjects_dict['keywords'].append(subject_info)  # Default to keywords
-            else:
-                subjects_dict['keywords'].append(subject_info)  # Default to keywords
         
         return subjects_dict
 
