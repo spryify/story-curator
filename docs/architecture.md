@@ -32,7 +32,7 @@ src/
 │   │   ├── audio/           # Audio processing (Whisper integration)
 │   │   ├── text/            # Text processing modules
 │   │   └── subject/         # Subject identification modules
-│   │       ├── identifier.py     # Multi-algorithm subject extraction
+│   │       ├── subject_identifier.py     # Multi-algorithm subject extraction
 │   │       ├── models.py         # Subject/Category models
 │   │       └── processors/       # Subject processing algorithms
 │   │           ├── topic_processor.py  # Frequency-based topic extraction
