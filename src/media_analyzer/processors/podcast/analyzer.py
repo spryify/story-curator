@@ -180,11 +180,12 @@ class PodcastAnalyzer:
             logger.error(f"Failed to analyze playlist {playlist_url}: {str(e)}")
             return []
     
-    async def get_episode_metadata(self, url: str) -> PodcastEpisode:
+    async def get_episode_metadata(self, url: str, options: Optional[AnalysisOptions] = None) -> PodcastEpisode:
         """Extract metadata without full analysis.
         
         Args:
             url: Podcast episode URL
+            options: Optional analysis options including episode selection
             
         Returns:
             PodcastEpisode with metadata only
@@ -193,7 +194,7 @@ class PodcastAnalyzer:
         if not connector:
             raise ValidationError(f"No connector found for URL: {url}")
         
-        return await connector.get_episode_metadata(url)
+        return await connector.get_episode_metadata(url, options)
     
     def _get_connector_for_url(self, url: str) -> Optional[PodcastPlatformConnector]:
         """Find the appropriate connector for a given URL.

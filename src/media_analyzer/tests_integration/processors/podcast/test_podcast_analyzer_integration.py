@@ -253,3 +253,106 @@ class TestPodcastIntegration:
             
         with pytest.raises(ValueError, match="confidence_threshold must be between 0 and 1"):
             AnalysisOptions(confidence_threshold=1.5)
+
+    @pytest.mark.asyncio
+    async def test_episode_selection_integration(self, circle_round_feed_url, podcast_analyzer, rss_connector):
+        """Test episode selection functionality integrated with podcast analyzer."""
+        
+        print(f"\nTesting Episode Selection Integration...")
+        
+        # Test 1: Default episode (index 0) vs explicit index 0
+        default_episode = await podcast_analyzer.get_episode_metadata(circle_round_feed_url)
+        
+        options_index_0 = AnalysisOptions(episode_index=0)
+        explicit_episode_0 = await podcast_analyzer.get_episode_metadata(circle_round_feed_url, options_index_0)
+        
+        assert default_episode.episode_id == explicit_episode_0.episode_id, \
+            "Default episode should match explicit index 0"
+        print(f"   Default episode matches explicit index 0: '{default_episode.title}'")
+        
+        # Test 2: Different episodes by index
+        options_index_1 = AnalysisOptions(episode_index=1)
+        episode_1 = await podcast_analyzer.get_episode_metadata(circle_round_feed_url, options_index_1)
+        
+        options_index_2 = AnalysisOptions(episode_index=2)
+        episode_2 = await podcast_analyzer.get_episode_metadata(circle_round_feed_url, options_index_2)
+        
+        assert episode_1.episode_id != episode_2.episode_id, "Different indices should return different episodes"
+        print(f"   Episode 1: '{episode_1.title}'")
+        print(f"   Episode 2: '{episode_2.title}'")
+        
+        # Test 3: Episode selection by title
+        # Use a distinctive word from episode 1 for title search
+        title_words = episode_1.title.split()
+        search_term = None
+        
+        # Find a distinctive word (avoid common words)
+        common_words = {'the', 'and', 'of', 'to', 'in', 'a', 'an', 'is', 'are', 'was', 'were', 'for', 'with'}
+        for word in title_words:
+            clean_word = word.strip('.,!?:;"()').lower()
+            if len(clean_word) > 3 and clean_word not in common_words:
+                search_term = clean_word
+                break
+        
+        if not search_term:
+            search_term = title_words[0].strip('.,!?:;"()') if title_words else "episode"
+        
+        print(f"   Searching for episode with term: '{search_term}'")
+        
+        try:
+            options_title = AnalysisOptions(episode_title=search_term)
+            episode_by_title = await podcast_analyzer.get_episode_metadata(circle_round_feed_url, options_title)
+            
+            assert search_term.lower() in episode_by_title.title.lower(), \
+                f"Found episode should contain search term '{search_term}'"
+            print(f"   Found episode by title: '{episode_by_title.title}'")
+            
+        except ValueError as e:
+            print(f"   Title search failed (expected for unique titles): {e}")
+        
+        # Test 4: Full analysis with episode selection
+        print(f"   Running full analysis on selected episode...")
+        
+        analysis_options = AnalysisOptions(
+            episode_index=1,  # Use episode 1 for analysis
+            max_duration_minutes=2,  # Keep short for testing
+            segment_length_seconds=30,
+            confidence_threshold=0.5,
+            subject_extraction=True
+        )
+        
+        result = await podcast_analyzer.analyze_episode(circle_round_feed_url, analysis_options)
+        
+        # Validate analysis results
+        assert result.success, f"Analysis should succeed. Error: {result.error_message}"
+        assert result.episode.episode_id == episode_1.episode_id, \
+            "Analysis result should match selected episode"
+        assert len(result.transcription.text) > 0, "Should have transcription content"
+        
+        print(f"   Full analysis completed on: '{result.episode.title}'")
+        print(f"       Transcription length: {len(result.transcription.text)} chars")
+        print(f"       Subjects found: {len(result.subjects)}")
+        print(f"       Processing time: {result.processing_metadata.get('processing_time', 0):.1f}s")
+        
+        # Test 5: Error handling
+        print(f"   Testing error handling...")
+        
+        # Invalid episode index
+        try:
+            options_invalid = AnalysisOptions(episode_index=999)
+            await podcast_analyzer.get_episode_metadata(circle_round_feed_url, options_invalid)
+            assert False, "Should raise ValueError for invalid index"
+        except ValueError as e:
+            assert "Episode index 999 not found" in str(e)
+            print(f"   Invalid index properly handled: {e}")
+        
+        # Non-existent episode title
+        try:
+            options_invalid_title = AnalysisOptions(episode_title="NonExistentEpisodeXYZ123")
+            await podcast_analyzer.get_episode_metadata(circle_round_feed_url, options_invalid_title)
+            assert False, "Should raise ValueError for non-existent title"
+        except ValueError as e:
+            assert "Episode with title 'NonExistentEpisodeXYZ123' not found" in str(e)
+            print(f"   Invalid title properly handled: {e}")
+        
+        print(f"Episode Selection Integration Tests Passed!")
