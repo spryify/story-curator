@@ -4,7 +4,7 @@ import re
 import logging
 import aiohttp
 from datetime import datetime
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 from urllib.parse import urljoin
 import xml.etree.ElementTree as ET
 
@@ -53,11 +53,12 @@ class RSSFeedConnector(PodcastPlatformConnector):
         except ValidationError:
             return False
     
-    async def get_episode_metadata(self, url: str) -> PodcastEpisode:
+    async def get_episode_metadata(self, url: str, options=None) -> PodcastEpisode:
         """Extract episode metadata from RSS feed.
         
         Args:
             url: RSS feed URL or direct episode URL
+            options: Analysis options including episode selection
             
         Returns:
             PodcastEpisode with metadata from RSS feed
@@ -72,7 +73,7 @@ class RSSFeedConnector(PodcastPlatformConnector):
                     raise ConnectionError(f"Failed to fetch RSS feed: HTTP {response.status}")
                 
                 content = await response.text()
-                return self._parse_rss_feed(content, url)
+                return self._parse_rss_feed(content, url, options)
                 
         except aiohttp.ClientError as e:
             raise ConnectionError(f"Failed to connect to RSS feed: {str(e)}")
@@ -116,15 +117,16 @@ class RSSFeedConnector(PodcastPlatformConnector):
         """RSS feeds contain multiple episodes by nature."""
         return True
     
-    def _parse_rss_feed(self, content: str, feed_url: str) -> PodcastEpisode:
-        """Parse RSS feed XML and extract latest episode.
+    def _parse_rss_feed(self, content: str, feed_url: str, options=None) -> PodcastEpisode:
+        """Parse RSS feed XML and extract specific episode.
         
         Args:
             content: RSS feed XML content
             feed_url: Original feed URL for reference
+            options: Analysis options including episode selection
             
         Returns:
-            PodcastEpisode from the most recent episode in the feed
+            PodcastEpisode from the selected episode in the feed
         """
         root = ET.fromstring(content)
         
@@ -137,13 +139,13 @@ class RSSFeedConnector(PodcastPlatformConnector):
         show_name = self._get_text(channel, 'title', 'Unknown Podcast')
         show_description = self._get_text(channel, 'description', '')
         
-        # Find the most recent item (episode)
+        # Find episodes
         items = channel.findall('item')
         if not items:
             raise ValueError("No episodes found in RSS feed")
         
-        # Use the first item (should be most recent)
-        item = items[0]
+        # Select episode based on options
+        item = self._select_episode_from_items(items, options)
         
         # Extract episode information
         title = self._get_text(item, 'title', 'Unknown Episode')
@@ -212,6 +214,46 @@ class RSSFeedConnector(PodcastPlatformConnector):
         )
         
         return episode
+    
+    def _select_episode_from_items(self, items: List, options=None):
+        """Select episode from RSS items based on options.
+        
+        Args:
+            items: List of RSS item elements
+            options: Analysis options with episode selection criteria
+            
+        Returns:
+            Selected RSS item element
+        """
+        if not options:
+            # Default to most recent episode (first item)
+            return items[0]
+        
+        episode_index = getattr(options, 'episode_index', 0)
+        episode_title = getattr(options, 'episode_title', None)
+        
+        # Select by title if specified
+        if episode_title:
+            episode_title_lower = episode_title.lower()
+            for item in items:
+                title = self._get_text(item, 'title', '')
+                if episode_title_lower in title.lower():
+                    logger.info(f"Found episode by title: {title}")
+                    return item
+            
+            raise ValueError(f"Episode with title '{episode_title}' not found in RSS feed")
+        
+        # Select by index
+        if episode_index >= len(items):
+            raise ValueError(
+                f"Episode index {episode_index} not found. RSS feed has {len(items)} episodes."
+            )
+        
+        selected_item = items[episode_index]
+        title = self._get_text(selected_item, 'title', f'Episode {episode_index}')
+        logger.info(f"Selected episode {episode_index}: {title}")
+        
+        return selected_item
     
     def _get_text(self, element: ET.Element, tag: str, default: str = '') -> str:
         """Safely extract text from XML element."""

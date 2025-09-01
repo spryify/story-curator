@@ -56,6 +56,8 @@ class AnalysisOptions:
     max_duration_minutes: int = 180  # 3 hours
     segment_length_seconds: int = 300  # 5 minutes for chunked processing
     confidence_threshold: float = 0.5
+    episode_index: int = 0  # Episode index from RSS feed (0 = most recent)
+    episode_title: Optional[str] = None  # Find episode by title (partial match)
     
     def __post_init__(self):
         """Validate options after initialization."""

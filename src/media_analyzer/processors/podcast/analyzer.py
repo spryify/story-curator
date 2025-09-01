@@ -65,7 +65,7 @@ class PodcastAnalyzer:
             
             # Get episode metadata
             logger.info(f"Extracting metadata with {connector.platform_name} connector...")
-            episode = await connector.get_episode_metadata(url)
+            episode = await connector.get_episode_metadata(url, options)
             
             # Log episode duration and processing limit
             max_duration_seconds = options.max_duration_minutes * 60

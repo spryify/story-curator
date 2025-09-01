@@ -22,12 +22,20 @@ def audio_icon_matcher_commands():
 @click.option("--confidence-threshold", type=float, default=0.3, help="Minimum confidence threshold")
 @click.option("--output-format", type=click.Choice(["json", "table", "summary"]), default="table", help="Output format")
 @click.option("--output-file", type=click.Path(path_type=Path), help="Output file (if not specified, prints to stdout)")
-def find_matching_icons(audio_source, max_icons, confidence_threshold, output_format, output_file):
+@click.option("--episode-index", type=int, default=0, help="Episode index from RSS feed (0 = most recent, 1 = second most recent, etc.)")
+@click.option("--episode-title", type=str, help="Find episode by title (partial match, case-insensitive)")
+def find_matching_icons(audio_source, max_icons, confidence_threshold, output_format, output_file, episode_index, episode_title):
     """Find matching icons for audio source (local file or podcast URL).
     
     AUDIO_SOURCE can be:
     - Path to local audio file (WAV, MP3, M4A)
-    - Podcast episode URL (RSS feed or direct audio link)
+    - Podcast RSS feed URL (use --episode-index or --episode-title to select specific episode)
+    - Direct audio URL (not yet supported)
+    
+    For RSS feeds:
+    - By default, processes the most recent episode (--episode-index 0)
+    - Use --episode-index N to select the Nth episode (0=newest, 1=second newest, etc.)
+    - Use --episode-title "title" to find episode by title (partial match)
     """
     try:
         pipeline = AudioIconPipeline()
@@ -51,7 +59,9 @@ def find_matching_icons(audio_source, max_icons, confidence_threshold, output_fo
         result = pipeline.process(
             audio_source,
             max_icons=max_icons,
-            confidence_threshold=confidence_threshold
+            confidence_threshold=confidence_threshold,
+            episode_index=episode_index,
+            episode_title=episode_title
         )
         
         # Format and output results

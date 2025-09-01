@@ -29,11 +29,12 @@ class PodcastPlatformConnector(ABC):
         pass
     
     @abstractmethod  
-    async def get_episode_metadata(self, url: str) -> PodcastEpisode:
+    async def get_episode_metadata(self, url: str, options=None) -> PodcastEpisode:
         """Extract episode metadata from platform.
         
         Args:
             url: The podcast episode URL
+            options: Analysis options including episode selection
             
         Returns:
             PodcastEpisode with metadata
