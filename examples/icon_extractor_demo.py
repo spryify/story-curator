@@ -3,6 +3,10 @@
 import subprocess
 import sys
 import os
+from pathlib import Path
+
+# Get project root dynamically
+PROJECT_ROOT = Path(__file__).parent.parent
 
 
 def run_command(command, description):
@@ -17,7 +21,7 @@ def run_command(command, description):
             command.split(),
             capture_output=True,
             text=True,
-            cwd="story-curator"
+            cwd=str(PROJECT_ROOT)
         )
         
         print("STDOUT:")
@@ -39,7 +43,8 @@ def main():
     print("Icon Curator CLI Demo")
     print("====================")
     
-    python_path = "/Users/saparya/Documents/Projects/story-curator/.venv/bin/python"
+    # Use the current Python interpreter
+    python_path = sys.executable
     
     # Show help
     run_command(
