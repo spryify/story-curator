@@ -228,13 +228,25 @@ class PodcastAnalyzer:
         """Cleanup resources used by the analyzer."""
         logger.info("Cleaning up podcast analyzer resources...")
         
-        # Cleanup transcription service
-        if hasattr(self.transcription_service, 'cleanup'):
-            await self.transcription_service.cleanup()
-        
-        # Cleanup connectors
-        for connector in self.connectors.values():
-            if hasattr(connector, 'cleanup') and callable(getattr(connector, 'cleanup')):
-                await connector.cleanup()  # type: ignore[attr-defined]
-        
-        logger.info("Cleanup complete")
+        try:
+            # Cleanup transcription service
+            if hasattr(self.transcription_service, 'cleanup'):
+                await self.transcription_service.cleanup()
+            
+            # Cleanup connectors
+            for connector in self.connectors.values():
+                if hasattr(connector, 'cleanup') and callable(getattr(connector, 'cleanup')):
+                    try:
+                        await connector.cleanup()  # type: ignore[attr-defined]
+                    except Exception as e:
+                        logger.debug(f"Error cleaning up connector: {e}")
+            
+            # Give a moment for resources to be released
+            import asyncio
+            await asyncio.sleep(0.01)
+            
+            logger.info("Cleanup complete")
+            
+        except Exception as e:
+            logger.debug(f"Error during analyzer cleanup: {e}")
+            # Don't re-raise cleanup errors

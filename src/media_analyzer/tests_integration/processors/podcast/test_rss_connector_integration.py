@@ -1,8 +1,19 @@
 """Integration tests for RSS connector episode selection functionality."""
 
 import pytest
+import pytest_asyncio
 import asyncio
 import logging
+from datetime import datetime
+from typing import List, Dict, Any
+
+from media_analyzer.processors.podcast.rss_connector import RSSFeedConnector
+from media_analyzer.models.podcast import PodcastEpisode, AnalysisOptions
+from media_analyzer.core.exceptions import ValidationError
+
+# Configure logging for test output
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 from datetime import datetime
 from typing import List, Dict, Any
 
@@ -23,10 +34,13 @@ class TestRSSConnectorEpisodeSelection:
         """Circle Round podcast RSS feed URL for testing."""
         return "https://rss.wbur.org/circleround/podcast"
     
-    @pytest.fixture
-    def rss_connector(self) -> RSSFeedConnector:
-        """Create an RSS connector instance."""
-        return RSSFeedConnector()
+    @pytest_asyncio.fixture
+    async def rss_connector(self):
+        """Create an RSS connector instance with proper cleanup."""
+        connector = RSSFeedConnector()
+        yield connector
+        # Ensure cleanup happens
+        await connector.cleanup()
 
     @pytest.mark.asyncio
     async def test_default_episode_selection(self, circle_round_feed_url: str, rss_connector: RSSFeedConnector):
@@ -47,6 +61,9 @@ class TestRSSConnectorEpisodeSelection:
         logger.info(f"Default selection found: '{episode.title}'")
         logger.info(f"   Published: {episode.publication_date}")
         logger.info(f"   Duration: {episode.duration_seconds}s" if episode.duration_seconds else "   Duration: Not specified")
+        
+        # Explicit cleanup to prevent SSL errors
+        await rss_connector.cleanup()
         
         return episode
 
@@ -89,6 +106,9 @@ class TestRSSConnectorEpisodeSelection:
         if episode_0.publication_date and episode_1.publication_date:
             assert episode_0.publication_date >= episode_1.publication_date, \
                 "Episode at index 0 should be published on or after episode at index 1"
+        
+        # Explicit cleanup to prevent SSL errors
+        await rss_connector.cleanup()
 
     @pytest.mark.asyncio
     async def test_episode_selection_by_title(self, circle_round_feed_url: str, rss_connector: RSSFeedConnector):
@@ -155,6 +175,9 @@ class TestRSSConnectorEpisodeSelection:
             "Case-insensitive title matching should work"
         
         logger.info("Case-insensitive title matching works")
+        
+        # Explicit cleanup to prevent SSL errors
+        await rss_connector.cleanup()
 
     @pytest.mark.asyncio
     async def test_invalid_episode_selection(self, circle_round_feed_url: str, rss_connector: RSSFeedConnector):
@@ -176,6 +199,9 @@ class TestRSSConnectorEpisodeSelection:
         
         assert "Episode with title 'NonExistentEpisodeTitle12345XYZ' not found" in str(exc_info.value)
         logger.info("Non-existent episode title properly raises ValueError")
+        
+        # Explicit cleanup to prevent SSL errors
+        await rss_connector.cleanup()
 
     @pytest.mark.asyncio
     async def test_audio_url_accessibility(self, circle_round_feed_url: str, rss_connector: RSSFeedConnector):
@@ -212,6 +238,9 @@ class TestRSSConnectorEpisodeSelection:
         
         assert len(accessible_episodes) >= 1, "At least one episode should have accessible audio"
         logger.info(f"{len(accessible_episodes)}/{len(test_indices)} episodes have accessible audio URLs")
+        
+        # Explicit cleanup to prevent SSL errors
+        await rss_connector.cleanup()
 
     @pytest.mark.asyncio
     async def test_episode_metadata_consistency(self, circle_round_feed_url: str, rss_connector: RSSFeedConnector):
@@ -245,6 +274,9 @@ class TestRSSConnectorEpisodeSelection:
                 
         except ValueError:
             logger.info("Title search didn't find matching episode (expected for unique titles)")
+        
+        # Explicit cleanup to prevent SSL errors
+        await rss_connector.cleanup()
 
     @pytest.mark.asyncio  
     async def test_comprehensive_episode_analysis_workflow(self, circle_round_feed_url: str, rss_connector: RSSFeedConnector):
@@ -296,6 +328,9 @@ class TestRSSConnectorEpisodeSelection:
         logger.info(f"   Duration: {episode.duration_seconds}s" if episode.duration_seconds else "   Duration: Not specified")
         logger.info(f"   Published: {episode.publication_date}")
         logger.info(f"   Audio URL: {audio_url[:100]}...")
+        
+        # Explicit cleanup to prevent SSL errors
+        await rss_connector.cleanup()
         
         return episode
 

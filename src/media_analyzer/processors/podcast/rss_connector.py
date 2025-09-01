@@ -340,4 +340,16 @@ class RSSFeedConnector(PodcastPlatformConnector):
     async def cleanup(self):
         """Cleanup resources."""
         if self.session and not self.session.closed:
-            await self.session.close()
+            try:
+                # Close the session
+                await self.session.close()
+                
+                # Give a moment for SSL connections to close properly
+                import asyncio
+                await asyncio.sleep(0.01)
+                
+            except Exception as e:
+                # Ignore cleanup errors but log them
+                logger.debug(f"Error during RSS connector cleanup: {e}")
+            finally:
+                self.session = None

@@ -1,7 +1,10 @@
 """Audio analysis integration test fixtures."""
 
+import asyncio
 import pytest
+import pytest_asyncio
 import sys
+import warnings
 from pathlib import Path
 from ..tests_unit.utils.audio import create_wav_file
 
@@ -94,3 +97,19 @@ def educational_content_texts():
 def story_audio_creator():
     """Factory fixture for creating story audio files."""
     return create_story_audio_file
+
+
+@pytest_asyncio.fixture(autouse=True)
+async def cleanup_resources():
+    """Automatically cleanup resources after each test."""
+    yield
+    
+    # Force garbage collection to cleanup any lingering resources
+    import gc
+    gc.collect()
+    
+    # Small delay to allow SSL connections to close
+    try:
+        await asyncio.sleep(0.05)
+    except Exception:
+        pass

@@ -1,6 +1,7 @@
 """Integration tests for podcast analysis with real RSS feeds."""
 
 import pytest
+import pytest_asyncio
 import asyncio
 from pathlib import Path
 from typing import Dict, Any
@@ -18,20 +19,26 @@ class TestPodcastIntegration:
         """Circle Round podcast RSS feed URL."""
         return "https://rss.wbur.org/circleround/podcast"
     
-    @pytest.fixture
-    def podcast_analyzer(self):
-        """Create a podcast analyzer instance."""
+    @pytest_asyncio.fixture
+    async def podcast_analyzer(self):
+        """Create a podcast analyzer instance with proper cleanup."""
         config = {
             'transcription': {
                 'model_size': 'base',  # Use smaller model for faster testing
             }
         }
-        return PodcastAnalyzer(config)
+        analyzer = PodcastAnalyzer(config)
+        yield analyzer
+        # Ensure cleanup happens
+        await analyzer.cleanup()
     
-    @pytest.fixture
-    def rss_connector(self):
-        """Create an RSS connector instance."""
-        return RSSFeedConnector()
+    @pytest_asyncio.fixture
+    async def rss_connector(self):
+        """Create an RSS connector instance with proper cleanup."""
+        connector = RSSFeedConnector()
+        yield connector
+        # Ensure cleanup happens
+        await connector.cleanup()
 
     @pytest.mark.asyncio
     async def test_circle_round_metadata_extraction(self, circle_round_feed_url, rss_connector):
@@ -67,11 +74,14 @@ class TestPodcastIntegration:
         audio_url = episode.metadata['audio_url']
         assert any(ext in audio_url.lower() for ext in ['.mp3', '.m4a', '.wav', 'audio']), "Audio URL should indicate audio content"
         
-        print(f"\n✅ Circle Round Episode Found:")
+        print(f"\nCircle Round Episode Found:")
         print(f"   Title: {episode.title}")
         print(f"   Duration: {episode.duration_seconds}s ({episode.duration_seconds/60:.1f} min)" if episode.duration_seconds else "   Duration: Not specified")
         print(f"   Publication: {episode.publication_date}")
         print(f"   Audio URL: {audio_url[:100]}...")
+        
+        # Explicit cleanup to prevent SSL errors
+        await rss_connector.cleanup()
 
     @pytest.mark.asyncio
     async def test_circle_round_short_audio_analysis(self, circle_round_feed_url, podcast_analyzer):
@@ -356,3 +366,7 @@ class TestPodcastIntegration:
             print(f"   Invalid title properly handled: {e}")
         
         print(f"Episode Selection Integration Tests Passed!")
+        
+        # Explicit cleanup to prevent SSL errors
+        await podcast_analyzer.cleanup()
+        await rss_connector.cleanup()
