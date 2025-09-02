@@ -328,8 +328,14 @@ class RSSFeedConnector(PodcastPlatformConnector):
             headers = {
                 'User-Agent': 'Story-Curator-Podcast-Analyzer/1.0'
             }
-            # Create connector with redirect handling
-            connector = aiohttp.TCPConnector(limit=10, limit_per_host=10)
+            # Create connector with better SSL handling and connection management
+            connector = aiohttp.TCPConnector(
+                limit=10, 
+                limit_per_host=10,
+                enable_cleanup_closed=True,  # Enable cleanup of closed connections
+                keepalive_timeout=30,        # Reduce keepalive timeout
+                ttl_dns_cache=300            # DNS cache TTL
+            )
             self.session = aiohttp.ClientSession(
                 timeout=timeout, 
                 headers=headers, 
@@ -344,9 +350,9 @@ class RSSFeedConnector(PodcastPlatformConnector):
                 # Close the session
                 await self.session.close()
                 
-                # Give a moment for SSL connections to close properly
+                # Give more time for SSL connections to close properly
                 import asyncio
-                await asyncio.sleep(0.01)
+                await asyncio.sleep(0.1)  # Increased delay for SSL cleanup
                 
             except Exception as e:
                 # Ignore cleanup errors but log them

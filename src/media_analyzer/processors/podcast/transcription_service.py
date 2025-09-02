@@ -316,10 +316,31 @@ class WhisperStreamingService(StreamingTranscriptionService):
             headers = {
                 'User-Agent': 'Story-Curator-Podcast-Analyzer/1.0'
             }
-            self.session = aiohttp.ClientSession(timeout=timeout, headers=headers)
+            # Create session with better connection management
+            connector = aiohttp.TCPConnector(
+                enable_cleanup_closed=True,  # Enable cleanup of closed connections
+                keepalive_timeout=30,        # Reduce keepalive timeout
+                ttl_dns_cache=300            # DNS cache TTL
+            )
+            self.session = aiohttp.ClientSession(
+                timeout=timeout, 
+                headers=headers, 
+                connector=connector
+            )
         return self.session
     
     async def cleanup(self):
         """Cleanup resources."""
         if self.session and not self.session.closed:
-            await self.session.close()
+            try:
+                await self.session.close()
+                
+                # Give more time for SSL connections to close properly
+                import asyncio
+                await asyncio.sleep(0.1)  # Increased delay for SSL cleanup
+                
+            except Exception as e:
+                # Ignore cleanup errors but log them
+                logger.debug(f"Error during transcription service cleanup: {e}")
+            finally:
+                self.session = None

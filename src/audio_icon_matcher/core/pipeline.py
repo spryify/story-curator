@@ -177,9 +177,18 @@ class AudioIconPipeline:
         """
         # Determine if source is a URL or local file
         if self._is_url(audio_source):
-            return asyncio.run(self._process_podcast_url(
-                audio_source, max_icons, confidence_threshold, episode_index, episode_title
-            ))
+            # For URL processing, handle cleanup within the same event loop
+            async def process_with_cleanup():
+                try:
+                    result = await self._process_podcast_url(
+                        audio_source, max_icons, confidence_threshold, episode_index, episode_title
+                    )
+                    return result
+                finally:
+                    # Clean up in the same event loop context
+                    await self.cleanup()
+            
+            return asyncio.run(process_with_cleanup())
         else:
             return self._process_local_file(
                 audio_source, max_icons, confidence_threshold
@@ -527,12 +536,18 @@ class AudioIconPipeline:
     def __del__(self):
         """Cleanup when pipeline is destroyed."""
         try:
-            # Run cleanup in event loop if available
-            loop = asyncio.get_event_loop()
-            if loop.is_running():
-                asyncio.create_task(self.cleanup())
-            else:
-                asyncio.run(self.cleanup())
+            # Only attempt cleanup if there's an event loop available
+            try:
+                loop = asyncio.get_event_loop()
+                if loop.is_running():
+                    # If loop is running, schedule cleanup as a task
+                    asyncio.create_task(self.cleanup())
+                else:
+                    # If loop is not running, create new loop to run cleanup
+                    asyncio.run(self.cleanup())
+            except RuntimeError:
+                # No event loop available - this is common during interpreter shutdown
+                pass
         except Exception:
-            # Ignore cleanup errors during destruction
+            # Ignore all cleanup errors during destruction to avoid issues during shutdown
             pass

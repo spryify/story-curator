@@ -241,9 +241,9 @@ class PodcastAnalyzer:
                     except Exception as e:
                         logger.debug(f"Error cleaning up connector: {e}")
             
-            # Give a moment for resources to be released
+            # Give more time for SSL connections to close properly
             import asyncio
-            await asyncio.sleep(0.01)
+            await asyncio.sleep(0.1)  # Increased delay for better cleanup
             
             logger.info("Cleanup complete")
             
