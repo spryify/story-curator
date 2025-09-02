@@ -40,6 +40,7 @@ class TestPodcastIntegration:
         # Ensure cleanup happens
         await connector.cleanup()
 
+    @pytest.mark.integration
     @pytest.mark.asyncio
     async def test_circle_round_metadata_extraction(self, circle_round_feed_url, rss_connector):
         """Test metadata extraction from Circle Round RSS feed."""
@@ -83,6 +84,7 @@ class TestPodcastIntegration:
         # Explicit cleanup to prevent SSL errors
         await rss_connector.cleanup()
 
+    @pytest.mark.integration
     @pytest.mark.asyncio
     async def test_circle_round_short_audio_analysis(self, circle_round_feed_url, podcast_analyzer):
         """Test complete podcast analysis with Circle Round (limited to first 4 minutes for subject detection)."""
@@ -141,6 +143,7 @@ class TestPodcastIntegration:
         # Print first part of transcription for verification
         print(f"   Transcription Preview: {transcription.text[:200]}...")
 
+    @pytest.mark.integration
     @pytest.mark.asyncio
     async def test_metadata_only_analysis(self, circle_round_feed_url, podcast_analyzer):
         """Test metadata extraction without audio analysis."""
@@ -159,6 +162,7 @@ class TestPodcastIntegration:
         print(f"   Show: {episode_metadata.show_name}")
         print(f"   Duration: {episode_metadata.duration_seconds}s" if episode_metadata.duration_seconds else "   Duration: Unknown")
 
+    @pytest.mark.integration
     @pytest.mark.asyncio
     async def test_analysis_with_subject_extraction_disabled(self, circle_round_feed_url, podcast_analyzer):
         """Test analysis with subject extraction disabled for faster processing."""
@@ -189,6 +193,7 @@ class TestPodcastIntegration:
         print(f"   Processing Time: {processing_time:.1f}s")
         print(f"   Preview: {result.transcription.text[:150]}...")
 
+    @pytest.mark.integration
     @pytest.mark.asyncio
     async def test_error_handling_invalid_feed(self, podcast_analyzer):
         """Test error handling with invalid RSS feed."""
@@ -203,6 +208,7 @@ class TestPodcastIntegration:
         assert result.error_message is not None, "Should provide error message"
         assert "Failed to fetch RSS feed" in result.error_message, "Should indicate RSS fetch failure"
 
+    @pytest.mark.integration
     @pytest.mark.asyncio
     async def test_audio_format_detection(self, circle_round_feed_url, rss_connector):
         """Test detection of different audio formats in RSS feeds."""
@@ -230,6 +236,7 @@ class TestPodcastIntegration:
         print(f"   Content Type: {episode.metadata.get('audio_type', 'Not specified')}")
         print(f"   Audio Length: {episode.metadata.get('audio_length', 'Not specified')} bytes")
 
+    @pytest.mark.integration
     @pytest.mark.asyncio 
     async def test_cleanup_resources(self, podcast_analyzer):
         """Test that resources are properly cleaned up."""
@@ -264,6 +271,7 @@ class TestPodcastIntegration:
         with pytest.raises(ValueError, match="confidence_threshold must be between 0 and 1"):
             AnalysisOptions(confidence_threshold=1.5)
 
+    @pytest.mark.integration
     @pytest.mark.asyncio
     async def test_episode_selection_integration(self, circle_round_feed_url, podcast_analyzer, rss_connector):
         """Test episode selection functionality integrated with podcast analyzer."""

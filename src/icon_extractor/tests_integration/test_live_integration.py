@@ -20,6 +20,7 @@ class TestLiveYotoIconsScraping:
     """Integration tests that actually connect to yotoicons.com."""
     
     @skip_live
+    @pytest.mark.integration
     def test_yotoicons_site_accessibility(self):
         """Test that yotoicons.com is accessible and returns expected content."""
         response = requests.get("https://yotoicons.com/", timeout=30)
@@ -33,6 +34,7 @@ class TestLiveYotoIconsScraping:
         print(f"   Content-Type: {response.headers.get('content-type')}")
     
     @skip_live
+    @pytest.mark.integration
     def test_scraper_can_connect_to_yotoicons(self, yoto_scraper):
         """Test that our scraper can successfully connect to yotoicons.com."""
         scraper = yoto_scraper
@@ -48,6 +50,7 @@ class TestLiveYotoIconsScraping:
         print(f"   Response length: {len(response.text)} characters")
     
     @skip_live
+    @pytest.mark.integration
     def test_discover_real_icon_categories(self, yoto_scraper):
         """Test discovering actual icon categories from yotoicons.com."""
         scraper = yoto_scraper
@@ -147,6 +150,7 @@ class TestLiveYotoIconsScraping:
                 print(f"      - {url}")
     
     @skip_live
+    @pytest.mark.integration
     def test_scraper_integration_with_real_site(self, yoto_scraper):
         """Test complete scraper integration with the real yotoicons.com site."""
         scraper = yoto_scraper
@@ -227,7 +231,8 @@ class TestLiveYotoIconsScraping:
         
         print(f"🎉 Verified {len(verified_image_urls)} accessible image URLs")
     
-    @skip_live 
+    @skip_live
+    @pytest.mark.integration
     def test_full_scraping_pipeline_sample(self, yoto_scraper):
         """Test the complete scraping pipeline with a small sample of real data."""
         scraper = yoto_scraper

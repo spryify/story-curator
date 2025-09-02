@@ -78,6 +78,7 @@ class TestMainCLIIntegration:
         not Path("/usr/bin/say").exists() and not Path("/usr/local/bin/say").exists(),
         reason="macOS 'say' command not available - needed for audio generation"
     )
+    @pytest.mark.integration
     def test_analyze_command_with_real_audio(self):
         """Test the analyze command with a real audio file."""
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -163,6 +164,7 @@ class TestMainCLIIntegration:
         not Path("/usr/bin/say").exists() and not Path("/usr/local/bin/say").exists(),
         reason="macOS 'say' command not available - needed for audio generation"
     )
+    @pytest.mark.integration
     def test_analyze_command_with_output_file(self):
         """Test the analyze command with output file option."""
         with tempfile.TemporaryDirectory() as tmp_dir:

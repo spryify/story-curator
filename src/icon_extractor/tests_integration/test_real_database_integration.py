@@ -60,6 +60,7 @@ def icon_repository(test_db_session):
 class TestDatabaseIntegration:
     """Integration tests that use real database connections."""
     
+    @pytest.mark.integration
     def test_save_and_retrieve_icon(self, icon_repository, test_db_session):
         """Test saving an icon to database and retrieving it."""
         # Create test icon data
@@ -91,6 +92,7 @@ class TestDatabaseIntegration:
         assert retrieved_icon.description == icon_data.description
         assert retrieved_icon.category == icon_data.category
 
+    @pytest.mark.integration
     def test_search_icons_integration(self, icon_repository, test_db_session):
         """Test searching for icons in the database."""
         # Create test icons
@@ -164,6 +166,7 @@ class TestDatabaseIntegration:
             # This is expected - column should not exist
             assert "image_url" in str(e).lower()
 
+    @pytest.mark.integration
     def test_database_manager_integration(self):
         """Test DatabaseManager with real database connection."""
         db_manager = DatabaseManager(TEST_DATABASE_URL)
@@ -195,6 +198,7 @@ class TestDatabaseIntegration:
 class TestEndToEndWorkflow:
     """End-to-end integration tests."""
     
+    @pytest.mark.integration
     def test_save_search_retrieve_workflow(self, icon_repository, test_db_session):
         """Test basic workflow: create → save → search → retrieve."""
         # Step 1: Create and save icon

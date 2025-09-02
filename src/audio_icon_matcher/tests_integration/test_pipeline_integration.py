@@ -133,6 +133,7 @@ class TestAudioIconPipelineIntegration:
         # Return the first available story audio file
         return next(iter(story_audio_files.values()))
     
+    @pytest.mark.integration
     def test_pipeline_end_to_end_real_components(self, test_audio_file):
         """Test the complete pipeline with real components."""
         # This test requires actual services to be available
@@ -221,6 +222,7 @@ class TestAudioIconPipelineIntegration:
                 if os.path.exists(temp_path):
                     os.unlink(temp_path)
     
+    @pytest.mark.integration
     def test_pipeline_concurrency_safety(self, test_audio_file):
         """Test that pipeline can handle concurrent requests safely."""
         import threading
@@ -251,6 +253,7 @@ class TestAudioIconPipelineIntegration:
         # Check that threads completed (might have external service errors, but shouldn't hang)
         assert len(results) + len(errors) == 3, "Some threads did not complete"
     
+    @pytest.mark.integration
     def test_pipeline_configuration_options(self, test_audio_file):
         """Test that pipeline respects configuration parameters."""
         pipeline = AudioIconPipeline()
@@ -292,6 +295,7 @@ class TestAudioIconPipelineIntegration:
                 # Should be appropriate exception types
                 assert isinstance(e, (AudioIconValidationError, AudioIconProcessingError, FileNotFoundError))
     
+    @pytest.mark.integration
     def test_pipeline_performance_reasonable(self, test_audio_file):
         """Test that pipeline completes in reasonable time."""
         pipeline = AudioIconPipeline()
@@ -319,6 +323,7 @@ class TestAudioIconPipelineIntegration:
             # Even failures should complete in reasonable time
             assert processing_time < 30, f"Even failure took too long: {processing_time} seconds"
     
+    @pytest.mark.integration
     def test_children_story_scenarios(self, story_audio_files):
         """Test pipeline with different children's story scenarios."""
         if not story_audio_files:
@@ -367,6 +372,7 @@ class TestAudioIconPipelineIntegration:
                 # External services might not be available - that's acceptable
                 pytest.skip(f"External services not available for story '{story_name}': {e}")
     
+    @pytest.mark.integration
     def test_story_icon_matching_quality(self, story_audio_files):
         """Test that icon matches are relevant to story content."""
         if not story_audio_files:
@@ -419,6 +425,7 @@ class TestAudioIconPipelineIntegration:
         except Exception as e:
             pytest.skip(f"External services not available for icon matching test: {e}")
     
+    @pytest.mark.integration
     def test_multiple_story_processing(self, story_audio_files):
         """Test processing multiple different stories in sequence."""
         if len(story_audio_files) < 2:
@@ -458,6 +465,7 @@ class TestAudioIconPipelineIntegration:
 class TestPipelineRealWorldScenarios:
     """Test pipeline with realistic scenarios using real story audio."""
     
+    @pytest.mark.integration
     def test_educational_content_recognition(self, tmp_path):
         """Test pipeline with educational content scenarios."""
         educational_stories = {
