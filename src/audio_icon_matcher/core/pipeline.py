@@ -188,7 +188,58 @@ class AudioIconPipeline:
                     # Clean up in the same event loop context
                     await self.cleanup()
             
-            return asyncio.run(process_with_cleanup())
+            # Check if we're already in an event loop (e.g., in async tests)
+            try:
+                asyncio.get_running_loop()
+                # If we're here, there's already a running loop
+                # We cannot use asyncio.run(), so we need to raise an error
+                # suggesting to use the async version
+                raise AudioIconProcessingError(
+                    "Cannot process podcast URL in an async context. "
+                    "Use 'await pipeline.process_async()' instead."
+                )
+            except RuntimeError:
+                # No running loop, safe to use asyncio.run
+                return asyncio.run(process_with_cleanup())
+        else:
+            return self._process_local_file(
+                audio_source, max_icons, confidence_threshold
+            )
+    
+    async def process_async(
+        self, 
+        audio_source: str, 
+        max_icons: int = 10,
+        confidence_threshold: float = 0.3,
+        episode_index: int = 0,
+        episode_title: Optional[str] = None
+    ) -> AudioIconResult:
+        """Async version of process method for use in async contexts.
+        
+        Args:
+            audio_source: Path to audio file or podcast episode URL
+            max_icons: Maximum number of icons to return
+            confidence_threshold: Minimum confidence for icon matches
+            episode_index: Episode index from RSS feed (0 = most recent)
+            episode_title: Find episode by title (partial match, case-insensitive)
+            
+        Returns:
+            AudioIconResult with transcription, subjects, and icon matches
+            
+        Raises:
+            AudioIconValidationError: If audio source is invalid
+            AudioIconProcessingError: If processing fails
+        """
+        # Determine if source is a URL or local file
+        if self._is_url(audio_source):
+            try:
+                result = await self._process_podcast_url(
+                    audio_source, max_icons, confidence_threshold, episode_index, episode_title
+                )
+                return result
+            finally:
+                # Clean up in the same event loop context
+                await self.cleanup()
         else:
             return self._process_local_file(
                 audio_source, max_icons, confidence_threshold

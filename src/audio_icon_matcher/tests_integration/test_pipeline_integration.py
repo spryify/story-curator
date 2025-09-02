@@ -532,8 +532,8 @@ class TestPodcastPipelineIntegration:
             if not is_valid:
                 pytest.skip("Circle Round RSS feed not accessible")
             
-            # Process podcast episode
-            result = pipeline.process(
+            # Process podcast episode using async method
+            result = await pipeline.process_async(
                 test_url,
                 max_icons=5,
                 confidence_threshold=0.3
