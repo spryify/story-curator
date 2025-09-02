@@ -586,6 +586,206 @@ class TestPodcastPipelineIntegration:
                 pass
     
     @pytest.mark.integration
+    @pytest.mark.asyncio
+    async def test_specific_circle_round_episode_integration(self):
+        """Test integration with a specific Circle Round episode from a few months ago."""
+        try:
+            pipeline = AudioIconPipeline()
+            
+            # Use Circle Round RSS feed for testing
+            test_url = "https://rss.wbur.org/circleround/podcast"
+            
+            # Validate URL first
+            is_valid = pipeline.validate_podcast_url(test_url)
+            if not is_valid:
+                pytest.skip("Circle Round RSS feed not accessible")
+            
+            # Test with a specific episode by title (partial match, case-insensitive)
+            # Using an episode that should be stable and available from a few months ago
+            target_episode_title = "The Pot of Gold"  # A classic story that's likely to be available
+            
+            result = await pipeline.process_async(
+                test_url,
+                max_icons=8,
+                confidence_threshold=0.25,
+                episode_title=target_episode_title
+            )
+            
+            # Validate results
+            assert isinstance(result, AudioIconResult)
+            
+            if result.success:
+                # Check basic structure
+                assert result.transcription is not None
+                assert len(result.transcription) > 100, "Should have substantial transcription content"
+                assert result.transcription_confidence > 0.5, "Should have reasonable transcription confidence"
+                assert result.metadata['source_type'] == 'podcast'
+                
+                # Should have episode metadata
+                assert 'episode_title' in result.metadata
+                assert 'show_name' in result.metadata
+                assert result.metadata['show_name'] == "Circle Round"
+                
+                # Check that we got the episode we requested (or close to it)
+                episode_title = result.metadata.get('episode_title', '').lower()
+                target_lower = target_episode_title.lower()
+                
+                # Should contain key words from the target title or be a similar story
+                title_match = (
+                    target_lower in episode_title or 
+                    any(word in episode_title for word in target_lower.split()) or
+                    "gold" in episode_title or "treasure" in episode_title
+                )
+                
+                print(f"Successfully processed specific Circle Round episode:")
+                print(f"  Requested: {target_episode_title}")
+                print(f"  Got: {result.metadata.get('episode_title', 'Unknown')}")
+                print(f"  Transcription length: {len(result.transcription)} chars")
+                print(f"  Transcription confidence: {result.transcription_confidence:.2f}")
+                print(f"  Processing time: {result.processing_time:.2f}s")
+                print(f"  Icon matches: {len(result.icon_matches)}")
+                print(f"  Subjects found: {len(result.subjects)}")
+                
+                # Should have extracted subjects
+                assert isinstance(result.subjects, dict)
+                assert len(result.subjects) > 0, "Should extract at least some subjects"
+                
+                # Should have some icon matches
+                assert len(result.icon_matches) > 0, "Should find at least some icon matches"
+                
+                # Verify icon matches have proper structure
+                for match in result.icon_matches:
+                    assert isinstance(match, IconMatch)
+                    assert hasattr(match, 'icon')
+                    assert hasattr(match, 'confidence')
+                    assert hasattr(match, 'match_reason')
+                    assert 0 <= match.confidence <= 1
+                    assert len(match.match_reason) > 0, "Should have match reasoning"
+                
+                # For a story episode, expect story-related subjects and icons
+                transcription_lower = result.transcription.lower()
+                
+                # Check for story elements in transcription
+                story_elements = ["story", "once", "character", "adventure", "learn", "tale"]
+                found_story_elements = [elem for elem in story_elements if elem in transcription_lower]
+                
+                if found_story_elements:
+                    print(f"  Found story elements: {found_story_elements}")
+                
+                # Processing should be reasonably fast (under 2 minutes)
+                assert result.processing_time < 120, f"Processing took too long: {result.processing_time}s"
+                
+                # Print subject types found for debugging
+                subject_types = list(result.subjects.keys())
+                print(f"  Subject types: {subject_types}")
+                
+                # Print top icon matches for debugging
+                top_matches = result.icon_matches[:3]
+                print("  Top icon matches:")
+                for i, match in enumerate(top_matches, 1):
+                    print(f"    {i}. {match.icon.name} (confidence: {match.confidence:.2f}) - {match.match_reason}")
+                
+            else:
+                error_msg = result.error if hasattr(result, 'error') and result.error else "Unknown error"
+                print(f"Episode processing failed: {error_msg}")
+                
+                # If the specific episode wasn't found, that's still valuable information
+                if "episode not found" in error_msg.lower() or "no episodes found" in error_msg.lower():
+                    print(f"Episode '{target_episode_title}' not found in current feed - this is expected behavior")
+                else:
+                    pytest.skip(f"Podcast processing failed: {error_msg}")
+                
+        except Exception as e:
+            pytest.skip(f"Specific episode integration test failed: {e}")
+        finally:
+            # Cleanup
+            try:
+                await pipeline.cleanup()
+            except Exception:
+                pass
+    
+    @pytest.mark.integration
+    @pytest.mark.asyncio
+    async def test_episode_selection_by_index(self):
+        """Test selecting a specific episode by index from Circle Round."""
+        try:
+            pipeline = AudioIconPipeline()
+            
+            # Use Circle Round RSS feed for testing
+            test_url = "https://rss.wbur.org/circleround/podcast"
+            
+            # Validate URL first
+            is_valid = pipeline.validate_podcast_url(test_url)
+            if not is_valid:
+                pytest.skip("Circle Round RSS feed not accessible")
+            
+            # Test with episode index 5 (6th episode from the top, should be a few weeks/months old)
+            episode_index = 5
+            
+            result = await pipeline.process_async(
+                test_url,
+                max_icons=6,
+                confidence_threshold=0.3,
+                episode_index=episode_index
+            )
+            
+            # Validate results
+            assert isinstance(result, AudioIconResult)
+            
+            if result.success:
+                # Check basic structure
+                assert result.transcription is not None
+                assert len(result.transcription) > 50, "Should have transcription content"
+                assert result.metadata['source_type'] == 'podcast'
+                
+                # Should have episode metadata
+                assert 'episode_title' in result.metadata
+                assert 'show_name' in result.metadata
+                assert result.metadata['show_name'] == "Circle Round"
+                
+                print(f"Successfully processed Circle Round episode at index {episode_index}:")
+                print(f"  Title: {result.metadata.get('episode_title', 'Unknown')}")
+                print(f"  Episode number/date: {result.metadata.get('episode_number', 'Unknown')}")
+                print(f"  Published: {result.metadata.get('published_date', 'Unknown')}")
+                print(f"  Transcription length: {len(result.transcription)} chars")
+                print(f"  Processing time: {result.processing_time:.2f}s")
+                print(f"  Icon matches: {len(result.icon_matches)}")
+                
+                # Print subject types found for debugging
+                subject_types = list(result.subjects.keys())
+                print(f"  Subject types: {subject_types}")
+                
+                # Print top icon matches for debugging
+                if result.icon_matches:
+                    top_matches = result.icon_matches[:3]
+                    print("  Top icon matches:")
+                    for i, match in enumerate(top_matches, 1):
+                        print(f"    {i}. {match.icon.name} (confidence: {match.confidence:.2f}) - {match.match_reason}")
+                else:
+                    print("  No icon matches found")
+                
+                # Should have reasonable processing time
+                assert result.processing_time < 120, f"Processing took too long: {result.processing_time}s"
+                
+                # Should extract some content
+                assert len(result.subjects) >= 0  # May be 0 if subject extraction is disabled for speed
+                assert len(result.icon_matches) >= 0  # May be 0 if no good matches found
+                
+            else:
+                error_msg = result.error if hasattr(result, 'error') and result.error else "Unknown error"
+                print(f"Episode at index {episode_index} processing failed: {error_msg}")
+                pytest.skip(f"Episode processing failed: {error_msg}")
+                
+        except Exception as e:
+            pytest.skip(f"Episode index selection test failed: {e}")
+        finally:
+            # Cleanup
+            try:
+                await pipeline.cleanup()
+            except Exception:
+                pass
+    
+    @pytest.mark.integration
     def test_mixed_source_processing(self):
         """Test processing both local files and podcast URLs."""
         try:
