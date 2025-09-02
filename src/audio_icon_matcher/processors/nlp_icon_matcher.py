@@ -39,7 +39,7 @@ class NLPIconMatcher:
             self.test_icons = icons
             
             # Minimum similarity threshold for semantic matches
-            self.min_similarity = 0.4  # Lower threshold to catch more semantic relationships
+            self.min_similarity = 0.5  # Raise threshold to reduce false positives
             
             logger.info("NLP icon matcher initialized with spaCy semantic similarity")
             
@@ -154,13 +154,44 @@ class NLPIconMatcher:
                 total_score += semantic_score * phrase_boost
         
         if matched_keywords:
-            avg_confidence = total_score / len(matched_keywords)
-            if avg_confidence >= 0.3:  # Lower threshold for semantic matches
-                return {
-                    'icon': icon_data,
-                    'confidence': avg_confidence,
-                    'matched_keywords': matched_keywords,
-                    'match_type': 'semantic'
-                }
+            # Calculate confidence with special handling for compound phrases
+            phrase_matches = [kw for kw in matched_keywords if ' ' in kw and '→' not in kw]
+            semantic_matches = [kw for kw in matched_keywords if '→' in kw]
+            exact_matches = [kw for kw in matched_keywords if ' ' not in kw and '→' not in kw]
+            
+            # Weight different match types
+            confidence_components = []
+            
+            # Exact matches get full weight
+            for keyword in exact_matches:
+                if keyword in keywords:
+                    confidence_components.append(keywords[keyword])
+            
+            # Compound phrases get boosted weight
+            for keyword in phrase_matches:
+                if keyword in keywords:
+                    confidence_components.append(keywords[keyword] * 1.5)
+            
+            # Semantic matches get similarity-weighted score
+            for match_str in semantic_matches:
+                if '→' in match_str:
+                    keyword = match_str.split('→')[0]
+                    if keyword in keywords:
+                        confidence_components.append(keywords[keyword] * 0.8)  # Slight discount for semantic
+            
+            if confidence_components:
+                avg_confidence = sum(confidence_components) / len(confidence_components)
+                if avg_confidence >= 0.3:  # Lower threshold for semantic matches
+                    return {
+                        'icon': icon_data,
+                        'confidence': avg_confidence,
+                        'matched_keywords': matched_keywords,
+                        'match_type': 'semantic',
+                        'match_breakdown': {
+                            'exact_matches': len(exact_matches),
+                            'phrase_matches': len(phrase_matches),
+                            'semantic_matches': len(semantic_matches)
+                        }
+                    }
         
         return None

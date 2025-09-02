@@ -68,17 +68,25 @@ class NLPKeywordExtractor:
             # Remove determiners and clean up the phrase
             words = []
             for token in chunk:
-                if token.pos_ not in ['DET', 'ADP'] and not token.is_stop:
+                if (token.pos_ not in ['DET', 'ADP'] and 
+                    not token.is_stop and 
+                    not token.is_space and 
+                    token.is_alpha):
                     words.append(token.text.lower())
             
-            if len(words) >= 2:
+            # Only keep 2-word phrases for better quality
+            if len(words) == 2:
                 phrase = ' '.join(words)
                 if len(phrase) > 4:  # Minimum phrase length
                     phrases.append(phrase)
         
         # Also look for adjective + noun patterns not captured above
         for token in doc:
-            if token.pos_ == 'ADJ' and token.head.pos_ in ['NOUN', 'PROPN']:
+            if (token.pos_ == 'ADJ' and 
+                token.head.pos_ in ['NOUN', 'PROPN'] and
+                not token.is_space and
+                token.is_alpha and
+                token.head.is_alpha):
                 phrase = f"{token.text.lower()} {token.head.text.lower()}"
                 if phrase not in phrases and len(phrase) > 4:
                     phrases.append(phrase)
