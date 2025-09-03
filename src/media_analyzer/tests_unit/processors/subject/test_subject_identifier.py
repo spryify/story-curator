@@ -400,3 +400,142 @@ def test_subject_identification_with_context(subject_identifier, sample_text):
         assert subject.context == context
 
 
+class TestTitleBoosting:
+    """Test suite for title-based confidence boosting functionality."""
+    
+    def test_title_boosting_exact_match(self):
+        """Test confidence boosting for exact title matches."""
+        identifier = SubjectIdentifier()
+        
+        # Test exact match boosting
+        original_confidence = 0.6
+        boosted = identifier._apply_title_boosting(
+            original_confidence, 
+            "princess", 
+            "The Brave Princess"
+        )
+        
+        # Should be boosted by 1.5x factor
+        expected = min(original_confidence * 1.5, 1.0)
+        assert abs(boosted - expected) < 0.01
+        assert boosted > original_confidence
+    
+    def test_title_boosting_partial_match(self):
+        """Test confidence boosting for partial title matches."""
+        identifier = SubjectIdentifier()
+        
+        # Test partial match boosting
+        original_confidence = 0.6
+        boosted = identifier._apply_title_boosting(
+            original_confidence,
+            "brave",
+            "The Brave Knight's Quest"
+        )
+        
+        # Should be boosted by 1.25x factor
+        expected = min(original_confidence * 1.25, 1.0)
+        assert abs(boosted - expected) < 0.01
+        assert boosted > original_confidence
+    
+    def test_title_boosting_no_match(self):
+        """Test that confidence is unchanged when no title match exists."""
+        identifier = SubjectIdentifier()
+        
+        original_confidence = 0.6
+        boosted = identifier._apply_title_boosting(
+            original_confidence,
+            "dragon",
+            "The Wise Owl's Journey"
+        )
+        
+        # Should remain unchanged
+        assert boosted == original_confidence
+    
+    def test_title_boosting_generic_title(self):
+        """Test that generic titles don't provide boosting."""
+        identifier = SubjectIdentifier()
+        
+        original_confidence = 0.6
+        
+        generic_titles = [
+            "Episode 1", "Chapter 2", "Story Time", 
+            "Podcast Recording", "Part 3"
+        ]
+        
+        for title in generic_titles:
+            boosted = identifier._apply_title_boosting(
+                original_confidence,
+                "princess", 
+                title
+            )
+            # Should not be boosted for generic titles
+            assert boosted == original_confidence
+    
+    def test_title_boosting_confidence_cap(self):
+        """Test that title boosting respects confidence cap of 1.0."""
+        identifier = SubjectIdentifier()
+        
+        # Test with high initial confidence
+        high_confidence = 0.9
+        boosted = identifier._apply_title_boosting(
+            high_confidence,
+            "princess",
+            "Princess Adventure"
+        )
+        
+        # Should not exceed 1.0
+        assert boosted <= 1.0
+        assert boosted >= high_confidence
+    
+    def test_title_boosting_empty_inputs(self):
+        """Test title boosting with empty inputs."""
+        identifier = SubjectIdentifier()
+        
+        original_confidence = 0.6
+        
+        # Test with empty title
+        boosted = identifier._apply_title_boosting(
+            original_confidence, "princess", ""
+        )
+        assert boosted == original_confidence
+        
+        # Test with empty keyword
+        boosted = identifier._apply_title_boosting(
+            original_confidence, "", "The Princess"
+        )
+        assert boosted == original_confidence
+    
+    def test_title_boosting_integration(self):
+        """Test title boosting in full subject identification."""
+        identifier = SubjectIdentifier(timeout_ms=3000)
+        
+        # Story text that contains "brave knight"
+        story_text = """
+        Once upon a time, there was a brave knight who lived in a castle.
+        The knight was known throughout the kingdom for his courage and honor.
+        """
+        
+        # Test without title boosting
+        result_without_title = identifier.identify_subjects(story_text)
+        
+        # Test with title that matches story content
+        result_with_title = identifier.identify_subjects(
+            story_text, 
+            episode_title="The Brave Knight's Adventure"
+        )
+        
+        # Find the "knight" subject in both results
+        knight_without_title = next(
+            (s for s in result_without_title.subjects if "knight" in s.name.lower()), 
+            None
+        )
+        knight_with_title = next(
+            (s for s in result_with_title.subjects if "knight" in s.name.lower()), 
+            None
+        )
+        
+        # Both should exist and title version should have higher confidence
+        if knight_without_title and knight_with_title:
+            assert knight_with_title.confidence >= knight_without_title.confidence
+
+

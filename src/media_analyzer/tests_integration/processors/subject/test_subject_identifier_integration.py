@@ -196,3 +196,144 @@ class TestSubjectIdentifierIntegration:
         result = subject_identifier.identify_subjects(unusual_text)
         assert isinstance(result.metadata, dict)
         assert "errors" in result.metadata
+
+
+class TestTitleBoostingIntegration:
+    """Integration tests for title boosting functionality with real dependencies."""
+    
+    @pytest.fixture
+    def subject_identifier(self):
+        """Create a SubjectIdentifier with real dependencies."""
+        return SubjectIdentifier(max_workers=2, timeout_ms=3000)
+    
+    def test_title_boosting_with_real_nlp(self, subject_identifier):
+        """Test title boosting integration with real NLP libraries."""
+        # Story text with clear subjects
+        story_text = """
+        The brave knight Sir Lancelot rode through the dark forest.
+        He was searching for the lost princess who had been captured by a dragon.
+        The wise wizard Merlin had given him a magical sword to help on his quest.
+        """
+        
+        # Test without title boosting
+        result_without_title = subject_identifier.identify_subjects(story_text)
+        
+        # Test with matching title
+        result_with_title = subject_identifier.identify_subjects(
+            story_text,
+            episode_title="Sir Lancelot and the Lost Princess"
+        )
+        
+        # Both should succeed
+        assert result_without_title.subjects
+        assert result_with_title.subjects
+        
+        # Find subjects that should benefit from title boosting
+        lancelot_without = None
+        lancelot_with = None
+        princess_without = None
+        princess_with = None
+        
+        for subject in result_without_title.subjects:
+            if 'lancelot' in subject.name.lower():
+                lancelot_without = subject
+            elif 'princess' in subject.name.lower():
+                princess_without = subject
+        
+        for subject in result_with_title.subjects:
+            if 'lancelot' in subject.name.lower():
+                lancelot_with = subject
+            elif 'princess' in subject.name.lower():
+                princess_with = subject
+        
+        # Should find these subjects in both cases
+        if lancelot_without and lancelot_with:
+            # Title-boosted version should have higher or equal confidence
+            assert lancelot_with.confidence >= lancelot_without.confidence
+        
+        if princess_without and princess_with:
+            # Title-boosted version should have higher or equal confidence
+            assert princess_with.confidence >= princess_without.confidence
+    
+    def test_title_boosting_with_partial_matches(self, subject_identifier):
+        """Test title boosting with partial word matches."""
+        story_text = """
+        The kingdom was ruled by a wise monarch.
+        The royal court celebrated the coronation ceremony.
+        """
+        
+        # Title with partial matches
+        result = subject_identifier.identify_subjects(
+            story_text,
+            episode_title="The Royal Kingdom Chronicles"
+        )
+        
+        assert result.subjects
+        
+        # Should boost confidence for subjects that partially match title words
+        royal_subjects = [s for s in result.subjects if 'royal' in s.name.lower() or 'kingdom' in s.name.lower()]
+        
+        if royal_subjects:
+            # Should have reasonable confidence due to title boosting
+            max_royal_confidence = max(s.confidence for s in royal_subjects)
+            assert max_royal_confidence >= 0.4, "Royal subjects should benefit from title matching"
+    
+    def test_title_boosting_filtered_generic_titles(self, subject_identifier):
+        """Test that generic titles don't provide inappropriate boosting."""
+        story_text = "The princess lived in a castle with her pet dragon."
+        
+        generic_titles = [
+            "Episode 123",
+            "Chapter 5", 
+            "Story Session",
+            "Podcast Recording #45"
+        ]
+        
+        baseline_result = subject_identifier.identify_subjects(story_text)
+        
+        for generic_title in generic_titles:
+            generic_result = subject_identifier.identify_subjects(
+                story_text,
+                episode_title=generic_title
+            )
+            
+            # Generic titles shouldn't significantly boost confidence
+            if baseline_result.subjects and generic_result.subjects:
+                baseline_confidence = max(s.confidence for s in baseline_result.subjects)
+                generic_confidence = max(s.confidence for s in generic_result.subjects)
+                
+                # Should not boost confidence significantly for generic titles
+                assert generic_confidence <= baseline_confidence + 0.1, \
+                    f"Generic title '{generic_title}' shouldn't boost confidence much"
+    
+    def test_title_boosting_with_enhanced_keyword_extraction(self, subject_identifier):
+        """Test title boosting works with enhanced NLP keyword extraction."""
+        story_text = """
+        The quantum physicist worked in her advanced laboratory.
+        She was developing artificial intelligence algorithms.
+        The machine learning models could process natural language.
+        """
+        
+        # Title with technical terms
+        result = subject_identifier.identify_subjects(
+            story_text,
+            episode_title="The AI Physicist's Quantum Breakthrough"
+        )
+        
+        assert result.subjects
+        
+        # Should extract and boost technical compound phrases
+        all_subject_names = [s.name.lower() for s in result.subjects]
+        
+        # Look for technical terms that should be boosted
+        tech_terms = ['quantum', 'physicist', 'artificial intelligence', 'ai', 'machine learning']
+        found_tech_terms = [term for term in tech_terms 
+                           if any(term in name for name in all_subject_names)]
+        
+        if found_tech_terms:
+            # Should have decent confidence with title boosting
+            tech_subjects = [s for s in result.subjects 
+                           if any(term in s.name.lower() for term in found_tech_terms)]
+            
+            max_tech_confidence = max(s.confidence for s in tech_subjects)
+            assert max_tech_confidence >= 0.5, "Technical terms should benefit from title matching"

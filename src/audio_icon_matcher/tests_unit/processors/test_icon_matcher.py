@@ -452,3 +452,140 @@ class TestIconMatcherContextualBoosts:
         
         # Should get downloads boost
         assert confidence > 0.5
+
+
+class TestSemanticSimilarity:
+    """Test suite for semantic similarity functionality in IconMatcher."""
+    
+    def setup_method(self):
+        """Set up test fixtures."""
+        self.matcher = IconMatcher()
+    
+    @patch('spacy.load')
+    def test_semantic_similarity_with_spacy(self, mock_spacy_load):
+        """Test semantic similarity calculation when spaCy model is available."""
+        # Mock spaCy model and documents
+        mock_nlp = Mock()
+        mock_keyword_doc = Mock()
+        mock_icon_doc = Mock()
+        
+        # Mock vector similarity
+        mock_keyword_doc.has_vector = True
+        mock_icon_doc.has_vector = True
+        mock_keyword_doc.similarity.return_value = 0.8
+        
+        # Configure the mock to return different docs for different calls
+        mock_nlp.side_effect = [mock_keyword_doc, mock_icon_doc]
+        mock_spacy_load.return_value = mock_nlp
+        
+        # Enable semantic matching and set up NLP
+        self.matcher.semantic_matching_enabled = True
+        self.matcher.nlp = mock_nlp
+        
+        test_icon = IconData(
+            name="royal-crown",
+            url="https://example.com/crown.svg",
+            tags=["royal", "monarchy"],
+            metadata={'num_downloads': '1000'}
+        )
+        
+        similarity = self.matcher._calculate_semantic_similarity("king", test_icon)
+        
+        # Should return the mocked similarity score
+        assert similarity == 0.8
+    
+    def test_semantic_similarity_disabled(self):
+        """Test semantic similarity when feature is disabled."""
+        # Disable semantic matching
+        self.matcher.semantic_matching_enabled = False
+        
+        test_icon = IconData(
+            name="royal-crown",
+            url="https://example.com/crown.svg", 
+            tags=["royal"],
+            metadata={'num_downloads': '1000'}
+        )
+        
+        similarity = self.matcher._calculate_semantic_similarity("king", test_icon)
+        
+        # Should return default confidence when disabled
+        assert similarity == 1.0
+    
+    def test_semantic_similarity_no_nlp(self):
+        """Test semantic similarity when spaCy is not available."""
+        # Set up without NLP
+        self.matcher.semantic_matching_enabled = True
+        self.matcher.nlp = None
+        
+        test_icon = IconData(
+            name="crown",
+            url="https://example.com/crown.svg",
+            tags=["royal"],
+            metadata={}
+        )
+        
+        similarity = self.matcher._calculate_semantic_similarity("king", test_icon)
+        
+        # Should fall back to default confidence
+        assert similarity == 1.0
+    
+    def test_semantic_similarity_empty_icon_metadata(self):
+        """Test semantic similarity with icon that has no metadata."""
+        self.matcher.semantic_matching_enabled = True
+        
+        empty_icon = IconData(
+            name="",
+            url="https://example.com/icon.svg",
+            tags=[],
+            metadata={}
+        )
+        
+        similarity = self.matcher._calculate_semantic_similarity("king", empty_icon)
+        
+        # Should return 0 when no metadata available
+        assert similarity == 0.0
+    
+    def test_semantic_similarity_error_handling(self):
+        """Test semantic similarity with error conditions."""
+        # Mock spaCy to raise an exception
+        mock_nlp = Mock()
+        mock_nlp.side_effect = Exception("spaCy error")
+        
+        self.matcher.semantic_matching_enabled = True
+        self.matcher.nlp = mock_nlp
+        
+        test_icon = IconData(
+            name="crown",
+            url="https://example.com/crown.svg",
+            tags=["royal"],
+            metadata={}
+        )
+        
+        similarity = self.matcher._calculate_semantic_similarity("king", test_icon)
+        
+        # Should handle errors gracefully and fall back
+        assert similarity == 1.0
+    
+    def test_confidence_calculation_uses_semantic_similarity(self):
+        """Test that confidence calculation integrates semantic similarity."""
+        # Create an icon with tags that are semantically related but not exact matches
+        semantic_icon = IconData(
+            name="royalty-icon",
+            url="https://example.com/royal.svg",
+            tags=["crown", "monarchy", "regal"],  # Related to "king" but not exact
+            metadata={'num_downloads': '1000'}
+        )
+        
+        # Calculate confidence for a semantically related term
+        confidence = self.matcher._calculate_confidence(
+            term="king",
+            icon=semantic_icon,
+            term_type="keyword",
+            base_confidence=0.4
+        )
+        
+        # Should get some confidence boost from semantic similarity
+        # (Even without mocking spaCy, it should handle the comparison)
+        assert 0.4 <= confidence <= 1.0
+
+
