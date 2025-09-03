@@ -114,8 +114,13 @@ class TestAudioIconPipelineIntegration:
                 create_story_audio_file(audio_path, story_text.strip(), voice="Samantha", rate=150)
                 audio_files[story_name] = audio_path
             except Exception as e:
-                # Skip if 'say' command is not available (e.g., non-macOS systems)
-                pytest.skip(f"Could not generate audio file {story_name}: {e}")
+                # Log error but don't skip the entire fixture - just skip this file
+                print(f"Warning: Could not generate audio file {story_name}: {e}")
+                continue
+        
+        # Only skip if NO audio files were generated
+        if not audio_files:
+            pytest.skip("Could not generate any audio files")
         
         yield audio_files
         
@@ -144,7 +149,7 @@ class TestAudioIconPipelineIntegration:
         # Test with minimal requirements - if this fails, it means the pipeline
         # integration is broken, not just external services
         try:
-            result = pipeline.process(test_audio_file, max_icons=3, confidence_threshold=0.1)
+            result = pipeline.process(str(test_audio_file), max_icons=3, confidence_threshold=0.1)
             
             # Basic result structure validation
             assert isinstance(result, AudioIconResult)
@@ -234,7 +239,7 @@ class TestAudioIconPipelineIntegration:
         
         def run_pipeline():
             try:
-                result = pipeline.process(test_audio_file, max_icons=2, confidence_threshold=0.1)
+                result = pipeline.process(str(test_audio_file), max_icons=2, confidence_threshold=0.1)
                 results.append(result)
             except Exception as e:
                 errors.append(e)
@@ -260,8 +265,8 @@ class TestAudioIconPipelineIntegration:
         
         try:
             # Test max_icons parameter
-            result1 = pipeline.process(test_audio_file, max_icons=1, confidence_threshold=0.0)
-            result2 = pipeline.process(test_audio_file, max_icons=5, confidence_threshold=0.0)
+            result1 = pipeline.process(str(test_audio_file), max_icons=1, confidence_threshold=0.0)
+            result2 = pipeline.process(str(test_audio_file), max_icons=5, confidence_threshold=0.0)
             
             # If both succeed, result2 should have >= result1 icons (up to availability)
             if result1.success and result2.success:
@@ -302,7 +307,7 @@ class TestAudioIconPipelineIntegration:
         
         start_time = time.time()
         try:
-            result = pipeline.process(test_audio_file, max_icons=3, confidence_threshold=0.3)
+            result = pipeline.process(str(test_audio_file), max_icons=3, confidence_threshold=0.3)
             end_time = time.time()
             
             processing_time = end_time - start_time
