@@ -13,7 +13,6 @@ from ..core.exceptions import (
 )
 from ..models.results import AudioIconResult, IconMatch
 from ..processors.icon_matcher import IconMatcher
-from ..processors.nlp_icon_matcher import NLPIconMatcher
 from ..processors.result_ranker import ResultRanker
 
 # Import existing components
@@ -35,7 +34,7 @@ class AudioIconPipeline:
         """Initialize the pipeline with required processors."""
         self.audio_processor = AudioProcessor()
         self.subject_identifier = SubjectIdentifier()
-        self.icon_matcher = NLPIconMatcher()  # Use NLP-enhanced icon matcher
+        self.icon_matcher = IconMatcher()  # Enhanced icon matcher with semantic similarity
         self.result_ranker = ResultRanker()
         
         # Initialize podcast analyzer for streaming content
@@ -57,6 +56,7 @@ class AudioIconPipeline:
         """
         # Step 3: Match subjects to icons
         logger.info("Step 3: Matching subjects to icons...")
+        
         icon_matches = self.icon_matcher.find_matching_icons(
             subjects, 
             limit=max_icons * 2  # Get more matches for better ranking
@@ -300,6 +300,9 @@ class AudioIconPipeline:
             logger.info(f"Podcast analysis complete. Transcription length: {len(transcription)}")
             logger.info(f"Found {len(subjects)} subject types from podcast")
             
+            # Get episode title for enhanced matching
+            current_episode_title = podcast_result.episode.title if podcast_result.episode else None
+            
             # Use common icon matching and ranking logic
             ranked_matches = self._match_subjects_to_icons(subjects, max_icons)
             filtered_matches = self._filter_by_confidence(ranked_matches, confidence_threshold)
@@ -393,7 +396,7 @@ class AudioIconPipeline:
             # Step 2: Identify subjects from transcription
             logger.info("Step 2: Identifying subjects...")
             try:
-                subject_result = self.subject_identifier.identify_subjects(transcription)
+                subject_result = self.subject_identifier.identify_subjects(transcription, episode_title=None)
                 
                 if not subject_result or not subject_result.subjects:
                     logger.warning("Subject identification produced no results")
@@ -410,7 +413,7 @@ class AudioIconPipeline:
                 # Continue with empty subjects rather than failing completely
                 subjects = {}
             
-            # Use common icon matching and ranking logic
+            # Use common icon matching and ranking logic (no episode title for local files)
             ranked_matches = self._match_subjects_to_icons(subjects, max_icons)
             filtered_matches = self._filter_by_confidence(ranked_matches, confidence_threshold)
             

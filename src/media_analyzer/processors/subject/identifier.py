@@ -15,7 +15,7 @@ from media_analyzer.models.subject import (
     SubjectAnalysisResult,
     SubjectType
 )
-from media_analyzer.processors.subject.extractors.nlp_keyword_extractor import NLPKeywordExtractor
+from media_analyzer.processors.subject.extractors.keyword_extractor import KeywordExtractor
 from media_analyzer.processors.subject.extractors.topic_extractor import TopicExtractor
 from media_analyzer.processors.subject.extractors.entity_extractor import EntityExtractor
 from media_analyzer.processors.subject.exceptions import (
@@ -37,7 +37,7 @@ class SubjectIdentifier:
             max_workers: Maximum number of parallel processors
             timeout_ms: Overall timeout in milliseconds. Default 800ms per FR-002.
         """
-        self.keyword_processor = NLPKeywordExtractor()
+        self.keyword_processor = KeywordExtractor()
         self.topic_processor = TopicExtractor()
         self.entity_processor = EntityExtractor()
         self.max_workers = max_workers
@@ -100,13 +100,19 @@ class SubjectIdentifier:
             }
         }
 
-    def identify_subjects(self, text: str, context: Optional[Context] = None) -> SubjectAnalysisResult:
+    def identify_subjects(
+        self, 
+        text: str, 
+        context: Optional[Context] = None,
+        episode_title: Optional[str] = None
+    ) -> SubjectAnalysisResult:
         """
         Identify subjects in text using multiple processors.
         
         Args:
             text: Input text to analyze
             context: Optional context information
+            episode_title: Optional episode title for keyword boosting
             
         Returns:
             SubjectAnalysisResult with identified subjects and metadata
@@ -333,6 +339,10 @@ class SubjectIdentifier:
                                     conf_value = min(1.0, conf_value * 1.1)
                             
                         conf_value = max(0.0, min(1.0, conf_value))
+
+                        # Apply title-based confidence boosting if episode title provided
+                        if episode_title:
+                            conf_value = self._apply_title_boosting(conf_value, name, episode_title)
 
                         subject = Subject(
                             name=name,
@@ -565,3 +575,49 @@ class SubjectIdentifier:
             
         logger.debug(f"Story content filtering: {len(text)} -> {len(processed_text)} characters")
         return processed_text if processed_text else text
+    
+    def _apply_title_boosting(self, confidence: float, keyword: str, episode_title: str) -> float:
+        """
+        Boost confidence for keywords that appear in the episode title.
+        
+        Args:
+            confidence: Original confidence score
+            keyword: The subject keyword
+            episode_title: Episode title to check against
+            
+        Returns:
+            Boosted confidence score (capped at 1.0)
+        """
+        if not episode_title or not keyword:
+            return confidence
+        
+        # Skip generic titles that don't provide meaningful context
+        generic_titles = {
+            'episode', 'part', 'chapter', 'story', 'tale', 'podcast',
+            'audio', 'recording', 'session', 'show'
+        }
+        
+        title_lower = episode_title.lower()
+        title_words = set(title_lower.split())
+        keyword_lower = keyword.lower()
+        
+        # Skip if title is mostly numbers or generic words
+        meaningful_words = title_words - generic_titles - {str(i) for i in range(100)}
+        if len(meaningful_words) < 1:
+            return confidence
+        
+        # Check for exact word matches in title
+        if keyword_lower in title_words:
+            boosted_confidence = min(confidence * 1.5, 1.0)
+            logger.debug(f"Title boost applied to '{keyword}': {confidence:.3f} -> {boosted_confidence:.3f}")
+            return boosted_confidence
+        
+        # Check for partial matches (keyword contains title word or vice versa)
+        for title_word in meaningful_words:
+            if len(title_word) > 3:  # Only meaningful words
+                if title_word in keyword_lower or keyword_lower in title_word:
+                    boosted_confidence = min(confidence * 1.25, 1.0)
+                    logger.debug(f"Partial title boost applied to '{keyword}': {confidence:.3f} -> {boosted_confidence:.3f}")
+                    return boosted_confidence
+        
+        return confidence
