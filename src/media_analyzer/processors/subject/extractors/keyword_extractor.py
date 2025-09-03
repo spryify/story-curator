@@ -1,6 +1,6 @@
 """
 Keyword-based subject identification processor with NLP enhancements.
-Enhanced with NLTK, spaCy, and scikit-learn for robust keyword extraction.
+Enhanced with NLTK and spaCy for robust keyword extraction.
 """
 import re
 import time
@@ -12,7 +12,6 @@ from collections import Counter
 import nltk
 import spacy
 from nltk.corpus import stopwords, wordnet
-from sklearn.feature_extraction.text import TfidfVectorizer
 
 from media_analyzer.processors.subject.exceptions import ProcessingError
 
@@ -22,7 +21,7 @@ logger = logging.getLogger(__name__)
 class KeywordExtractor:
     """Enhanced keyword extractor using established NLP libraries.
     
-    Uses NLTK, spaCy, and scikit-learn for robust keyword extraction
+    Uses NLTK and spaCy for robust keyword extraction
     with improved semantic understanding.
     """
     
@@ -36,15 +35,7 @@ class KeywordExtractor:
             # spaCy model for semantic analysis
             self.nlp = spacy.load("en_core_web_sm")
             
-            # TF-IDF vectorizer for term importance
-            self.tfidf = TfidfVectorizer(
-                stop_words='english',
-                ngram_range=(1, 2),  # Unigrams and bigrams
-                min_df=1,
-                max_features=1000
-            )
-            
-            logger.info("Enhanced keyword extractor initialized with NLTK, spaCy, and scikit-learn")
+            logger.info("Enhanced keyword extractor initialized with NLTK and spaCy")
             
         except Exception as e:
             logger.error(f"Failed to initialize NLP libraries: {e}")
