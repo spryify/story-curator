@@ -15,7 +15,7 @@ from media_analyzer.models.subject import (
     SubjectAnalysisResult,
     SubjectType
 )
-from media_analyzer.processors.subject.extractors.keyword_extractor import KeywordExtractor
+from media_analyzer.processors.subject.extractors.nlp_keyword_extractor import NLPKeywordExtractor
 from media_analyzer.processors.subject.extractors.topic_extractor import TopicExtractor
 from media_analyzer.processors.subject.extractors.entity_extractor import EntityExtractor
 from media_analyzer.processors.subject.exceptions import (
@@ -37,7 +37,7 @@ class SubjectIdentifier:
             max_workers: Maximum number of parallel processors
             timeout_ms: Overall timeout in milliseconds. Default 800ms per FR-002.
         """
-        self.keyword_processor = KeywordExtractor()
+        self.keyword_processor = NLPKeywordExtractor()
         self.topic_processor = TopicExtractor()
         self.entity_processor = EntityExtractor()
         self.max_workers = max_workers

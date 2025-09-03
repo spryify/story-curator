@@ -13,6 +13,7 @@ from ..core.exceptions import (
 )
 from ..models.results import AudioIconResult, IconMatch
 from ..processors.icon_matcher import IconMatcher
+from ..processors.nlp_icon_matcher import NLPIconMatcher
 from ..processors.result_ranker import ResultRanker
 
 # Import existing components
@@ -34,7 +35,7 @@ class AudioIconPipeline:
         """Initialize the pipeline with required processors."""
         self.audio_processor = AudioProcessor()
         self.subject_identifier = SubjectIdentifier()
-        self.icon_matcher = IconMatcher()
+        self.icon_matcher = NLPIconMatcher()  # Use NLP-enhanced icon matcher
         self.result_ranker = ResultRanker()
         
         # Initialize podcast analyzer for streaming content
