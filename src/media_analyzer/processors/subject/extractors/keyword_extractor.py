@@ -89,11 +89,14 @@ class KeywordExtractor:
             # Count frequencies
             token_counts = Counter(meaningful_tokens)
             
-            # Add compound phrases to counts - dynamically detected phrases get boost
+            # Add compound phrases but don't artificially boost them over individual words
+            # For icon matching, individual nouns like "train" are more valuable than "little train"
             for phrase in compound_phrases:
-                # All detected compound phrases get a moderate boost
-                # This encourages meaningful multi-word concepts without hardcoding specific domains
-                token_counts[phrase] = token_counts.get(phrase, 0) + 2
+                # Add compound phrases with their natural frequency, no artificial boost
+                # This makes them available but doesn't prioritize them over core nouns
+                phrase_count = min(meaningful_tokens.count(word) for word in phrase.split() if word in meaningful_tokens)
+                if phrase_count > 0:
+                    token_counts[phrase] = phrase_count
             
             # Convert to confidence scores
             if not token_counts:
@@ -131,42 +134,35 @@ class KeywordExtractor:
             raise ProcessingError(f"Enhanced keyword extraction failed: {e}")
 
     def _extract_compound_phrases(self, doc) -> List[str]:
-        """Extract compound phrases using spaCy dependency parsing.
+        """Extract compound phrases that represent distinct entities for icon matching.
+        
+        Uses simple, generalizable rules: only noun+noun compounds that represent
+        distinct entities, completely avoiding adjective+noun combinations.
         
         Args:
             doc: spaCy Doc object
             
         Returns:
-            List of compound phrases found in text
+            List of noun+noun compound phrases
         """
         phrases = []
         
-        # Extract noun chunks (compound noun phrases)
+        # Focus ONLY on noun+noun compounds - these represent distinct entities
+        # Completely avoid adjective+noun which are just descriptive
         for chunk in doc.noun_chunks:
-            # Remove determiners and clean up the phrase
-            words = []
+            nouns_only = []
+            
             for token in chunk:
-                if (token.pos_ not in ['DET', 'ADP'] and 
+                # Only collect actual nouns, skip adjectives entirely
+                if (token.pos_ in ['NOUN', 'PROPN'] and
                     not token.is_stop and 
                     not token.is_space and 
                     token.is_alpha):
-                    words.append(token.text.lower())
+                    nouns_only.append(token.text.lower())
             
-            # Only keep 2-word phrases for better quality
-            if len(words) == 2:
-                phrase = ' '.join(words)
-                if len(phrase) > 4:  # Minimum phrase length
-                    phrases.append(phrase)
-        
-        # Also look for adjective + noun patterns not captured above
-        for token in doc:
-            if (token.pos_ == 'ADJ' and 
-                token.head.pos_ in ['NOUN', 'PROPN'] and
-                not token.is_space and
-                token.is_alpha and
-                token.head.is_alpha):
-                phrase = f"{token.text.lower()} {token.head.text.lower()}"
-                if phrase not in phrases and len(phrase) > 4:
-                    phrases.append(phrase)
+            # Create compounds only from consecutive nouns
+            if len(nouns_only) == 2:
+                phrase = ' '.join(nouns_only)
+                phrases.append(phrase)
         
         return phrases

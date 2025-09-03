@@ -415,16 +415,16 @@ class TestTitleBoosting:
             "The Brave Princess"
         )
         
-        # Should be boosted by 1.5x factor
+        # Should be boosted by 1.5x factor for exact word match
         expected = min(original_confidence * 1.5, 1.0)
         assert abs(boosted - expected) < 0.01
         assert boosted > original_confidence
     
-    def test_title_boosting_partial_match(self):
-        """Test confidence boosting for partial title matches."""
+    def test_title_boosting_exact_word_match(self):
+        """Test exact word match gets 1.5x boost."""
         identifier = SubjectIdentifier()
         
-        # Test partial match boosting
+        # "brave" as standalone word should get exact match boost
         original_confidence = 0.6
         boosted = identifier._apply_title_boosting(
             original_confidence,
@@ -432,7 +432,24 @@ class TestTitleBoosting:
             "The Brave Knight's Quest"
         )
         
-        # Should be boosted by 1.25x factor
+        # Should be boosted by 1.5x factor for exact word match
+        expected = min(original_confidence * 1.5, 1.0)
+        assert abs(boosted - expected) < 0.01
+        assert abs(boosted - 0.9) < 0.01  # 0.6 * 1.5 = 0.9 (with tolerance)
+    
+    def test_title_boosting_partial_match(self):
+        """Test confidence boosting for partial title matches."""
+        identifier = SubjectIdentifier()
+        
+        # Test partial match boosting (substring within word)
+        original_confidence = 0.6
+        boosted = identifier._apply_title_boosting(
+            original_confidence,
+            "knight",  # Should match "knighthood" as partial
+            "The Royal Knighthood Academy"
+        )
+        
+        # Should be boosted by 1.25x factor for partial match
         expected = min(original_confidence * 1.25, 1.0)
         assert abs(boosted - expected) < 0.01
         assert boosted > original_confidence
