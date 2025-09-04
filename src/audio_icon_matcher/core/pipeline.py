@@ -470,6 +470,23 @@ class AudioIconPipeline:
                 processing_time,
                 error_metadata
             )
+        except (RuntimeError, TypeError, AttributeError) as e:
+            logger.error("Unexpected error in local file pipeline: %s", e)
+            processing_time = time.time() - start_time
+            
+            # Return error result for unexpected errors
+            error_metadata = {
+                'source_type': 'local_file',
+                'audio_file': audio_file,
+                'error_type': type(e).__name__,
+                'pipeline_version': '1.1'
+            }
+            
+            return self._create_error_result(
+                f"Local file pipeline failed: {e}",
+                processing_time,
+                error_metadata
+            )
     
     def validate_audio_file(self, audio_file: str) -> bool:
         """Validate that the audio file can be processed.
@@ -483,7 +500,7 @@ class AudioIconPipeline:
         try:
             path = self.audio_processor.validate_file(audio_file)
             return path is not None and path.exists()
-        except (FileNotFoundError, ValueError, OSError) as e:
+        except (FileNotFoundError, ValueError, OSError, RuntimeError, TypeError) as e:
             logger.error("Audio file validation failed: %s", e)
             return False
     

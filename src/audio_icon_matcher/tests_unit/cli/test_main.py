@@ -125,7 +125,10 @@ class TestCLICommands:
             self.mock_pipeline.process.assert_called_once_with(
                 'test.wav',
                 max_icons=5,
-                confidence_threshold=0.5
+                confidence_threshold=0.5,
+                episode_index=0,
+                episode_title=None,
+                max_duration_minutes=30
             )
     
     @patch('audio_icon_matcher.cli.main.AudioIconPipeline')
