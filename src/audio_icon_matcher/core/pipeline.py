@@ -158,7 +158,8 @@ class AudioIconPipeline:
         max_icons: int = 10,
         confidence_threshold: float = 0.3,
         episode_index: int = 0,
-        episode_title: Optional[str] = None
+        episode_title: Optional[str] = None,
+        max_duration_minutes: int = 30
     ) -> AudioIconResult:
         """Process audio source through the complete pipeline.
         
@@ -168,6 +169,7 @@ class AudioIconPipeline:
             confidence_threshold: Minimum confidence for icon matches
             episode_index: Episode index from RSS feed (0 = most recent)
             episode_title: Find episode by title (partial match, case-insensitive)
+            max_duration_minutes: Maximum audio duration to process in minutes (default: 30)
             
         Returns:
             AudioIconResult with transcription, subjects, and icon matches
@@ -182,7 +184,7 @@ class AudioIconPipeline:
             async def process_with_cleanup():
                 try:
                     result = await self._process_podcast_url(
-                        audio_source, max_icons, confidence_threshold, episode_index, episode_title
+                        audio_source, max_icons, confidence_threshold, episode_index, episode_title, max_duration_minutes
                     )
                     return result
                 finally:
@@ -204,7 +206,7 @@ class AudioIconPipeline:
                 return asyncio.run(process_with_cleanup())
         else:
             return self._process_local_file(
-                audio_source, max_icons, confidence_threshold
+                audio_source, max_icons, confidence_threshold, max_duration_minutes
             )
     
     async def process_async(
@@ -213,7 +215,8 @@ class AudioIconPipeline:
         max_icons: int = 10,
         confidence_threshold: float = 0.3,
         episode_index: int = 0,
-        episode_title: Optional[str] = None
+        episode_title: Optional[str] = None,
+        max_duration_minutes: int = 30
     ) -> AudioIconResult:
         """Async version of process method for use in async contexts.
         
@@ -223,6 +226,7 @@ class AudioIconPipeline:
             confidence_threshold: Minimum confidence for icon matches
             episode_index: Episode index from RSS feed (0 = most recent)
             episode_title: Find episode by title (partial match, case-insensitive)
+            max_duration_minutes: Maximum audio duration to process in minutes (default: 30)
             
         Returns:
             AudioIconResult with transcription, subjects, and icon matches
@@ -235,7 +239,7 @@ class AudioIconPipeline:
         if self._is_url(audio_source):
             try:
                 result = await self._process_podcast_url(
-                    audio_source, max_icons, confidence_threshold, episode_index, episode_title
+                    audio_source, max_icons, confidence_threshold, episode_index, episode_title, max_duration_minutes
                 )
                 return result
             finally:
@@ -243,7 +247,7 @@ class AudioIconPipeline:
                 await self.cleanup()
         else:
             return self._process_local_file(
-                audio_source, max_icons, confidence_threshold
+                audio_source, max_icons, confidence_threshold, max_duration_minutes
             )
     
     def _is_url(self, source: str) -> bool:
@@ -256,7 +260,8 @@ class AudioIconPipeline:
         max_icons: int, 
         confidence_threshold: float,
         episode_index: int = 0,
-        episode_title: Optional[str] = None
+        episode_title: Optional[str] = None,
+        max_duration_minutes: int = 30
     ) -> AudioIconResult:
         """Process podcast episode from URL.
         
@@ -279,7 +284,7 @@ class AudioIconPipeline:
             options = AnalysisOptions(
                 subject_extraction=True,
                 confidence_threshold=0.3,  # Use lower threshold for subject extraction
-                max_duration_minutes=4,    # Limit to 4 minutes for faster processing
+                max_duration_minutes=max_duration_minutes,  # Use configurable duration limit
                 episode_index=episode_index,      # Pass episode selection to options
                 episode_title=episode_title       # Pass episode title to options
             )
@@ -354,7 +359,8 @@ class AudioIconPipeline:
         self, 
         audio_file: str, 
         max_icons: int, 
-        confidence_threshold: float
+        confidence_threshold: float,
+        max_duration_minutes: int = 30
     ) -> AudioIconResult:
         """Process local audio file through the complete pipeline.
         
@@ -362,6 +368,7 @@ class AudioIconPipeline:
             audio_file: Path to audio file to process
             max_icons: Maximum number of icons to return
             confidence_threshold: Minimum confidence for icon matches
+            max_duration_minutes: Maximum audio duration to process in minutes (default: 30)
             
         Returns:
             AudioIconResult with transcription, subjects, and icon matches
@@ -382,7 +389,13 @@ class AudioIconPipeline:
             
             # Step 1: Extract text from audio
             logger.info("Step 1: Extracting text from audio...")
-            audio_result = self.audio_processor.extract_text(audio_path)
+            
+            # Prepare audio processing options with duration limit
+            audio_options = {
+                'max_duration_minutes': max_duration_minutes
+            }
+            
+            audio_result = self.audio_processor.extract_text(audio_path, audio_options)
             
             if not audio_result or not audio_result.text:
                 raise AudioIconProcessingError("Audio processing failed or produced no text")

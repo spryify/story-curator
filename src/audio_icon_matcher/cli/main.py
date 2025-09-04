@@ -20,11 +20,12 @@ def audio_icon_matcher_commands():
 @click.argument("audio_source", type=str)
 @click.option("--max-icons", type=int, default=10, help="Maximum number of icons to return")
 @click.option("--confidence-threshold", type=float, default=0.3, help="Minimum confidence threshold")
+@click.option("--max-duration", type=int, default=30, help="Maximum audio duration to process in minutes")
 @click.option("--output-format", type=click.Choice(["json", "table", "summary"]), default="table", help="Output format")
 @click.option("--output-file", type=click.Path(path_type=Path), help="Output file (if not specified, prints to stdout)")
 @click.option("--episode-index", type=int, default=0, help="Episode index from RSS feed (0 = most recent, 1 = second most recent, etc.)")
 @click.option("--episode-title", type=str, help="Find episode by title (partial match, case-insensitive)")
-def find_matching_icons(audio_source, max_icons, confidence_threshold, output_format, output_file, episode_index, episode_title):
+def find_matching_icons(audio_source, max_icons, confidence_threshold, max_duration, output_format, output_file, episode_index, episode_title):
     """Find matching icons for audio source (local file or podcast URL).
     
     AUDIO_SOURCE can be:
@@ -61,7 +62,8 @@ def find_matching_icons(audio_source, max_icons, confidence_threshold, output_fo
             max_icons=max_icons,
             confidence_threshold=confidence_threshold,
             episode_index=episode_index,
-            episode_title=episode_title
+            episode_title=episode_title,
+            max_duration_minutes=max_duration
         )
         
         # Format and output results

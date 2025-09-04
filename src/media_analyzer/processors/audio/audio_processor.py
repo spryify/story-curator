@@ -133,6 +133,15 @@ class AudioProcessor:
                 audio_data = audio_file if isinstance(audio_file, AudioSegment) else AudioSegment.from_file(str(audio_file))
             except Exception as e:
                 raise AudioProcessingError(f"Failed to load audio file: {str(e)}") from e
+            
+            # Apply duration limit if specified with other options
+            if options and "max_duration_minutes" in options:
+                max_duration_minutes = options["max_duration_minutes"]
+                if max_duration_minutes and max_duration_minutes > 0:
+                    max_duration_ms = max_duration_minutes * 60 * 1000  # Convert to milliseconds
+                    if len(audio_data) > max_duration_ms:
+                        logger.info(f"Truncating audio from {len(audio_data)/1000/60:.1f} minutes to {max_duration_minutes} minutes")
+                        audio_data = audio_data[:max_duration_ms]
    
             with NamedTemporaryFile(suffix=".wav") as temp_file:
                 print("Preprocessing audio...")
