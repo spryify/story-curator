@@ -589,3 +589,193 @@ class TestSemanticSimilarity:
         assert 0.4 <= confidence <= 1.0
 
 
+class TestIconMatcherWordBoundaries:
+    """Test word boundary matching to prevent inappropriate substring matches."""
+    
+    def setup_method(self):
+        """Set up test fixtures."""
+        self.matcher = IconMatcher()
+    
+    def test_is_word_match_method_exists(self):
+        """Test that the _is_word_match method exists and is callable."""
+        assert hasattr(self.matcher, '_is_word_match')
+        assert callable(getattr(self.matcher, '_is_word_match'))
+    
+    def test_word_boundary_prevents_drinking_match(self):
+        """Test that 'king' does not match 'drinking' (critical child safety fix)."""
+        # This was the original bug - 'king' matching beer icons due to 'drinking'
+        assert not self.matcher._is_word_match("king", "drinking")
+        assert not self.matcher._is_word_match("king", "Beer, Alcohol, Drinking, Drinks")
+        assert not self.matcher._is_word_match("king", "drinking beer")
+    
+    def test_word_boundary_prevents_puking_match(self):
+        """Test that 'king' does not match 'puking' (critical child safety fix)."""
+        # This was another bug - 'king' matching candy icons due to 'puking'
+        assert not self.matcher._is_word_match("king", "puking")
+        assert not self.matcher._is_word_match("king", "Harry Potter Puking Pastilles")
+        assert not self.matcher._is_word_match("king", "puking candy")
+    
+    def test_word_boundary_allows_legitimate_king_matches(self):
+        """Test that 'king' correctly matches legitimate uses."""
+        assert self.matcher._is_word_match("king", "king")
+        assert self.matcher._is_word_match("king", "King")
+        assert self.matcher._is_word_match("king", "Lion King")
+        assert self.matcher._is_word_match("king", "The King")
+        assert self.matcher._is_word_match("king", "king of hearts")
+        assert self.matcher._is_word_match("king", "Chess King")
+    
+    def test_word_boundary_comprehensive_problematic_cases(self):
+        """Test various problematic substring matches that should be prevented."""
+        problematic_cases = [
+            ("king", "working"),      # 'king' in 'working'
+            ("king", "looking"),      # 'king' in 'looking'
+            ("king", "smoking"),      # 'king' in 'smoking'
+            ("art", "party"),         # 'art' in 'party'
+            ("art", "starting"),      # 'art' in 'starting'
+            ("ace", "place"),         # 'ace' in 'place'
+            ("ace", "palace"),        # 'ace' in 'palace'
+            ("cat", "category"),      # 'cat' in 'category'
+            ("cat", "scattered"),     # 'cat' in 'scattered'
+            ("run", "running"),       # 'run' in 'running'
+            ("run", "brunette"),      # 'run' in 'brunette'
+        ]
+        
+        for term, text in problematic_cases:
+            assert not self.matcher._is_word_match(term, text), \
+                f"'{term}' should NOT match '{text}' (word boundary violation)"
+    
+    def test_word_boundary_legitimate_matches(self):
+        """Test legitimate word boundary matches that should work."""
+        legitimate_cases = [
+            ("king", "king arthur"),
+            ("king", "royal king"),
+            ("art", "art gallery"),
+            ("art", "abstract art"),
+            ("ace", "ace of spades"),
+            ("ace", "flying ace"),
+            ("cat", "cat icon"),
+            ("cat", "black cat"),
+            ("run", "run fast"),
+            ("run", "home run"),
+        ]
+        
+        for term, text in legitimate_cases:
+            assert self.matcher._is_word_match(term, text), \
+                f"'{term}' should match '{text}' (legitimate word boundary match)"
+    
+    def test_word_boundary_case_insensitive(self):
+        """Test that word boundary matching is case insensitive."""
+        assert self.matcher._is_word_match("king", "KING")
+        assert self.matcher._is_word_match("KING", "king")
+        assert self.matcher._is_word_match("King", "Lion KING")
+        assert self.matcher._is_word_match("ART", "art gallery")
+        
+        # But still prevents false matches regardless of case
+        assert not self.matcher._is_word_match("king", "DRINKING")
+        assert not self.matcher._is_word_match("KING", "drinking")
+    
+    def test_word_boundary_with_punctuation(self):
+        """Test word boundary matching with various punctuation."""
+        # Should match when separated by punctuation
+        assert self.matcher._is_word_match("king", "king!")
+        assert self.matcher._is_word_match("king", "king.")
+        assert self.matcher._is_word_match("king", "king,")
+        assert self.matcher._is_word_match("king", "king?")
+        assert self.matcher._is_word_match("king", "(king)")
+        assert self.matcher._is_word_match("king", "king's")
+        
+        # Should not match when embedded
+        assert not self.matcher._is_word_match("king", "drinking!")
+        assert not self.matcher._is_word_match("king", "working.")
+    
+    def test_calculate_confidence_uses_word_boundaries(self):
+        """Test that confidence calculation uses word boundary matching."""
+        # Create test icons that would match with old substring method but not with word boundaries
+        drinking_icon = IconData(
+            name="beer-drinking",
+            url="https://example.com/drinking.svg",
+            tags=["beer", "alcohol", "drinking"],
+            metadata={'num_downloads': '1000'}
+        )
+        
+        puking_icon = IconData(
+            name="candy-puking",
+            url="https://example.com/puking.svg", 
+            tags=["candy", "sweet", "puking"],
+            metadata={'num_downloads': '800'}
+        )
+        
+        king_icon = IconData(
+            name="lion-king",
+            url="https://example.com/king.svg",
+            tags=["lion", "king", "royal"],
+            metadata={'num_downloads': '1200'}
+        )
+        
+        # Test that 'king' gets low confidence for drinking/puking icons
+        drinking_confidence = self.matcher._calculate_confidence(
+            term="king",
+            icon=drinking_icon,
+            term_type="keyword",
+            base_confidence=0.3
+        )
+        
+        puking_confidence = self.matcher._calculate_confidence(
+            term="king", 
+            icon=puking_icon,
+            term_type="keyword",
+            base_confidence=0.3
+        )
+        
+        # Test that 'king' gets high confidence for legitimate king icon
+        king_confidence = self.matcher._calculate_confidence(
+            term="king",
+            icon=king_icon,
+            term_type="keyword", 
+            base_confidence=0.3
+        )
+        
+        # King icon should have significantly higher confidence than drinking/puking icons
+        assert king_confidence > drinking_confidence
+        assert king_confidence > puking_confidence
+        
+        # Drinking and puking icons should have low confidence (near base confidence)
+        # since word boundary matching prevents the inappropriate boosts
+        assert abs(drinking_confidence - 0.3) < 0.1  # Should be close to base confidence
+        assert abs(puking_confidence - 0.3) < 0.1    # Should be close to base confidence
+    
+    def test_edge_cases_empty_and_special_strings(self):
+        """Test word boundary matching with edge cases."""
+        # Empty strings
+        assert not self.matcher._is_word_match("", "king")
+        assert not self.matcher._is_word_match("king", "")
+        assert not self.matcher._is_word_match("", "")
+        
+        # Single characters
+        assert self.matcher._is_word_match("a", "a")
+        assert self.matcher._is_word_match("a", "a word")
+        assert not self.matcher._is_word_match("a", "about")
+        
+        # Numbers
+        assert self.matcher._is_word_match("1", "1")
+        assert self.matcher._is_word_match("1", "icon 1")
+        assert not self.matcher._is_word_match("1", "10")
+        
+        # Whitespace handling
+        assert self.matcher._is_word_match("test", "  test  ")
+        assert self.matcher._is_word_match("test", "test word")
+        assert not self.matcher._is_word_match("test", "contest")
+        
+    def test_regex_escaping_in_word_match(self):
+        """Test that special regex characters are properly escaped."""
+        # Terms with regex special characters should be escaped
+        assert self.matcher._is_word_match("test.icon", "test.icon")
+        assert not self.matcher._is_word_match("test.icon", "testticon")  # . shouldn't match any char
+        
+        assert self.matcher._is_word_match("test+icon", "test+icon")
+        assert not self.matcher._is_word_match("test+icon", "testticon")  # + shouldn't be quantifier
+        
+        assert self.matcher._is_word_match("test*icon", "test*icon")
+        assert not self.matcher._is_word_match("test*icon", "testticon")  # * shouldn't be quantifier
+
+
