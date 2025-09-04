@@ -1,0 +1,498 @@
+{
+  "overall_metrics": {
+    "total_episodes": 5,
+    "success_rate": 100.0,
+    "avg_processing_time": 14.354566287994384,
+    "processing_time_std": 2.8806097299367934,
+    "avg_confidence": 0.9865584858170257,
+    "confidence_std": 0.030056139433658084,
+    "avg_relevance": 0.4166666666666667,
+    "relevance_std": 0.24999999999999997,
+    "high_quality_episodes": 4
+  },
+  "relevance_analysis": {
+    "story_themed_percentage": 20.0,
+    "character_percentage": 18.333333333333332,
+    "educational_percentage": 3.3333333333333335,
+    "icon_categories": {
+      "people": 24,
+      "food": 7,
+      "animals": 4,
+      "objects": 2,
+      "music": 1,
+      "health": 1,
+      "sports": 1
+    },
+    "problematic_matches": [
+      {
+        "episode": "Encore: Of Beans and Bunnies",
+        "icon_name": "Daniel Tiger Every Day Can Be A Thank You Day (#22738)",
+        "confidence": 1.0,
+        "reason": "Matched entity: every day",
+        "issue": "High confidence but low relevance - possible overfitting"
+      },
+      {
+        "episode": "Encore: Of Beans and Bunnies",
+        "icon_name": "Golden_Apple Mythology (#4027)",
+        "confidence": 1.0,
+        "reason": "Matched keyword: gold",
+        "issue": "High confidence but low relevance - possible overfitting"
+      },
+      {
+        "episode": "Encore: Of Beans and Bunnies",
+        "icon_name": "Goldilocks (#7906)",
+        "confidence": 1.0,
+        "reason": "Matched keyword: gold",
+        "issue": "High confidence but low relevance - possible overfitting"
+      },
+      {
+        "episode": "Encore: Of Beans and Bunnies",
+        "icon_name": "Kpop Demon Hunters Kdh Golden (#22312)",
+        "confidence": 1.0,
+        "reason": "Matched keyword: gold",
+        "issue": "High confidence but low relevance - possible overfitting"
+      },
+      {
+        "episode": "Encore: Of Beans and Bunnies",
+        "icon_name": "Goldilocks And The Three Dinosaurs Mo Willems (#9490)",
+        "confidence": 1.0,
+        "reason": "Matched keyword: gold",
+        "issue": "High confidence but low relevance - possible overfitting"
+      },
+      {
+        "episode": "Encore: Of Beans and Bunnies",
+        "icon_name": "Kpop Demon Hunters Kdh Golden (#22318)",
+        "confidence": 1.0,
+        "reason": "Matched keyword: gold",
+        "issue": "High confidence but low relevance - possible overfitting"
+      },
+      {
+        "episode": "Encore: Of Beans and Bunnies",
+        "icon_name": "Day Week (#7267)",
+        "confidence": 1.0,
+        "reason": "Matched topic: week",
+        "issue": "High confidence but low relevance - possible overfitting"
+      },
+      {
+        "episode": "Encore: Of Beans and Bunnies",
+        "icon_name": "Weeknd Blinding Lights (#390)",
+        "confidence": 1.0,
+        "reason": "Matched topic: week",
+        "issue": "High confidence but low relevance - possible overfitting"
+      }
+    ],
+    "relevance_distribution": [
+      0.5,
+      0.5,
+      0.6666666666666666,
+      0.0,
+      0.4166666666666667
+    ]
+  },
+  "quality_analysis": {
+    "total_matches": 40,
+    "match_type_distribution": {
+      "keyword_matches": 31,
+      "topic_matches": 3,
+      "entity_matches": 6
+    },
+    "confidence_distribution": {
+      "high": 40,
+      "medium": 0,
+      "low": 0
+    },
+    "avg_match_confidence": 1.0,
+    "top_performing_icons": [
+      {
+        "name": "Lotr, Lord Of The Rings Samwise (#20152)",
+        "count": 2,
+        "avg_confidence": 1.0,
+        "confidences": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "name": "Camel, Desert, Travel, Wisemen, Isrealites Bible (#10495)",
+        "count": 2,
+        "avg_confidence": 1.0,
+        "confidences": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "name": "Chocolate Bunny The Bunny Candy Bunny Veggietales Veggie Tales (#13593)",
+        "count": 2,
+        "avg_confidence": 1.0,
+        "confidences": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "name": "Veggietales (#4724)",
+        "count": 2,
+        "avg_confidence": 1.0,
+        "confidences": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "name": "Veggietales Veggie Tales Junior Asparagus (#961)",
+        "count": 2,
+        "avg_confidence": 1.0,
+        "confidences": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "name": "Bob And Larry Veggietales Veggie Tales (#13597)",
+        "count": 2,
+        "avg_confidence": 1.0,
+        "confidences": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "name": "Larry Veggietales (#2881)",
+        "count": 2,
+        "avg_confidence": 1.0,
+        "confidences": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "name": "Feet Body (#6716)",
+        "count": 1,
+        "avg_confidence": 1.0,
+        "confidences": [
+          1.0
+        ]
+      },
+      {
+        "name": "Papa Maurice Inventor Grandpa Grandfather Dad Father Old Man Elderly Disney Princess Beauty And The Beast (#11533)",
+        "count": 1,
+        "avg_confidence": 1.0,
+        "confidences": [
+          1.0
+        ]
+      },
+      {
+        "name": "Family A United Family Grandpa Grandfather Kids Grandkids Mom Dad Children The Box-Car Children Box Car (#7958)",
+        "count": 1,
+        "avg_confidence": 1.0,
+        "confidences": [
+          1.0
+        ]
+      }
+    ],
+    "matching_strategy_effectiveness": {
+      "keyword": {
+        "count": 31,
+        "avg_confidence": 1.0,
+        "min_confidence": 1.0,
+        "max_confidence": 1.0
+      },
+      "topic": {
+        "count": 3,
+        "avg_confidence": 1.0,
+        "min_confidence": 1.0,
+        "max_confidence": 1.0
+      },
+      "entity": {
+        "count": 6,
+        "avg_confidence": 1.0,
+        "min_confidence": 1.0,
+        "max_confidence": 1.0
+      },
+      "other": {
+        "count": 0
+      }
+    }
+  },
+  "transcription_correlation": {
+    "transcription_icon_correlation": -0.28632560253459144,
+    "avg_transcription_confidence": 0.7141632568023423,
+    "avg_transcription_length": 2754.6,
+    "story_element_percentage": 100.0,
+    "length_quality_correlation": -0.7033458320679388
+  },
+  "episode_analysis": [
+    {
+      "title": "The First Councilor",
+      "index": 0,
+      "overall_score": 0.77987170432144,
+      "confidence_score": 0.9327924290851285,
+      "relevance_score": 0.6666666666666666,
+      "transcription_score": 0.7004403301036102,
+      "num_matches": 12,
+      "processing_time": 11.475301265716553,
+      "key_strengths": [
+        "High confidence icon matches",
+        "Good content relevance",
+        "Clear story structure detected"
+      ],
+      "key_weaknesses": [],
+      "best_matches": [
+        {
+          "name": "Grumpy Monkey Play All Day (#13815)",
+          "confidence": 1.0,
+          "match_reason": "Matched entity: all day",
+          "category": "animals",
+          "tags": [
+            "animals",
+            "Grumpy monkey",
+            "Play all day"
+          ]
+        },
+        {
+          "name": "Harry Potter Puking Pastilles Candy (#4746)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: king",
+          "category": "food",
+          "tags": [
+            "Harry Potter",
+            "food",
+            "Puking Pastilles Candy"
+          ]
+        },
+        {
+          "name": "Beer Beer, Alcohol, Drinking, Drinks (#8393)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: king",
+          "category": "food",
+          "tags": [
+            "Beer",
+            "food",
+            "Beer, alcohol, drinking, drinks"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "The Donkey’s Tail",
+      "index": 20,
+      "overall_score": 0.7685366715823486,
+      "confidence_score": 1.0,
+      "relevance_score": 0.5,
+      "transcription_score": 0.8426833579117428,
+      "num_matches": 12,
+      "processing_time": 15.569787979125977,
+      "key_strengths": [
+        "High confidence icon matches",
+        "High quality transcription",
+        "Clear story structure detected",
+        "Multiple story-relevant icons found"
+      ],
+      "key_weaknesses": [],
+      "best_matches": [
+        {
+          "name": "Lotr, Lord Of The Rings Samwise (#20152)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: wise",
+          "category": "people",
+          "tags": [
+            "Samwise",
+            "LOTR, Lord of the Rings",
+            "people"
+          ]
+        },
+        {
+          "name": "Camel, Desert, Travel, Wisemen, Isrealites Bible (#10495)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: wise",
+          "category": "animals",
+          "tags": [
+            "Bible",
+            "animals",
+            "Camel, desert, travel, wisemen, Isrealites"
+          ]
+        },
+        {
+          "name": "Feet Body (#6716)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: feet",
+          "category": "people",
+          "tags": [
+            "body",
+            "feet",
+            "people"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Encore: The Mountain Guardian",
+      "index": 7,
+      "overall_score": 0.7384203375401931,
+      "confidence_score": 1.0,
+      "relevance_score": 0.4166666666666667,
+      "transcription_score": 0.8587683543676323,
+      "num_matches": 12,
+      "processing_time": 11.876800060272217,
+      "key_strengths": [
+        "High confidence icon matches",
+        "High quality transcription",
+        "Clear story structure detected",
+        "Multiple story-relevant icons found"
+      ],
+      "key_weaknesses": [],
+      "best_matches": [
+        {
+          "name": "Chocolate Bunny The Bunny Candy Bunny Veggietales Veggie Tales (#13593)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: tale",
+          "category": "food",
+          "tags": [
+            "veggietales veggie tales",
+            "food",
+            "chocolate bunny the bunny candy bunny"
+          ]
+        },
+        {
+          "name": "Veggietales (#4724)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: tale",
+          "category": "food",
+          "tags": [
+            "Veggietales",
+            "food"
+          ]
+        },
+        {
+          "name": "Veggietales Veggie Tales Junior Asparagus (#961)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: tale",
+          "category": "people",
+          "tags": [
+            "veggietales",
+            "veggie tales junior asparagus",
+            "people"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Milk from a Bull",
+      "index": 3,
+      "overall_score": 0.6733522330346496,
+      "confidence_score": 1.0,
+      "relevance_score": 0.5,
+      "transcription_score": 0.36676116517324764,
+      "num_matches": 12,
+      "processing_time": 14.338835000991821,
+      "key_strengths": [
+        "High confidence icon matches",
+        "Clear story structure detected"
+      ],
+      "key_weaknesses": [
+        "Low quality transcription"
+      ],
+      "best_matches": [
+        {
+          "name": "Lotr, Lord Of The Rings Samwise (#20152)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: wise",
+          "category": "people",
+          "tags": [
+            "Samwise",
+            "LOTR, Lord of the Rings",
+            "people"
+          ]
+        },
+        {
+          "name": "Camel, Desert, Travel, Wisemen, Isrealites Bible (#10495)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: wise",
+          "category": "animals",
+          "tags": [
+            "Bible",
+            "animals",
+            "Camel, desert, travel, wisemen, Isrealites"
+          ]
+        },
+        {
+          "name": "Papa Maurice Inventor Grandpa Grandfather Dad Father Old Man Elderly Disney Princess Beauty And The Beast (#11533)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: father",
+          "category": "people",
+          "tags": [
+            "Disney Princess Beauty and the beast",
+            "Papa Maurice Inventor Grandpa Grandfather Dad Father Old Man Elderly",
+            "people"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Encore: Of Beans and Bunnies",
+      "index": 8,
+      "overall_score": 0.5604326152910958,
+      "confidence_score": 1.0,
+      "relevance_score": 0.0,
+      "transcription_score": 0.8021630764554787,
+      "num_matches": 12,
+      "processing_time": 18.512107133865356,
+      "key_strengths": [
+        "High confidence icon matches",
+        "High quality transcription",
+        "Clear story structure detected"
+      ],
+      "key_weaknesses": [
+        "Poor content relevance",
+        "No story-themed icons found"
+      ],
+      "best_matches": [
+        {
+          "name": "Daniel Tiger Every Day Can Be A Thank You Day (#22738)",
+          "confidence": 1.0,
+          "match_reason": "Matched entity: every day",
+          "category": "people",
+          "tags": [
+            "Every Day Can Be a Thank You Day",
+            "daniel tiger",
+            "people"
+          ]
+        },
+        {
+          "name": "Golden_Apple Mythology (#4027)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: gold",
+          "category": "food",
+          "tags": [
+            "golden_apple",
+            "food",
+            "mythology"
+          ]
+        },
+        {
+          "name": "Goldilocks (#7906)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: gold",
+          "category": "people",
+          "tags": [
+            "Goldilocks",
+            "people"
+          ]
+        }
+      ]
+    }
+  ],
+  "recommendations": {
+    "algorithm_improvements": [
+      "Improve semantic matching algorithms - current relevance score is low"
+    ],
+    "data_quality_improvements": [
+      "Improve audio preprocessing or use higher-quality Whisper model for better transcription"
+    ],
+    "evaluation_improvements": [],
+    "system_optimizations": [
+      "Optimize processing time consistency - there's significant variation"
+    ]
+  }
+}
