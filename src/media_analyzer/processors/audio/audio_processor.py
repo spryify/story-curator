@@ -8,7 +8,7 @@ from typing import Optional, Dict, Union, Any
 import whisper
 from pydub import AudioSegment
 
-from media_analyzer.core.exceptions import AudioProcessingError, ValidationError
+from media_analyzer.core.exceptions import AudioProcessingError
 from media_analyzer.core.validator import AudioFileValidator
 from media_analyzer.models.audio import TranscriptionResult
 
@@ -33,7 +33,7 @@ class AudioProcessor:
             try:
                 self._model = whisper.load_model("base")
             except Exception as e:
-                raise AudioProcessingError(f"Failed to load Whisper model: {str(e)}")
+                raise AudioProcessingError(f"Failed to load Whisper model: {str(e)}") from e
         return self._model
 
     def validate_file(self, file_path: Union[str, Path]) -> Path:
@@ -77,7 +77,7 @@ class AudioProcessor:
         try:
             return AudioSegment.from_file(str(file_path))
         except Exception as e:
-            raise AudioProcessingError(f"Failed to load audio file: {e}")
+            raise AudioProcessingError(f"Failed to load audio file: {e}") from e
 
     def extract_text(self, audio_file: Union[Path, AudioSegment], options: Optional[Dict[str, Any]] = None) -> TranscriptionResult:
         """Extract text from audio file using Whisper.
@@ -140,7 +140,8 @@ class AudioProcessor:
                 if max_duration_minutes and max_duration_minutes > 0:
                     max_duration_ms = max_duration_minutes * 60 * 1000  # Convert to milliseconds
                     if len(audio_data) > max_duration_ms:
-                        logger.info(f"Truncating audio from {len(audio_data)/1000/60:.1f} minutes to {max_duration_minutes} minutes")
+                        logger.info("Truncating audio from %.1f minutes to %s minutes", 
+                                  len(audio_data)/1000/60, max_duration_minutes)
                         audio_data = audio_data[:max_duration_ms]
    
             with NamedTemporaryFile(suffix=".wav") as temp_file:
@@ -189,7 +190,7 @@ class AudioProcessor:
                 if valid_segments:
                     avg_logprob = sum(valid_segments) / len(valid_segments)
                     confidence = min(1.0, max(0.0, 1 + avg_logprob))
-            except Exception as e:
+            except (TypeError, ValueError, AttributeError) as e:
                 print(f"Warning: Failed to calculate confidence: {e}")
 
             # Prepare metadata

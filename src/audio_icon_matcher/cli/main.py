@@ -4,7 +4,7 @@ import click
 import sys
 import json
 from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Optional
 
 from ..core.pipeline import AudioIconPipeline
 from ..core.exceptions import AudioIconValidationError, AudioIconProcessingError
@@ -13,7 +13,6 @@ from ..core.exceptions import AudioIconValidationError, AudioIconProcessingError
 @click.group(name="audio-icon-matcher")
 def audio_icon_matcher_commands():
     """Audio-icon matcher commands."""
-    pass
 
 
 @audio_icon_matcher_commands.command("find-icons")
@@ -75,7 +74,10 @@ def find_matching_icons(audio_source, max_icons, confidence_threshold, max_durat
     except AudioIconProcessingError as e:
         click.echo(f"❌ Processing Error: {e}", err=True)
         sys.exit(1)
-    except Exception as e:
+    except (KeyboardInterrupt, SystemExit):
+        # Allow keyboard interrupts and system exits to propagate normally
+        raise  # noqa: TRY201
+    except (OSError, IOError, RuntimeError) as e:
         click.echo(f"❌ Unexpected error: {e}", err=True)
         sys.exit(1)
 
@@ -134,7 +136,7 @@ def validate_audio_source(audio_source):
             click.echo(f"❌ Invalid {source_type}: {audio_source}")
             sys.exit(1)
             
-    except Exception as e:
+    except (ValueError, TypeError, AttributeError) as e:
         click.echo(f"❌ Validation error: {e}", err=True)
         sys.exit(1)
 
@@ -158,7 +160,7 @@ def list_supported_formats():
         click.echo("  • Direct audio episode URLs")
         click.echo("  • Most major podcast platforms")
             
-    except Exception as e:
+    except (AttributeError, RuntimeError) as e:
         click.echo(f"❌ Error getting formats: {e}", err=True)
         sys.exit(1)
 
@@ -206,13 +208,13 @@ def _format_table_output(result) -> str:
     # Source information
     source_type = result.metadata.get('source_type', 'local_file')
     if source_type == 'podcast':
-        output_lines.append(f"Source: Podcast URL")
+        output_lines.append("Source: Podcast URL")
         if 'episode_title' in result.metadata and result.metadata['episode_title']:
             output_lines.append(f"Episode: {result.metadata['episode_title']}")
         if 'show_name' in result.metadata and result.metadata['show_name']:
             output_lines.append(f"Show: {result.metadata['show_name']}")
     else:
-        output_lines.append(f"Source: Local Audio File")
+        output_lines.append("Source: Local Audio File")
         if 'audio_file' in result.metadata:
             output_lines.append(f"File: {result.metadata['audio_file']}")
     
