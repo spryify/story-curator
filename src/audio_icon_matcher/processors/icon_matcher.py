@@ -1,6 +1,7 @@
 """Icon matcher processor for matching subjects to icons with semantic similarity."""
 
 import logging
+import re
 from typing import Dict, List, Any, Optional
 
 import spacy
@@ -38,6 +39,27 @@ class IconMatcher:
         
         # Minimum similarity threshold for semantic matches
         self.min_similarity = 0.5
+
+    def _is_word_match(self, term: str, text: str) -> bool:
+        """Check if term matches as a complete word in text.
+        
+        This prevents substring matches like 'king' matching 'drinking' or 'puking',
+        which was causing inappropriate matches (e.g., beer icons matching royal stories).
+        
+        Args:
+            term: The search term
+            text: The text to search in
+            
+        Returns:
+            True if term appears as a complete word in text
+        """
+        if not term or not text:
+            return False
+            
+        # Create regex pattern for word boundaries
+        # \b ensures we match complete words only
+        pattern = r'\b' + re.escape(term.lower()) + r'\b'
+        return bool(re.search(pattern, text.lower()))
         
     def find_matching_icons(
         self, 
@@ -194,19 +216,19 @@ class IconMatcher:
         """
         confidence = base_confidence * 0.8  # Start with 80% of base confidence
         
-        # Core matching boosts
+        # Core matching boosts with word boundary protection
         term_lower = term.lower()
         
-        # Boost for exact name matches
-        if term_lower in icon.name.lower():
+        # Boost for exact name matches (using word boundaries to prevent substring matches)
+        if self._is_word_match(term, icon.name):
             confidence += 0.2
             
-        # Boost for tag matches
-        if icon.tags and any(term_lower in tag.lower() for tag in icon.tags):
+        # Boost for tag matches (using word boundaries to prevent substring matches)
+        if icon.tags and any(self._is_word_match(term, tag) for tag in icon.tags):
             confidence += 0.15
             
-        # Boost for description matches
-        if icon.description and term_lower in icon.description.lower():
+        # Boost for description matches (using word boundaries to prevent substring matches)
+        if icon.description and self._is_word_match(term, icon.description):
             confidence += 0.1
             
         # Enhanced subject type scoring (if rich metadata available)
@@ -244,8 +266,8 @@ class IconMatcher:
         # Enhanced exact matching
         if icon.name.lower() == term_lower:
             confidence += 0.15  # Exact name match is very strong
-        elif term_lower in icon.name.lower().split():
-            confidence += 0.12  # Word match in name
+        elif term_lower in [word.lower() for word in icon.name.split()]:
+            confidence += 0.12  # Word match in name (exact word boundaries)
         
         # Enhanced tag matching
         if icon.tags:
@@ -253,8 +275,8 @@ class IconMatcher:
             if exact_tag_matches > 0:
                 confidence += 0.10 * min(exact_tag_matches, 3)  # Cap at 3 tag matches
             else:
-                # Partial tag matches
-                partial_matches = sum(1 for tag in icon.tags if term_lower in tag.lower())
+                # Partial tag matches (using word boundaries to prevent 'king' matching 'drinking')
+                partial_matches = sum(1 for tag in icon.tags if self._is_word_match(term, tag))
                 if partial_matches > 0:
                     confidence += 0.05 * min(partial_matches, 2)  # Cap at 2 partial matches
         
