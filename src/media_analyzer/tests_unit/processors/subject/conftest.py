@@ -22,7 +22,6 @@ class MockSpacyToken:
         self.is_alpha = text.isalpha()
         self.is_punct = not text.isalnum()
         self.is_space = text.isspace()
-        self.is_space = text.isspace()
 
 class MockSpacySpan:
     """Mock spaCy span (for noun chunks)."""
