@@ -86,7 +86,7 @@ jobs:
           --cov=src \
           --cov-report=xml \
           --cov-report=term-missing \
-          -k "not integration" \
+          -m "not integration" \
           --durations=10
 
     - name: Setup for integration tests
@@ -109,7 +109,7 @@ jobs:
     - name: Run integration tests
       run: |
         pytest src/ -v --tb=short --maxfail=5 \
-          -k "integration" \
+          -m "integration" \
           --durations=10
       continue-on-error: true  # Integration tests may fail due to external dependencies
 
