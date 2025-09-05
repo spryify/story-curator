@@ -20,6 +20,7 @@ def audio_analyzer():
 class TestAudioPipeline:
     """Integration test suite for audio processing pipeline."""
 
+    @pytest.mark.integration
     def test_end_to_end_audio_analysis(self, audio_analyzer, tmp_path):
         """Test the complete audio analysis pipeline."""
         # Create a test audio file
@@ -42,6 +43,7 @@ class TestAudioPipeline:
         assert "duration" in result.metadata
         assert "language" in result.metadata
 
+    @pytest.mark.integration
     def test_pipeline_with_different_formats(self, audio_analyzer, tmp_path):
         """Test the pipeline with different audio formats."""
         for fmt in ["wav", "mp3"]:
@@ -56,6 +58,7 @@ class TestAudioPipeline:
             assert result.text
             assert result.metadata["duration"] > 0
 
+    @pytest.mark.integration
     def test_pipeline_with_various_languages(self, audio_analyzer, tmp_path):
         """Test the pipeline with different language settings."""
         test_file = create_timed_speech_file(tmp_path)
@@ -70,6 +73,7 @@ class TestAudioPipeline:
             audio_analyzer.process_file(test_file, {"language": "es"})
         assert "Unsupported language: es" in str(exc_info.value)
 
+    @pytest.mark.integration
     def test_pipeline_error_propagation(self, audio_analyzer, tmp_path):
         """Test how errors propagate through the pipeline."""
         # Test with non-existent file
@@ -87,6 +91,7 @@ class TestAudioPipeline:
         with pytest.raises(ValidationError):
             audio_analyzer.process_file(test_file, {"language": "invalid"})
 
+    @pytest.mark.integration
     def test_pipeline_performance(self, audio_analyzer, tmp_path):
         """Test pipeline performance with different file sizes."""
         # Test with different durations
@@ -111,6 +116,7 @@ class TestAudioPipeline:
             # Allow for wider variance since TTS timing can vary significantly
             assert 0.5 * expected_duration <= actual_duration <= 1.5 * expected_duration
 
+    @pytest.mark.integration
     def test_pipeline_concurrent_processing(self, audio_analyzer, tmp_path):
         """Test pipeline handling multiple files concurrently."""
         import concurrent.futures
@@ -139,6 +145,7 @@ class TestAudioPipeline:
                 except Exception as e:
                     pytest.fail(f"Processing failed for {file_path}: {e}")
 
+    @pytest.mark.integration
     def test_childrens_story_audio_processing(self, audio_analyzer, children_story_texts, story_audio_creator, tmp_path):
         """Test processing of children's story audio files."""
         for story_name, story_text in children_story_texts.items():
@@ -179,6 +186,7 @@ class TestAudioPipeline:
                 assert any(keyword in text_lower for keyword in sharing_keywords), \
                     f"Expected sharing keywords not found in: {result.text}"
 
+    @pytest.mark.integration
     def test_educational_audio_content(self, audio_analyzer, educational_content_texts, story_audio_creator, tmp_path):
         """Test processing of educational audio content."""
         for lesson_name, lesson_text in educational_content_texts.items():
@@ -213,6 +221,7 @@ class TestAudioPipeline:
                 assert any(keyword in text_lower for keyword in kindness_keywords), \
                     f"Expected kindness keywords not found in: {result.text}"
 
+    @pytest.mark.integration
     def test_story_audio_with_different_voices(self, audio_analyzer, tmp_path):
         """Test processing audio with different synthesized voices."""
         story_text = """
@@ -253,6 +262,7 @@ class TestAudioPipeline:
                 # Skip if voice not available or utility function fails
                 continue
 
+    @pytest.mark.integration
     def test_multi_sentence_story_segmentation(self, audio_analyzer, story_audio_creator, tmp_path):
         """Test processing longer stories with multiple sentences."""
         long_story = """
@@ -285,6 +295,7 @@ class TestAudioPipeline:
         assert result.metadata["duration"] > 5.0  # Should be longer audio
         assert result.confidence > 0.3  # May be lower for longer content
 
+    @pytest.mark.integration
     def test_story_with_dialogue_and_emotions(self, audio_analyzer, story_audio_creator, tmp_path):
         """Test processing stories with dialogue and emotional content."""
         dialogue_story = """
@@ -311,6 +322,7 @@ class TestAudioPipeline:
         assert any(keyword in text_lower for keyword in dialogue_keywords), \
             f"Expected dialogue keywords not found in: {result.text}"
 
+    @pytest.mark.integration
     def test_audio_processor_extract_text(self, audio_analyzer, tmp_path):
         """Integration test for audio processor text extraction."""
         from media_analyzer.processors.audio.audio_processor import AudioProcessor
@@ -344,6 +356,7 @@ class TestAudioPipeline:
         assert hasattr(result, 'metadata')
         assert result.metadata.get("language") == "en"
 
+    @pytest.mark.integration
     def test_audio_processor_story_text_extraction(self, audio_analyzer, tmp_path):
         """Integration test for children's story audio text extraction.
         
@@ -389,6 +402,7 @@ class TestAudioPipeline:
                 break
         assert dialogue_found, "No dialogue detected in segments"
 
+    @pytest.mark.integration
     def test_audio_processor_story_audio_quality(self, audio_analyzer, tmp_path):
         """Integration test for audio quality checks for children's story content.
         
@@ -441,6 +455,7 @@ class TestAudioPipeline:
         assert 1.0 <= avg_duration <= 6.0, \
             f"Average segment duration {avg_duration}s not suitable for children's content"
 
+    @pytest.mark.integration
     def test_audio_format_text_extraction_integration(self, tmp_path):
         """Integration test for text extraction with different audio formats using real Whisper.
         

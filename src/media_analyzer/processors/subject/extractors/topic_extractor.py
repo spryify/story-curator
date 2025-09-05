@@ -5,7 +5,7 @@ import math
 from collections import Counter
 from typing import Any, Dict, List, Set, Tuple
 
-from media_analyzer.utils.stopwords import STOPWORDS
+from nltk.corpus import stopwords
 from media_analyzer.utils import logger
 
 
@@ -20,6 +20,8 @@ class TopicExtractor(BaseExtractor):
         self.max_topics = 5   # Maximum topics to return
         self.max_ngram = 3    # Maximum words in a phrase
         self.min_score = 0.1  # Minimum score threshold
+        # Use NLTK stopwords for consistency with other processors
+        self.stopwords = set(stopwords.words('english'))
         
     def process(self, text: str) -> Dict[str, float]:
         """Extract topics from text.
@@ -65,7 +67,7 @@ class TopicExtractor(BaseExtractor):
         
         # Normalize and tokenize remaining text
         text = re.sub(r'[^\w\s]', ' ', text_lower)
-        words = [w for w in text.split() if w not in STOPWORDS and len(w) > 2]
+        words = [w for w in text.split() if w not in self.stopwords and len(w) > 2]
         
         # Build phrases of different lengths
         for i in range(len(words)):

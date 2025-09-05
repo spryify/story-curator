@@ -8,10 +8,6 @@ from datetime import datetime
 from src.icon_extractor.models.icon import IconData
 from src.icon_extractor.core.exceptions import DatabaseError, ValidationError
 
-# Database integration tests require PostgreSQL setup
-SKIP_DATABASE_TESTS = os.getenv('SKIP_DATABASE_TESTS', 'true').lower() == 'true'
-skip_database = pytest.mark.skipif(SKIP_DATABASE_TESTS, reason="Database integration tests require PostgreSQL setup")
-
 
 class TestIconRepositoryUnit:
     """Unit tests for IconRepository functionality using mocks."""
@@ -137,42 +133,3 @@ class TestDatabaseWorkflowIntegration:
         print(f"   Unique tags: {len(unique_tags)}")
         print(f"   Searchable names: {len(names)}")
 
-
-@skip_database
-class TestRealDatabaseIntegration:
-    """Real database integration tests - requires PostgreSQL setup."""
-    
-    def test_postgresql_connection_placeholder(self):
-        """Placeholder for real PostgreSQL integration tests."""
-        pytest.skip("Real database tests require PostgreSQL setup with connection string")
-    
-    def test_postgresql_array_fields_placeholder(self):
-        """Placeholder for testing PostgreSQL ARRAY fields."""
-        pytest.skip("Requires PostgreSQL connection to test ARRAY column support")
-    
-    def test_postgresql_jsonb_fields_placeholder(self):
-        """Placeholder for testing PostgreSQL JSONB fields.""" 
-        pytest.skip("Requires PostgreSQL connection to test JSONB column support")
-    
-    def test_postgresql_indexes_placeholder(self):
-        """Placeholder for testing PostgreSQL indexes and performance."""
-        pytest.skip("Requires PostgreSQL connection to test database indexes")
-
-
-# Instructions for enabling real database tests
-"""
-To enable real PostgreSQL database integration tests:
-
-1. Set up PostgreSQL database:
-   createdb story_curator_test
-
-2. Set environment variables:
-   export DATABASE_URL="postgresql://user:password@localhost/story_curator_test"
-   export SKIP_DATABASE_TESTS=false
-
-3. Run database tests:
-   pytest tests/integration/icon_extractor/test_database_integration.py::TestRealDatabaseIntegration -v
-
-Note: Real database tests are skipped by default to avoid requiring PostgreSQL setup
-for basic integration testing.
-"""

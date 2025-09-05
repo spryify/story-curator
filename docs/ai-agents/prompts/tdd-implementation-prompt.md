@@ -20,12 +20,53 @@ Implement the specified feature using strict Test-Driven Development (TDD) metho
 
 ### Phase 1: TDD Setup (30 minutes)
 ```bash
-# Set up test infrastructure
-mkdir -p tests/{unit,integration}/[feature_area]
-touch tests/conftest.py
+# Set up co-located test infrastructure within the relevant module
+# Example: For media_analyzer keyword extractor
+mkdir -p src/media_analyzer/tests_unit/processors/subject/extractors
+mkdir -p src/media_analyzer/tests_integration/processors/subject
+
+# Example: For audio_icon_matcher components  
+mkdir -p src/audio_icon_matcher/tests_unit/processors
+mkdir -p src/audio_icon_matcher/tests_integration/processors
+
+# Ensure conftest.py exists in each test directory
+touch src/[module]/tests_unit/conftest.py
+touch src/[module]/tests_integration/conftest.py
 
 # Install test dependencies (per ADR-006)
 pip install pytest pytest-cov pytest-mock hypothesis
+```
+
+**Test Structure Pattern**:
+```
+src/
+├── media_analyzer/
+│   ├── processors/
+│   │   └── subject/
+│   │       └── extractors/
+│   │           ├── keyword_extractor.py
+│   │           └── nlp_keyword_extractor.py  # New NLP-based version
+│   ├── tests_unit/
+│   │   └── processors/
+│   │       └── subject/
+│   │           └── extractors/
+│   │               ├── test_keyword_extractor.py
+│   │               └── test_nlp_keyword_extractor.py  # New tests
+│   └── tests_integration/
+│       └── processors/
+│           └── subject/
+│               └── test_subject_identification_integration.py
+└── audio_icon_matcher/
+    ├── processors/
+    │   ├── icon_matcher.py
+    │   └── nlp_icon_matcher.py  # New NLP-based version
+    ├── tests_unit/
+    │   └── processors/
+    │       ├── test_icon_matcher.py
+    │       └── test_nlp_icon_matcher.py  # New tests
+    └── tests_integration/
+        └── processors/
+            └── test_icon_matching_integration.py
 ```
 
 **ADR Compliance Requirements:**
@@ -58,20 +99,23 @@ pip install pytest pytest-cov pytest-mock hypothesis
 
 #### TDD Commands:
 ```bash
-# Run single test (RED phase)
-pytest tests/unit/test_[feature].py::test_specific_test -v
+# Run single test (RED phase) - using co-located structure
+pytest src/[module]/tests_unit/processors/test_[feature].py::test_specific_test -v
 
 # Run all feature tests (GREEN/REFACTOR phases)  
-pytest tests/unit/test_[feature].py -v
+pytest src/[module]/tests_unit/processors/test_[feature].py -v
 
-# Run with coverage
-pytest tests/unit/ --cov=src/[module] --cov-report=term-missing
+# Run with coverage for specific module
+pytest src/[module]/tests_unit/ --cov=src/[module] --cov-report=term-missing
 
 # CLI component testing (when testing CLI features)
-pytest tests/unit/cli/ -v --tb=short
+pytest src/[module]/tests_unit/cli/ -v --tb=short
 
-# Plugin testing (when testing plugin interfaces)
-pytest tests/unit/plugins/ -v --tb=short
+# Integration testing with co-located structure
+pytest src/[module]/tests_integration/ -v
+
+# Cross-module integration testing
+pytest src/*/tests_integration/ -v
 ```
 
 ### Phase 3: Integration TDD (30-45 minutes)

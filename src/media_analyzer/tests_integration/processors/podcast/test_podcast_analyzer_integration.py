@@ -252,6 +252,7 @@ class TestPodcastIntegration:
         
         print("✅ Resource cleanup completed successfully")
         
+    @pytest.mark.integration
     def test_analysis_options_validation(self):
         """Test validation of analysis options."""
         

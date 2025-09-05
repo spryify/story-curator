@@ -1,10 +1,54 @@
 """Test configuration and fixtures for audio_icon_matcher."""
 
 import pytest
+import sys
 from unittest.mock import Mock, MagicMock
 from pathlib import Path
 import tempfile
 import os
+
+# Mock spaCy for unit tests to avoid requiring the actual model
+class MockSpacyDoc:
+    """Mock spaCy document."""
+    def __init__(self, text=""):
+        self.text = text
+        self.ents = []
+        self._ = {}
+    
+    def __iter__(self):
+        # Mock tokens
+        words = self.text.split()
+        return iter([MockSpacyToken(word) for word in words])
+
+class MockSpacyToken:
+    """Mock spaCy token."""
+    def __init__(self, text):
+        self.text = text
+        self.lemma_ = text.lower()
+        self.pos_ = "NOUN"
+        self.tag_ = "NN"
+        self.is_stop = text.lower() in {"the", "a", "an", "and", "or", "but"}
+        self.is_alpha = text.isalpha()
+        self.is_punct = not text.isalnum()
+
+class MockSpacyNLP:
+    """Mock spaCy NLP pipeline."""
+    def __init__(self):
+        self.vocab = MagicMock()
+        self.factory = MagicMock()
+        
+    def __call__(self, text):
+        return MockSpacyDoc(text)
+    
+    def pipe(self, texts, **_kwargs):
+        for text in texts:
+            yield MockSpacyDoc(text)
+
+# Patch spaCy at import time for unit tests
+if 'spacy' not in sys.modules:
+    mock_spacy = MagicMock()
+    mock_spacy.load.return_value = MockSpacyNLP()
+    sys.modules['spacy'] = mock_spacy
 
 from media_analyzer.models.audio.transcription import TranscriptionResult
 from media_analyzer.models.subject.identification import (
@@ -27,12 +71,24 @@ def sample_transcription_result():
 
 
 @pytest.fixture
-def sample_subject_analysis_result():
-    """Create a sample SubjectAnalysisResult for testing."""
+def sample_subject_analysis_result_fixture():
+    """Create sample SubjectAnalysisResult for testing."""
     subjects = {
-        Subject(name="cats", confidence=0.8, subject_type=SubjectType.KEYWORD, context=None),
-        Subject(name="music", confidence=0.7, subject_type=SubjectType.TOPIC, context=None),
-        Subject(name="pets", confidence=0.6, subject_type=SubjectType.ENTITY, context=None)
+        Subject(
+            name="cats",
+            subject_type=SubjectType.KEYWORD,
+            confidence=0.8
+        ),
+        Subject(
+            name="music",
+            subject_type=SubjectType.TOPIC,
+            confidence=0.7
+        ),
+        Subject(
+            name="pets",
+            subject_type=SubjectType.ENTITY,
+            confidence=0.6
+        )
     }
     
     categories = {
@@ -49,7 +105,7 @@ def sample_subject_analysis_result():
 
 
 @pytest.fixture
-def sample_icon_data():
+def sample_icon_data_fixture():
     """Create sample IconData for testing."""
     return [
         IconData(
@@ -77,23 +133,23 @@ def sample_icon_data():
 
 
 @pytest.fixture
-def sample_icon_matches(sample_icon_data):
+def sample_icon_matches(sample_icon_data_fixture):
     """Create sample IconMatch objects for testing."""
     return [
         IconMatch(
-            icon=sample_icon_data[0],
+            icon=sample_icon_data_fixture[0],
             confidence=0.85,
             match_reason="keyword match: cats",
             subjects_matched=["cats"]
         ),
         IconMatch(
-            icon=sample_icon_data[1],
+            icon=sample_icon_data_fixture[1],
             confidence=0.75,
             match_reason="topic match: music",
             subjects_matched=["music"]
         ),
         IconMatch(
-            icon=sample_icon_data[2],
+            icon=sample_icon_data_fixture[2],
             confidence=0.65,
             match_reason="entity match: pets",
             subjects_matched=["pets"]
@@ -138,18 +194,18 @@ def mock_audio_processor():
 
 
 @pytest.fixture
-def mock_subject_identifier(sample_subject_analysis_result):
+def mock_subject_identifier(sample_subject_analysis_result_fixture):
     """Create a mock SubjectIdentifier for testing."""
     mock_identifier = Mock()
-    mock_identifier.identify_subjects.return_value = sample_subject_analysis_result
+    mock_identifier.identify_subjects.return_value = sample_subject_analysis_result_fixture
     return mock_identifier
 
 
 @pytest.fixture
-def mock_icon_service(sample_icon_data):
+def mock_icon_service(sample_icon_data_fixture):
     """Create a mock IconExtractionService for testing."""
     mock_service = Mock()
-    mock_service.search_icons.return_value = sample_icon_data
+    mock_service.search_icons.return_value = sample_icon_data_fixture
     return mock_service
 
 
@@ -188,6 +244,9 @@ def pytest_configure(config):
 
 def pytest_collection_modifyitems(config, items):
     """Modify test collection to add markers based on test names."""
+    # Avoid unused variable warning by referencing config
+    _ = config
+    
     for item in items:
         # Mark integration tests
         if "integration" in item.nodeid.lower():

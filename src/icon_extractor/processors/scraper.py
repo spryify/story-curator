@@ -2,8 +2,7 @@
 
 import time
 from datetime import datetime
-from typing import List, Optional, Set
-from urllib.parse import urljoin, urlparse
+from typing import List, Optional
 
 import requests
 from bs4 import BeautifulSoup, Tag
@@ -11,7 +10,7 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 from ..models.icon import IconData, ScrapingResult
-from ..core.exceptions import ScrapingError, NetworkError, ValidationError
+from ..core.exceptions import ScrapingError, NetworkError
 
 
 class YotoIconScraper:
@@ -88,7 +87,7 @@ class YotoIconScraper:
                     # Be respectful with delays between categories
                     time.sleep(self.delay_between_requests)
                     
-                except Exception as e:
+                except (ScrapingError, NetworkError, requests.RequestException) as e:
                     error_msg = f"Failed to scrape category {category}: {e}"
                     errors.append(error_msg)
                     print(f"⚠️  {error_msg}")
@@ -125,7 +124,7 @@ class YotoIconScraper:
             "objects", "buildings", "technology", "sports", "music", "health"
         ]
         
-        # TODO: Could also discover categories dynamically by parsing the main page
+        # TODO: Could also discover categories dynamically by parsing the main page  # noqa: T101
         # but the known categories approach is more reliable for yotoicons.com
         return known_categories
 
@@ -189,7 +188,7 @@ class YotoIconScraper:
                 # Be respectful with delays between pages
                 time.sleep(self.delay_between_requests)
                 
-            except Exception as e:
+            except (ScrapingError, NetworkError, requests.RequestException) as e:
                 print(f"⚠️  Error scraping page {page} of category {category}: {e}")
                 break
         
@@ -229,7 +228,7 @@ class YotoIconScraper:
                 icons=category_icons
             )
             
-        except Exception as e:
+        except (ScrapingError, NetworkError, requests.RequestException) as e:
             errors.append(f"Failed to scrape category {category}: {e}")
             processing_time = time.time() - start_time
             
@@ -267,11 +266,11 @@ class YotoIconScraper:
                     continue
                 
                 # Find the image within this icon div
-                img = icon_div.find('img')
-                if not img:
+                img_elem = icon_div.find('img')  # type: ignore[attr-defined]
+                if not isinstance(img_elem, Tag):
                     continue
                     
-                src = img.get('src') if hasattr(img, 'get') else None
+                src = img_elem.get('src')
                 if not src or not isinstance(src, str):
                     continue
                 
@@ -333,7 +332,7 @@ class YotoIconScraper:
                     
                     icons.append(icon_data)
                     
-            except Exception as e:
+            except (AttributeError, KeyError, ValueError) as e:
                 print(f"   ⚠️  Error processing icon div: {e}")
                 continue
         
@@ -379,7 +378,7 @@ class YotoIconScraper:
             else:
                 return {}
                 
-        except Exception as e:
+        except (ValueError, AttributeError, IndexError) as e:
             print(f"   ⚠️  Error parsing onclick: {onclick[:100]}... - {e}")
             return {}
 
@@ -440,7 +439,7 @@ class YotoIconScraper:
             if name.isdigit():
                 return f"Icon {name}"
             return name.replace('_', ' ').replace('-', ' ').title()
-        except:
+        except (AttributeError, TypeError, ValueError):  # noqa: E722
             return "Unnamed Icon"
 
     def _has_next_page(self, soup: BeautifulSoup) -> bool:

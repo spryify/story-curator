@@ -232,8 +232,13 @@ class TestAudioIconPipeline:
         return mock_identifier
     
     @pytest.fixture
-    def pipeline(self, mock_audio_processor, mock_subject_identifier):
+    @patch('spacy.load')
+    def pipeline(self, mock_spacy_load, mock_audio_processor, mock_subject_identifier):
         """Create pipeline with mocked dependencies."""
+        # Mock spaCy model loading
+        mock_nlp = Mock()
+        mock_spacy_load.return_value = mock_nlp
+        
         pipeline = AudioIconPipeline()
         pipeline.audio_processor = mock_audio_processor
         pipeline.subject_identifier = mock_subject_identifier
@@ -260,8 +265,13 @@ class TestAudioIconPipeline:
         
         return pipeline
     
-    def test_init(self):
+    @patch('spacy.load')
+    def test_init(self, mock_spacy_load):
         """Test pipeline initialization."""
+        # Mock spaCy model loading
+        mock_nlp = Mock()
+        mock_spacy_load.return_value = mock_nlp
+        
         pipeline = AudioIconPipeline()
         assert pipeline.audio_processor is not None
         assert pipeline.subject_identifier is not None
@@ -365,7 +375,7 @@ class TestAudioIconPipeline:
     
     def test_validate_audio_file_failure(self, pipeline):
         """Test audio file validation failure."""
-        pipeline.audio_processor.validate_file.side_effect = Exception("Invalid file")
+        pipeline.audio_processor.validate_file.side_effect = ValueError("Invalid file")
         assert pipeline.validate_audio_file("/invalid/file.wav") is False
     
     def test_get_supported_formats(self, pipeline):
@@ -679,22 +689,3 @@ class TestPodcastIntegration:
         with patch.object(pipeline.podcast_analyzer, 'cleanup', new_callable=AsyncMock) as mock_cleanup:
             await pipeline.cleanup()
             mock_cleanup.assert_called_once()
-
-
-# Integration tests that require the full pipeline
-class TestAudioIconPipelineIntegration:
-    """Integration tests for the full pipeline."""
-    
-    @pytest.mark.integration
-    def test_full_pipeline_integration(self):
-        """Test full pipeline with real components (mocked external dependencies)."""
-        # This test would require setting up the full pipeline with real components
-        # but mocked external dependencies (Whisper, spaCy models, database)
-        # For now, we'll skip this as it requires more setup
-        pytest.skip("Integration test requires full setup")
-    
-    @pytest.mark.performance
-    def test_pipeline_performance(self):
-        """Test pipeline performance with various input sizes."""
-        # Performance test would measure processing time for different audio lengths
-        pytest.skip("Performance test requires audio samples")

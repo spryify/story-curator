@@ -15,6 +15,7 @@ def entity_processor():
 class TestEntityExtractorIntegration:
     """Integration test class using the real SpaCy model for entity processing."""
 
+    @pytest.mark.integration
     def test_basic_functionality_with_real_model(self, entity_processor):
         """Test basic entity processing functionality with real SpaCy model."""
         text = "Alice went to New York to visit Bob."
@@ -26,6 +27,7 @@ class TestEntityExtractorIntegration:
         assert isinstance(result["results"], dict)
         assert result["metadata"]["processor_type"] == "EntityExtractor"
 
+    @pytest.mark.integration
     def test_input_validation_real(self, entity_processor):
         """Test input validation with real model."""
         with pytest.raises(ValueError):
@@ -34,6 +36,7 @@ class TestEntityExtractorIntegration:
         with pytest.raises(ValueError):
             entity_processor.process(None)  # None input
 
+    @pytest.mark.integration
     def test_story_character_recognition_real(self, entity_processor):
         """Test recognition of story character names and titles with real model."""
         story = """
@@ -50,6 +53,7 @@ class TestEntityExtractorIntegration:
         # Check that we get reasonable confidence scores
         assert all(0 <= score <= 1 for score in results.values()), "Invalid confidence scores"
 
+    @pytest.mark.integration
     def test_story_setting_recognition_real(self, entity_processor):
         """Test recognition of story locations and settings with real model."""
         story = """
@@ -71,6 +75,7 @@ class TestEntityExtractorIntegration:
         found_any_location = any(loc in key for key in results for loc in locations)
         assert found_any_location, f"No expected locations found in {list(results.keys())}"
 
+    @pytest.mark.integration
     def test_story_object_recognition_real(self, entity_processor):
         """Test recognition of important story objects and items with real model."""
         story = """
@@ -95,6 +100,7 @@ class TestEntityExtractorIntegration:
         found_any_brand = any(brand in key for key in results for brand in brands)
         assert found_any_brand, f"No brands found in {list(results.keys())}"
 
+    @pytest.mark.integration
     def test_relationship_recognition_real(self, entity_processor):
         """Test recognition of character relationships with real model."""
         story = """

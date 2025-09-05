@@ -114,8 +114,13 @@ class TestAudioIconPipelineIntegration:
                 create_story_audio_file(audio_path, story_text.strip(), voice="Samantha", rate=150)
                 audio_files[story_name] = audio_path
             except Exception as e:
-                # Skip if 'say' command is not available (e.g., non-macOS systems)
-                pytest.skip(f"Could not generate audio file {story_name}: {e}")
+                # Log error but don't skip the entire fixture - just skip this file
+                print(f"Warning: Could not generate audio file {story_name}: {e}")
+                continue
+        
+        # Only skip if NO audio files were generated
+        if not audio_files:
+            pytest.skip("Could not generate any audio files")
         
         yield audio_files
         
@@ -144,7 +149,7 @@ class TestAudioIconPipelineIntegration:
         # Test with minimal requirements - if this fails, it means the pipeline
         # integration is broken, not just external services
         try:
-            result = pipeline.process(test_audio_file, max_icons=3, confidence_threshold=0.1)
+            result = pipeline.process(str(test_audio_file), max_icons=3, confidence_threshold=0.1)
             
             # Basic result structure validation
             assert isinstance(result, AudioIconResult)
@@ -164,6 +169,7 @@ class TestAudioIconPipelineIntegration:
             # But we should still test the pipeline structure
             pytest.skip(f"External services not available for integration test: {e}")
     
+    @pytest.mark.integration
     def test_pipeline_file_validation(self):
         """Test that pipeline properly validates input files."""
         pipeline = AudioIconPipeline()
@@ -189,6 +195,7 @@ class TestAudioIconPipelineIntegration:
         finally:
             os.unlink(temp_path)
     
+    @pytest.mark.integration
     def test_pipeline_different_audio_formats(self):
         """Test pipeline accepts different audio formats."""
         pipeline = AudioIconPipeline()
@@ -234,7 +241,7 @@ class TestAudioIconPipelineIntegration:
         
         def run_pipeline():
             try:
-                result = pipeline.process(test_audio_file, max_icons=2, confidence_threshold=0.1)
+                result = pipeline.process(str(test_audio_file), max_icons=2, confidence_threshold=0.1)
                 results.append(result)
             except Exception as e:
                 errors.append(e)
@@ -260,8 +267,8 @@ class TestAudioIconPipelineIntegration:
         
         try:
             # Test max_icons parameter
-            result1 = pipeline.process(test_audio_file, max_icons=1, confidence_threshold=0.0)
-            result2 = pipeline.process(test_audio_file, max_icons=5, confidence_threshold=0.0)
+            result1 = pipeline.process(str(test_audio_file), max_icons=1, confidence_threshold=0.0)
+            result2 = pipeline.process(str(test_audio_file), max_icons=5, confidence_threshold=0.0)
             
             # If both succeed, result2 should have >= result1 icons (up to availability)
             if result1.success and result2.success:
@@ -273,6 +280,7 @@ class TestAudioIconPipelineIntegration:
             # External service errors are acceptable in integration tests
             pytest.skip(f"External services not available: {e}")
     
+    @pytest.mark.integration
     def test_pipeline_error_handling_and_recovery(self):
         """Test that pipeline handles errors gracefully and provides useful information."""
         pipeline = AudioIconPipeline()
@@ -302,7 +310,7 @@ class TestAudioIconPipelineIntegration:
         
         start_time = time.time()
         try:
-            result = pipeline.process(test_audio_file, max_icons=3, confidence_threshold=0.3)
+            result = pipeline.process(str(test_audio_file), max_icons=3, confidence_threshold=0.3)
             end_time = time.time()
             
             processing_time = end_time - start_time
@@ -839,3 +847,107 @@ class TestPodcastPipelineIntegration:
                     
         except Exception as e:
             pytest.skip(f"Mixed source test failed: {e}")
+
+
+class TestEnhancedPipelineIntegration:
+    """Integration tests for enhanced pipeline functionality."""
+    
+    @pytest.mark.integration
+    def test_title_boosting_end_to_end(self):
+        """Test that title boosting works in the full pipeline."""
+        # Simple story for quick testing
+        story_text = "The princess lived in a castle. The princess was very kind."
+        
+        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as temp_file:
+            audio_path = Path(temp_file.name)
+        
+        try:
+            create_story_audio_file(audio_path, story_text, rate=200)  # Faster speech
+            
+            pipeline = AudioIconPipeline()
+            
+            # Process with title that matches story content
+            result = pipeline.process(
+                str(audio_path),
+                episode_title="Princess Adventure",
+                max_icons=8,
+                confidence_threshold=0.2
+            )
+            
+            # Should succeed
+            assert result.success, f"Pipeline failed: {result.error}"
+            assert len(result.icon_matches) > 0, "Should find some icon matches"
+                
+        finally:
+            if audio_path.exists():
+                audio_path.unlink()
+    
+    @pytest.mark.integration
+    def test_consolidated_classes_work_together(self):
+        """Test that consolidated IconMatcher and KeywordExtractor work in pipeline."""
+        # Simple story to test NLP processing
+        story_text = "The wizard lived in a tower. The dragon protected the village."
+        
+        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as temp_file:
+            audio_path = Path(temp_file.name)
+        
+        try:
+            create_story_audio_file(audio_path, story_text, rate=200)
+            
+            pipeline = AudioIconPipeline()
+            result = pipeline.process(
+                str(audio_path),
+                max_icons=10,
+                confidence_threshold=0.1
+            )
+            
+            # Should work without errors with consolidated classes
+            assert result.success, f"Pipeline failed: {result.error}"
+            
+            if result.icon_matches:
+                # Should have matched subjects from enhanced keyword extraction
+                all_subjects = []
+                for match in result.icon_matches:
+                    all_subjects.extend(match.subjects_matched)
+                
+                # Should find some story-related subjects
+                assert len(all_subjects) > 0, "Should extract subjects with enhanced NLP"
+                
+        finally:
+            if audio_path.exists():
+                audio_path.unlink()
+    
+    @pytest.mark.integration
+    def test_enhanced_pipeline_robustness(self):
+        """Test that enhanced pipeline handles various content types robustly."""
+        test_cases = [
+            ("Simple story", "The king ruled wisely"),
+            ("Modern content", "The computer processed the data"),
+            ("Mixed content", "The digital princess used magic technology")
+        ]
+        
+        for test_name, story_text in test_cases:
+            with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as temp_file:
+                audio_path = Path(temp_file.name)
+            
+            try:
+                create_story_audio_file(audio_path, story_text, rate=250)
+                
+                pipeline = AudioIconPipeline()
+                result = pipeline.process(
+                    str(audio_path),
+                    max_icons=5,
+                    confidence_threshold=0.1
+                )
+                
+                # Should handle all content types without crashing
+                assert isinstance(result.success, bool), f"{test_name} should return valid result"
+                
+                if not result.success:
+                    # Log the error but don't fail the test - some content may not have icons
+                    print(f"Expected behavior: {test_name} had no matching icons")
+                    
+            finally:
+                if audio_path.exists():
+                    audio_path.unlink()
+

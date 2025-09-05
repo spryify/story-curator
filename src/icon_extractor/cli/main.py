@@ -6,6 +6,8 @@ import os
 import sys
 from typing import Optional
 
+import requests
+
 from ..core.service import IconService
 from ..core.exceptions import IconCuratorError
 
@@ -38,10 +40,10 @@ def _run_demo_scrape() -> int:
     
     try:
         # Test the main site and discover actual structure
-        print(f"🔍 Exploring yotoicons.com structure...")
+        print("🔍 Exploring yotoicons.com structure...")
         
         main_url = "https://yotoicons.com/"
-        response = scraper._make_request(main_url)
+        response = scraper._make_request(main_url)  # noqa: SLF001
         
         if response:
             print(f"    ✅ Successfully connected to {main_url}")
@@ -58,7 +60,7 @@ def _run_demo_scrape() -> int:
             # Show general page structure
             headings = soup.find_all(['h1', 'h2', 'h3'])
             if headings:
-                print(f"    📝 Page headings found:")
+                print("    📝 Page headings found:")
                 for heading in headings[:3]:
                     text = heading.get_text().strip()
                     if text and len(text) < 100:
@@ -71,10 +73,10 @@ def _run_demo_scrape() -> int:
                 print(f"    🎨 Found {len(images)} images and {svg_count} SVG elements")
             
             # Try to use the scraper's actual discovery logic
-            print(f"\n🔍 Testing category discovery...")
+            print("\n🔍 Testing category discovery...")
             try:
                 # Use the scraper's built-in category discovery method
-                categories = scraper._discover_categories()
+                categories = scraper._discover_categories()  # noqa: SLF001
                 if categories:
                     print(f"    ✅ Discovered {len(categories)} categories:")
                     for cat in categories[:5]:  # Show first 5
@@ -82,25 +84,25 @@ def _run_demo_scrape() -> int:
                     if len(categories) > 5:
                         print(f"      ... and {len(categories) - 5} more")
                 else:
-                    print(f"    📝 No categories discovered with current logic")
-                    print(f"        (This may need site-specific adaptation)")
-            except Exception as discovery_error:
+                    print("    📝 No categories discovered with current logic")
+                    print("        (This may need site-specific adaptation)")
+            except (AttributeError, IndexError, requests.RequestException) as discovery_error:
                 print(f"    ⚠️  Category discovery test: {discovery_error}")
-                print(f"        (Discovery logic may need site-specific tuning)")
+                print("        (Discovery logic may need site-specific tuning)")
         
         else:
             print(f"    ❌ Could not connect to {main_url}")
         
-        print(f"\n🎯 Demo completed!")
-        print(f"   The scraper successfully connected to yotoicons.com")
-        print(f"   For full icon discovery and database storage:")
-        print(f"   1. Install PostgreSQL (see docs/environment-setup.md)")
-        print(f"   2. Run: python setup_database.py")
-        print(f"   3. Run: icon-curator scrape")
+        print("\n🎯 Demo completed!")
+        print("   The scraper successfully connected to yotoicons.com")
+        print("   For full icon discovery and database storage:")
+        print("   1. Install PostgreSQL (see docs/environment-setup.md)")
+        print("   2. Run: python setup_database.py")
+        print("   3. Run: icon-curator scrape")
         
         return 0
         
-    except Exception as e:
+    except (requests.RequestException, ConnectionError, OSError) as e:
         print(f"Demo error: {e}")
         return 1
 
@@ -128,7 +130,7 @@ def _print_scrape_results(result) -> None:
     Args:
         result: Scraping result object with statistics
     """
-    print(f"Scraping completed!")
+    print("Scraping completed!")
     print(f"Total icons found: {result.total_icons}")
     print(f"Successfully scraped: {result.successful_scraped}")
     print(f"Failed: {result.failed_scraped}")
@@ -212,7 +214,7 @@ def scrape_command(args) -> int:
     except KeyboardInterrupt:
         print("\nOperation cancelled by user", file=sys.stderr)
         return 1
-    except Exception as e:
+    except (OSError, ValueError) as e:
         print(f"Unexpected error: {e}", file=sys.stderr)
         return 1
 
@@ -267,7 +269,7 @@ def search_command(args) -> int:
     except IconCuratorError as e:
         print(f"Error: {e}", file=sys.stderr)
         return 1
-    except Exception as e:
+    except (OSError, ValueError, TypeError) as e:
         print(f"Unexpected error: {e}", file=sys.stderr)
         return 1
 
@@ -285,17 +287,17 @@ def _print_statistics(stats) -> None:
     print(f"Total Tags: {stats['total_tags']}")
     
     if stats['categories']:
-        print(f"\nTop Categories:")
+        print("\nTop Categories:")
         for category in stats['categories']:
             print(f"  - {category}")
     
     if stats['tags']:
-        print(f"\nTop Tags:")
+        print("\nTop Tags:")
         for tag in stats['tags']:
             print(f"  - {tag}")
 
 
-def stats_command(args) -> int:
+def stats_command(args) -> int:  # noqa: ARG001
     """Execute the stats command.
     
     Args:
@@ -314,7 +316,7 @@ def stats_command(args) -> int:
     except IconCuratorError as e:
         print(f"Error: {e}", file=sys.stderr)
         return 1
-    except Exception as e:
+    except (OSError, ValueError, TypeError) as e:
         print(f"Unexpected error: {e}", file=sys.stderr)
         return 1
 

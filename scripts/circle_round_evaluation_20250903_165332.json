@@ -1,0 +1,639 @@
+{
+  "evaluation_info": {
+    "timestamp": "2025-09-03T16:53:32.147383",
+    "rss_url": "https://rss.wbur.org/circleround/podcast",
+    "total_episodes": 5,
+    "successful_episodes": 5
+  },
+  "episodes": [
+    {
+      "episode_index": 20,
+      "success": true,
+      "processing_time": 11.533490180969238,
+      "episode_metadata": {
+        "title": "The Donkey’s Tail",
+        "show_name": "Circle Round"
+      },
+      "transcription_analysis": {
+        "length": 2803,
+        "confidence": 0.7924653211471082,
+        "word_count": 499,
+        "has_story_elements": true
+      },
+      "icon_analysis": {
+        "num_matches": 10,
+        "avg_confidence": 0.9114667225610256,
+        "max_confidence": 1.0,
+        "min_confidence": 0.6099811731381037,
+        "confidence_distribution": {
+          "high": 8,
+          "medium": 2,
+          "low": 0
+        }
+      },
+      "subject_analysis": {
+        "num_subject_types": 4,
+        "subject_types": [
+          "keywords",
+          "topics",
+          "entities",
+          "categories"
+        ],
+        "total_subjects": 20
+      },
+      "content_relevance": {
+        "story_themed_icons": 4,
+        "character_icons": 3,
+        "educational_icons": 0,
+        "general_relevance_score": 0.7,
+        "total_analyzed": 10
+      },
+      "icon_matches": [
+        {
+          "name": "Curious George Monkey (#2139)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: org",
+          "category": "animals",
+          "tags": [
+            "animals",
+            "monkey",
+            "curious george"
+          ]
+        },
+        {
+          "name": "Soccer Game Score Shot Kick Ball Cleats Shoes Soccer Ball Kicking Playing Scoring Shooting Passing Sports Soccer Futbol (#12225)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: shoes",
+          "category": "sports",
+          "tags": [
+            "Sports Soccer Futbol",
+            "sports",
+            "soccer game score shot kick ball cleats shoes soccer ball kicking playing scoring shooting passing"
+          ]
+        },
+        {
+          "name": "Chocolate Bunny The Bunny Candy Bunny Veggietales Veggie Tales (#13593)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: tale",
+          "category": "food",
+          "tags": [
+            "chocolate bunny the bunny candy bunny",
+            "veggietales veggie tales",
+            "food"
+          ]
+        },
+        {
+          "name": "Madam Blueberry Veggie Tales (#9418)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: tale",
+          "category": "food",
+          "tags": [
+            "veggie tales",
+            "madam blueberry",
+            "food"
+          ]
+        },
+        {
+          "name": "Veggietales (#4724)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: tale",
+          "category": "food",
+          "tags": [
+            "Veggietales",
+            "food"
+          ]
+        },
+        {
+          "name": "Soccer Cleats Shoes Gear Footwear Sneakers Sports Soccer Futbol (#12224)",
+          "confidence": 0.9750970208201521,
+          "match_reason": "Matched keyword: shoes",
+          "category": "sports",
+          "tags": [
+            "Sports Soccer Futbol",
+            "sports",
+            "soccer cleats shoes gear footwear sneakers"
+          ]
+        },
+        {
+          "name": "Blue Converse Shoes Boots Footwear Kicks Sneakers Healthy Habits Get Dressed Routine Timer (#11552)",
+          "confidence": 0.9600342852519992,
+          "match_reason": "Matched keyword: shoes",
+          "category": "health",
+          "tags": [
+            "Healthy Habits Get Dressed Routine Timer",
+            "health",
+            "Blue Converse Shoes Boots Footwear Kicks Sneakers"
+          ]
+        },
+        {
+          "name": "Red Converse Shoes Boots Footwear Kicks Sneakers Healthy Habits Get Dressed Routine Timer (#11553)",
+          "confidence": 0.959075138474192,
+          "match_reason": "Matched keyword: shoes",
+          "category": "health",
+          "tags": [
+            "Healthy Habits Get Dressed Routine Timer",
+            "Red Converse Shoes Boots Footwear Kicks Sneakers",
+            "health"
+          ]
+        }
+      ]
+    },
+    {
+      "episode_index": 3,
+      "success": true,
+      "processing_time": 10.301739931106567,
+      "episode_metadata": {
+        "title": "Milk from a Bull",
+        "show_name": "Circle Round"
+      },
+      "transcription_analysis": {
+        "length": 2595,
+        "confidence": 0.7614840892039578,
+        "word_count": 442,
+        "has_story_elements": true
+      },
+      "icon_analysis": {
+        "num_matches": 10,
+        "avg_confidence": 0.9115044264486903,
+        "max_confidence": 1.0,
+        "min_confidence": 0.6670271984646099,
+        "confidence_distribution": {
+          "high": 9,
+          "medium": 1,
+          "low": 0
+        }
+      },
+      "subject_analysis": {
+        "num_subject_types": 4,
+        "subject_types": [
+          "keywords",
+          "topics",
+          "entities",
+          "categories"
+        ],
+        "total_subjects": 12
+      },
+      "content_relevance": {
+        "story_themed_icons": 0,
+        "character_icons": 3,
+        "educational_icons": 0,
+        "general_relevance_score": 0.3,
+        "total_analyzed": 10
+      },
+      "icon_matches": [
+        {
+          "name": "Curious George Monkey (#2139)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: org",
+          "category": "animals",
+          "tags": [
+            "animals",
+            "monkey",
+            "curious george"
+          ]
+        },
+        {
+          "name": "Harry Potter Puking Pastilles Candy (#4746)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: king",
+          "category": "food",
+          "tags": [
+            "Harry Potter",
+            "Puking Pastilles Candy",
+            "food"
+          ]
+        },
+        {
+          "name": "Beer Beer, Alcohol, Drinking, Drinks (#8393)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: king",
+          "category": "food",
+          "tags": [
+            "Beer",
+            "Beer, alcohol, drinking, drinks",
+            "food"
+          ]
+        },
+        {
+          "name": "Soccer Game Score Shot Kick Ball Cleats Shoes Soccer Ball Kicking Playing Scoring Shooting Passing Sports Soccer Futbol (#12225)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: king",
+          "category": "sports",
+          "tags": [
+            "Sports Soccer Futbol",
+            "sports",
+            "soccer game score shot kick ball cleats shoes soccer ball kicking playing scoring shooting passing"
+          ]
+        },
+        {
+          "name": "Dream Moon, Stars, Cloud, Dream Thought Bubble, Dream Cloud (#8220)",
+          "confidence": 1.0,
+          "match_reason": "Matched topic: star",
+          "category": "weather",
+          "tags": [
+            "Dream",
+            "Moon, Stars, Cloud, dream thought bubble, dream cloud",
+            "weather"
+          ]
+        },
+        {
+          "name": "Cloud Stars Slumberkin Slumberkins Cloud (#10343)",
+          "confidence": 1.0,
+          "match_reason": "Matched topic: star",
+          "category": "weather",
+          "tags": [
+            "Slumberkins Cloud",
+            "Cloud Stars Slumberkin",
+            "weather"
+          ]
+        },
+        {
+          "name": "Moon Stars (#21570)",
+          "confidence": 1.0,
+          "match_reason": "Matched topic: star",
+          "category": "weather",
+          "tags": [
+            "moon",
+            "weather",
+            "stars"
+          ]
+        },
+        {
+          "name": "Pumba The Lion King (#2954)",
+          "confidence": 0.7240085330111469,
+          "match_reason": "Matched keyword: king",
+          "category": "animals",
+          "tags": [
+            "animals",
+            "Pumba",
+            "The Lion King"
+          ]
+        }
+      ]
+    },
+    {
+      "episode_index": 0,
+      "success": true,
+      "processing_time": 10.11194109916687,
+      "episode_metadata": {
+        "title": "The First Councilor",
+        "show_name": "Circle Round"
+      },
+      "transcription_analysis": {
+        "length": 2732,
+        "confidence": 0.7452640284394259,
+        "word_count": 486,
+        "has_story_elements": true
+      },
+      "icon_analysis": {
+        "num_matches": 5,
+        "avg_confidence": 0.8896034132044588,
+        "max_confidence": 1.0,
+        "min_confidence": 0.7240085330111469,
+        "confidence_distribution": {
+          "high": 5,
+          "medium": 0,
+          "low": 0
+        }
+      },
+      "subject_analysis": {
+        "num_subject_types": 4,
+        "subject_types": [
+          "keywords",
+          "topics",
+          "entities",
+          "categories"
+        ],
+        "total_subjects": 20
+      },
+      "content_relevance": {
+        "story_themed_icons": 0,
+        "character_icons": 2,
+        "educational_icons": 0,
+        "general_relevance_score": 0.4,
+        "total_analyzed": 5
+      },
+      "icon_matches": [
+        {
+          "name": "Harry Potter Puking Pastilles Candy (#4746)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: king",
+          "category": "food",
+          "tags": [
+            "Harry Potter",
+            "Puking Pastilles Candy",
+            "food"
+          ]
+        },
+        {
+          "name": "Beer Beer, Alcohol, Drinking, Drinks (#8393)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: king",
+          "category": "food",
+          "tags": [
+            "Beer",
+            "Beer, alcohol, drinking, drinks",
+            "food"
+          ]
+        },
+        {
+          "name": "Soccer Game Score Shot Kick Ball Cleats Shoes Soccer Ball Kicking Playing Scoring Shooting Passing Sports Soccer Futbol (#12225)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: king",
+          "category": "sports",
+          "tags": [
+            "Sports Soccer Futbol",
+            "sports",
+            "soccer game score shot kick ball cleats shoes soccer ball kicking playing scoring shooting passing"
+          ]
+        },
+        {
+          "name": "Pumba The Lion King (#2954)",
+          "confidence": 0.7240085330111469,
+          "match_reason": "Matched keyword: king",
+          "category": "animals",
+          "tags": [
+            "animals",
+            "Pumba",
+            "The Lion King"
+          ]
+        },
+        {
+          "name": "Simba The Lion King (#214)",
+          "confidence": 0.7240085330111469,
+          "match_reason": "Matched keyword: king",
+          "category": "animals",
+          "tags": [
+            "the lion king",
+            "animals",
+            "simba"
+          ]
+        }
+      ]
+    },
+    {
+      "episode_index": 8,
+      "success": true,
+      "processing_time": 11.531525135040283,
+      "episode_metadata": {
+        "title": "Encore: Of Beans and Bunnies",
+        "show_name": "Circle Round"
+      },
+      "transcription_analysis": {
+        "length": 3258,
+        "confidence": 0.8073024147960209,
+        "word_count": 598,
+        "has_story_elements": true
+      },
+      "icon_analysis": {
+        "num_matches": 12,
+        "avg_confidence": 0.7760533219022845,
+        "max_confidence": 1.0,
+        "min_confidence": 0.6571613443926333,
+        "confidence_distribution": {
+          "high": 6,
+          "medium": 6,
+          "low": 0
+        }
+      },
+      "subject_analysis": {
+        "num_subject_types": 4,
+        "subject_types": [
+          "keywords",
+          "topics",
+          "entities",
+          "categories"
+        ],
+        "total_subjects": 20
+      },
+      "content_relevance": {
+        "story_themed_icons": 0,
+        "character_icons": 2,
+        "educational_icons": 0,
+        "general_relevance_score": 0.16666666666666666,
+        "total_analyzed": 12
+      },
+      "icon_matches": [
+        {
+          "name": "Golden_Apple Mythology (#4027)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: gold",
+          "category": "food",
+          "tags": [
+            "mythology",
+            "golden_apple",
+            "food"
+          ]
+        },
+        {
+          "name": "Chocolate Bar (#4062)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: late",
+          "category": "food",
+          "tags": [
+            "chocolate bar",
+            "food"
+          ]
+        },
+        {
+          "name": "Lizard Bluey Creek (#4920)",
+          "confidence": 0.89,
+          "match_reason": "Matched entity: 20",
+          "category": "animals",
+          "tags": [
+            "Lizard ",
+            "animals",
+            "Bluey creek"
+          ]
+        },
+        {
+          "name": "Hat, Ball Cap, Cap, Baseball Hat, Baseball Cap, Pokemon, Sports Hat Healthy Habits Get Dressed Routine Timer (#20207)",
+          "confidence": 0.8574033807759034,
+          "match_reason": "Matched keyword: time",
+          "category": "sports",
+          "tags": [
+            "Healthy Habits Get Dressed Routine Timer",
+            "sports",
+            "hat, ball cap, cap, baseball hat, baseball cap, pokemon, sports hat"
+          ]
+        },
+        {
+          "name": "Birthday Cake Cake Slice (#2095)",
+          "confidence": 0.84,
+          "match_reason": "Matched entity: 20",
+          "category": "food",
+          "tags": [
+            "Cake Slice",
+            "Birthday Cake",
+            "food"
+          ]
+        },
+        {
+          "name": "Dinner Plate Jolly Phonics (#183)",
+          "confidence": 0.7240840113496444,
+          "match_reason": "Matched keyword: late",
+          "category": "food",
+          "tags": [
+            "jolly phonics",
+            "dinner plate",
+            "food"
+          ]
+        },
+        {
+          "name": "Honey Pooh Bear (#2405)",
+          "confidence": 0.6809720864659933,
+          "match_reason": "Matched entity: one",
+          "category": "food",
+          "tags": [
+            "Pooh bear",
+            "Honey",
+            "food"
+          ]
+        },
+        {
+          "name": "Honey Pot Winnie The Pooh (#3041)",
+          "confidence": 0.6750243907564769,
+          "match_reason": "Matched entity: one",
+          "category": "food",
+          "tags": [
+            "Winnie the Pooh",
+            "Honey Pot",
+            "food"
+          ]
+        }
+      ]
+    },
+    {
+      "episode_index": 7,
+      "success": true,
+      "processing_time": 10.637064933776855,
+      "episode_metadata": {
+        "title": "Encore: The Mountain Guardian",
+        "show_name": "Circle Round"
+      },
+      "transcription_analysis": {
+        "length": 3148,
+        "confidence": 0.7927221348620936,
+        "word_count": 547,
+        "has_story_elements": true
+      },
+      "icon_analysis": {
+        "num_matches": 12,
+        "avg_confidence": 0.8501162089237614,
+        "max_confidence": 1.0,
+        "min_confidence": 0.6571613443926333,
+        "confidence_distribution": {
+          "high": 7,
+          "medium": 5,
+          "low": 0
+        }
+      },
+      "subject_analysis": {
+        "num_subject_types": 4,
+        "subject_types": [
+          "keywords",
+          "topics",
+          "entities",
+          "categories"
+        ],
+        "total_subjects": 17
+      },
+      "content_relevance": {
+        "story_themed_icons": 3,
+        "character_icons": 2,
+        "educational_icons": 0,
+        "general_relevance_score": 0.4166666666666667,
+        "total_analyzed": 12
+      },
+      "icon_matches": [
+        {
+          "name": "Chocolate Bunny The Bunny Candy Bunny Veggietales Veggie Tales (#13593)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: tale",
+          "category": "food",
+          "tags": [
+            "chocolate bunny the bunny candy bunny",
+            "veggietales veggie tales",
+            "food"
+          ]
+        },
+        {
+          "name": "Madam Blueberry Veggie Tales (#9418)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: tale",
+          "category": "food",
+          "tags": [
+            "veggie tales",
+            "madam blueberry",
+            "food"
+          ]
+        },
+        {
+          "name": "Veggietales (#4724)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: tale",
+          "category": "food",
+          "tags": [
+            "Veggietales",
+            "food"
+          ]
+        },
+        {
+          "name": "Sheep Lamb (#687)",
+          "confidence": 1.0,
+          "match_reason": "Matched topic: sheep",
+          "category": "animals",
+          "tags": [
+            "sheep",
+            "animals",
+            "lamb"
+          ]
+        },
+        {
+          "name": "Asst Mayor Dawn Bellweather Sheep (#19242)",
+          "confidence": 1.0,
+          "match_reason": "Matched topic: sheep",
+          "category": "weather",
+          "tags": [
+            "Asst Mayor Dawn Bellweather",
+            "weather",
+            "sheep"
+          ]
+        },
+        {
+          "name": "Spring Eric Carle (#18154)",
+          "confidence": 1.0,
+          "match_reason": "Matched entity: spring",
+          "category": "weather",
+          "tags": [
+            "eric carle",
+            "spring",
+            "weather"
+          ]
+        },
+        {
+          "name": "Hat, Ball Cap, Cap, Baseball Hat, Baseball Cap, Pokemon, Sports Hat Healthy Habits Get Dressed Routine Timer (#20207)",
+          "confidence": 0.8574033807759034,
+          "match_reason": "Matched keyword: time",
+          "category": "sports",
+          "tags": [
+            "Healthy Habits Get Dressed Routine Timer",
+            "sports",
+            "hat, ball cap, cap, baseball hat, baseball cap, pokemon, sports hat"
+          ]
+        },
+        {
+          "name": "Honey Pooh Bear (#2405)",
+          "confidence": 0.6809720864659933,
+          "match_reason": "Matched entity: one",
+          "category": "food",
+          "tags": [
+            "Pooh bear",
+            "Honey",
+            "food"
+          ]
+        }
+      ]
+    }
+  ]
+}

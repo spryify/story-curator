@@ -3,10 +3,10 @@
 **Feature ID**: FR-002-audio-subject-identification  
 **Title**: Audio Subject Identification  
 **Priority**: High  
-**Status**: Draft  
+**Status**: In Progress - Enhancement Phase  
 **Assigned To**: GitHub Copilot  
 **Created**: 2025-08-24  
-**Updated**: 2025-08-24
+**Updated**: 2025-09-02
 
 ## Executive Summary
 
@@ -14,10 +14,15 @@
 
 **Business Value**: Enables automatic categorization and indexing of audio content, making it easier for users to organize and search through audio files based on their subject matter.
 
+**Current Status**: The basic subject identification is implemented but testing revealed quality issues with keyword extraction and icon matching. Generic words like "her", "very", "end" were causing irrelevant matches (e.g., "her" → Frozen princess icons). This enhancement phase focuses on improving semantic matching quality by leveraging established NLP libraries.
+
 **Success Criteria**: 
 - Successfully identify primary subject(s) in 90% of test cases
 - Subject identification completes in under 800ms for typical audio transcripts
 - False positive rate below 10%
+- **NEW**: Problematic generic word filtering (pronouns like "her", "him", common words like "very", "end") 
+- **NEW**: Semantic similarity matching over literal string matching
+- **NEW**: Leverage established NLP libraries (NLTK, spaCy) instead of custom implementations
 
 ## User Stories
 
@@ -38,6 +43,43 @@ As a data scientist
 I want to extract structured subject metadata from audio transcripts
 So that I can analyze trends and patterns in audio content
 ```
+
+## Enhancement Phase - NLP Library Integration (September 2025)
+
+### Problem Statement
+Integration testing revealed significant quality issues with the current custom implementation:
+
+1. **Generic Word Problem**: Keywords like "her", "very", "end", "ever" were getting high confidence scores and causing irrelevant icon matches
+2. **Poor Semantic Understanding**: Literal string matching produced semantically meaningless results  
+3. **Reinventing the Wheel**: Custom stop word lists, semantic groups, and compound word detection duplicate existing NLP libraries
+4. **Maintenance Burden**: Custom implementations require ongoing maintenance and tuning
+
+### Test Case Evidence
+**Problematic Episode**: "The Pot of Gold" from Circle Round podcast
+- Original: "her" (0.90 confidence) → Frozen princess icons ❌
+- Original: "end" (0.90 confidence) → Calendar/Apple icons ❌  
+- Original: "very" (1.00 confidence) → Irrelevant matches ❌
+
+**Expected Behavior**: 
+- Filter out generic pronouns and common words
+- Focus on story-relevant terms: "leprechauns", "gold", "ireland", "tale"
+- Semantic matching for related concepts
+
+### Enhancement Goals
+1. **Replace Custom NLP with Established Libraries**
+   - Use NLTK for comprehensive stop words and WordNet semantic relationships
+   - Leverage spaCy for advanced tokenization, POS tagging, and word vectors
+   - Integrate Gensim for semantic similarity via pre-trained embeddings
+
+2. **Improve Keyword Quality**
+   - Comprehensive stop word filtering using NLTK corpora
+   - Semantic relevance scoring using word embeddings
+   - Context-aware compound phrase detection
+
+3. **Enable Semantic Matching**
+   - Word similarity using spaCy word vectors
+   - Synonym mapping via WordNet
+   - Semantic word groups for categories (animals, colors, nature, etc.)
 
 ## Functional Requirements
 
@@ -187,3 +229,143 @@ class SubjectAnalyzer:
         """
         pass
 ```
+
+## Enhanced Technical Specifications (NLP Library Integration)
+
+### Required NLP Libraries
+Based on existing requirements.txt, these libraries are already available:
+- **NLTK (>=3.8.1)**: Stop words, WordNet synonyms, tokenization
+- **spaCy (>=3.7.2)**: Advanced NLP, word vectors, POS tagging
+- **Gensim (>=4.3.2)**: Word embeddings, semantic similarity
+- **scikit-learn (>=1.3.1)**: TF-IDF, feature extraction
+
+### Enhanced Component Design
+
+#### EnhancedKeywordExtractor
+```python
+class EnhancedKeywordExtractor:
+    """Enhanced keyword extractor using established NLP libraries."""
+    
+    def __init__(self):
+        # NLTK resources
+        self.stop_words = set(nltk.corpus.stopwords.words('english'))
+        self.wordnet = nltk.corpus.wordnet
+        
+        # spaCy model for semantic analysis
+        self.nlp = spacy.load("en_core_web_sm")
+        
+        # Custom domain-specific additions
+        self._load_domain_stop_words()
+    
+    def process(self, text: str, context: Dict[str, Any] = None) -> Dict[str, Any]:
+        """Extract keywords using NLP libraries."""
+        # Use spaCy for tokenization and POS tagging
+        doc = self.nlp(text)
+        
+        # Filter using NLTK stop words + custom domain words
+        # Score using semantic relevance + TF-IDF
+        # Detect compound phrases using dependency parsing
+        pass
+```
+
+#### EnhancedIconMatcher  
+```python
+class EnhancedIconMatcher:
+    """Enhanced icon matcher using semantic similarity."""
+    
+    def __init__(self):
+        # Load spaCy model with word vectors
+        self.nlp = spacy.load("en_core_web_md")  # Medium model with vectors
+        
+        # NLTK WordNet for synonyms
+        self.wordnet = nltk.corpus.wordnet
+        
+        # Semantic word groups (can be loaded from JSON/YAML)
+        self._load_semantic_groups()
+    
+    def find_matching_icons(
+        self, 
+        subjects: Dict[str, Any], 
+        limit: int = 10,
+        min_confidence: float = 0.3
+    ) -> List[IconMatch]:
+        """Find icons using semantic similarity."""
+        # Use spaCy word vectors for similarity
+        # Apply WordNet synonym expansion
+        # Filter using semantic relevance thresholds
+        pass
+```
+
+### Library Integration Strategy
+
+#### Phase 1: NLTK Integration
+1. **Stop Words**: Replace custom stop word lists with NLTK's comprehensive corpora
+2. **WordNet**: Use for synonym detection and semantic relationships
+3. **Tokenization**: Leverage NLTK's robust tokenizers
+
+#### Phase 2: spaCy Integration  
+1. **Word Vectors**: Use pre-trained embeddings for semantic similarity
+2. **POS Tagging**: Improve keyword filtering with part-of-speech information
+3. **Dependency Parsing**: Better compound phrase detection
+
+#### Phase 3: Semantic Enhancement
+1. **Gensim Models**: Word2Vec/FastText for advanced similarity
+2. **TF-IDF**: scikit-learn for term importance scoring
+3. **Custom Domains**: Extend with story/podcast-specific semantic groups
+
+### Implementation Plan
+
+#### Step 1: Library Setup and Validation
+- Verify all required NLP libraries are properly installed
+- Download necessary language models (spaCy en_core_web_md)
+- Download NLTK data (stopwords, wordnet, punkt)
+
+#### Step 2: Enhanced Keyword Extractor
+- Replace custom stop words with NLTK stopwords corpus
+- Add semantic relevance scoring using word embeddings
+- Implement compound phrase detection using dependency parsing
+
+#### Step 3: Enhanced Icon Matcher
+- Implement semantic similarity using spaCy word vectors
+- Add WordNet synonym expansion for better matching  
+- Create semantic word groups for categorized matching
+
+#### Step 4: Integration and Testing
+- Update AudioIconPipeline to use enhanced components
+- Run comparative tests against original implementation
+- Validate improvements using problematic test cases
+
+### Success Metrics for Enhancement
+
+#### Quality Improvements
+- **Problematic Word Filtering**: 100% filtering of identified problematic words ("her", "very", "end", etc.)
+- **Semantic Relevance**: >80% of matched icons should be semantically relevant to story content
+- **False Positive Reduction**: <5% false positive rate for irrelevant matches
+
+#### Performance Criteria
+- **Processing Time**: No degradation in processing time (<800ms)
+- **Memory Usage**: <100MB additional memory for NLP models
+- **Accuracy**: >85% accuracy on story content keyword extraction
+
+#### Maintainability Benefits
+- **Code Reduction**: 50% reduction in custom NLP code
+- **Library Reliability**: Use battle-tested NLP libraries instead of custom implementations  
+- **Update Path**: Clear path for model updates and improvements
+
+### Risk Mitigation
+
+#### Potential Issues
+1. **Model Size**: spaCy models can be large (50-500MB)
+2. **Cold Start**: Initial model loading time
+3. **Language Support**: Currently English-only, may need expansion
+
+#### Mitigation Strategies
+1. **Lazy Loading**: Load models only when needed
+2. **Model Caching**: Cache loaded models across requests
+3. **Fallback Strategy**: Graceful degradation to simpler methods if advanced models fail
+
+---
+
+**Implementation Status**: Ready for implementation
+**Next Steps**: Begin Phase 1 - Library setup and validation
+**Review Date**: 2025-09-15

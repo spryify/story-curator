@@ -8,8 +8,7 @@ from typing import Dict, List, Optional, Any, Union
 
 from ..core.exceptions import (
     AudioIconValidationError, 
-    AudioIconProcessingError,
-    SubjectIdentificationError
+    AudioIconProcessingError
 )
 from ..models.results import AudioIconResult, IconMatch
 from ..processors.icon_matcher import IconMatcher
@@ -22,7 +21,7 @@ from media_analyzer.models.subject.identification import SubjectAnalysisResult
 
 # Import podcast components
 from media_analyzer.processors.podcast.analyzer import PodcastAnalyzer
-from media_analyzer.models.podcast import AnalysisOptions, StreamingAnalysisResult
+from media_analyzer.models.podcast import AnalysisOptions
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +33,7 @@ class AudioIconPipeline:
         """Initialize the pipeline with required processors."""
         self.audio_processor = AudioProcessor()
         self.subject_identifier = SubjectIdentifier()
-        self.icon_matcher = IconMatcher()
+        self.icon_matcher = IconMatcher()  # Enhanced icon matcher with semantic similarity
         self.result_ranker = ResultRanker()
         
         # Initialize podcast analyzer for streaming content
@@ -56,12 +55,13 @@ class AudioIconPipeline:
         """
         # Step 3: Match subjects to icons
         logger.info("Step 3: Matching subjects to icons...")
+        
         icon_matches = self.icon_matcher.find_matching_icons(
             subjects, 
             limit=max_icons * 2  # Get more matches for better ranking
         )
         
-        logger.info(f"Found {len(icon_matches)} potential icon matches")
+        logger.info("Found %d potential icon matches", len(icon_matches))
         
         # Step 4: Rank and filter results
         logger.info("Step 4: Ranking and filtering results...")
@@ -157,7 +157,8 @@ class AudioIconPipeline:
         max_icons: int = 10,
         confidence_threshold: float = 0.3,
         episode_index: int = 0,
-        episode_title: Optional[str] = None
+        episode_title: Optional[str] = None,
+        max_duration_minutes: int = 30
     ) -> AudioIconResult:
         """Process audio source through the complete pipeline.
         
@@ -167,6 +168,7 @@ class AudioIconPipeline:
             confidence_threshold: Minimum confidence for icon matches
             episode_index: Episode index from RSS feed (0 = most recent)
             episode_title: Find episode by title (partial match, case-insensitive)
+            max_duration_minutes: Maximum audio duration to process in minutes (default: 30)
             
         Returns:
             AudioIconResult with transcription, subjects, and icon matches
@@ -181,7 +183,7 @@ class AudioIconPipeline:
             async def process_with_cleanup():
                 try:
                     result = await self._process_podcast_url(
-                        audio_source, max_icons, confidence_threshold, episode_index, episode_title
+                        audio_source, max_icons, confidence_threshold, episode_index, episode_title, max_duration_minutes
                     )
                     return result
                 finally:
@@ -203,7 +205,7 @@ class AudioIconPipeline:
                 return asyncio.run(process_with_cleanup())
         else:
             return self._process_local_file(
-                audio_source, max_icons, confidence_threshold
+                audio_source, max_icons, confidence_threshold, max_duration_minutes
             )
     
     async def process_async(
@@ -212,7 +214,8 @@ class AudioIconPipeline:
         max_icons: int = 10,
         confidence_threshold: float = 0.3,
         episode_index: int = 0,
-        episode_title: Optional[str] = None
+        episode_title: Optional[str] = None,
+        max_duration_minutes: int = 30
     ) -> AudioIconResult:
         """Async version of process method for use in async contexts.
         
@@ -222,6 +225,7 @@ class AudioIconPipeline:
             confidence_threshold: Minimum confidence for icon matches
             episode_index: Episode index from RSS feed (0 = most recent)
             episode_title: Find episode by title (partial match, case-insensitive)
+            max_duration_minutes: Maximum audio duration to process in minutes (default: 30)
             
         Returns:
             AudioIconResult with transcription, subjects, and icon matches
@@ -234,7 +238,7 @@ class AudioIconPipeline:
         if self._is_url(audio_source):
             try:
                 result = await self._process_podcast_url(
-                    audio_source, max_icons, confidence_threshold, episode_index, episode_title
+                    audio_source, max_icons, confidence_threshold, episode_index, episode_title, max_duration_minutes
                 )
                 return result
             finally:
@@ -242,7 +246,7 @@ class AudioIconPipeline:
                 await self.cleanup()
         else:
             return self._process_local_file(
-                audio_source, max_icons, confidence_threshold
+                audio_source, max_icons, confidence_threshold, max_duration_minutes
             )
     
     def _is_url(self, source: str) -> bool:
@@ -255,7 +259,8 @@ class AudioIconPipeline:
         max_icons: int, 
         confidence_threshold: float,
         episode_index: int = 0,
-        episode_title: Optional[str] = None
+        episode_title: Optional[str] = None,
+        max_duration_minutes: int = 30
     ) -> AudioIconResult:
         """Process podcast episode from URL.
         
@@ -272,13 +277,13 @@ class AudioIconPipeline:
         start_time = time.time()
         
         try:
-            logger.info(f"Starting podcast analysis for: {url}")
+            logger.info("Starting podcast analysis for: %s", url)
             
             # Configure podcast analysis options
             options = AnalysisOptions(
                 subject_extraction=True,
                 confidence_threshold=0.3,  # Use lower threshold for subject extraction
-                max_duration_minutes=4,    # Limit to 4 minutes for faster processing
+                max_duration_minutes=max_duration_minutes,  # Use configurable duration limit
                 episode_index=episode_index,      # Pass episode selection to options
                 episode_title=episode_title       # Pass episode title to options
             )
@@ -296,8 +301,8 @@ class AudioIconPipeline:
             # Convert subjects to dict format for icon matching (unified method)
             subjects = self._convert_subjects_to_rich_dict(podcast_result.subjects)
             
-            logger.info(f"Podcast analysis complete. Transcription length: {len(transcription)}")
-            logger.info(f"Found {len(subjects)} subject types from podcast")
+            logger.info("Podcast analysis complete. Transcription length: %d", len(transcription))
+            logger.info("Found %d subject types from podcast", len(subjects))
             
             # Use common icon matching and ranking logic
             ranked_matches = self._match_subjects_to_icons(subjects, max_icons)
@@ -306,8 +311,8 @@ class AudioIconPipeline:
             processing_time = time.time() - start_time
             
             logger.info(
-                f"Podcast pipeline complete in {processing_time:.2f}s. "
-                f"Returning {len(filtered_matches)} icon matches"
+                "Podcast pipeline complete in %.2fs. Returning %d icon matches",
+                processing_time, len(filtered_matches)
             )
             
             # Create result with podcast metadata
@@ -328,8 +333,8 @@ class AudioIconPipeline:
                 filtered_matches, processing_time, metadata
             )
             
-        except Exception as e:
-            logger.error(f"Unexpected error in podcast pipeline: {e}")
+        except (AudioIconValidationError, AudioIconProcessingError) as e:
+            logger.error("Specific error in podcast pipeline: %s", e)
             processing_time = time.time() - start_time
             
             # Return error result
@@ -350,7 +355,8 @@ class AudioIconPipeline:
         self, 
         audio_file: str, 
         max_icons: int, 
-        confidence_threshold: float
+        confidence_threshold: float,
+        max_duration_minutes: int = 30
     ) -> AudioIconResult:
         """Process local audio file through the complete pipeline.
         
@@ -358,6 +364,7 @@ class AudioIconPipeline:
             audio_file: Path to audio file to process
             max_icons: Maximum number of icons to return
             confidence_threshold: Minimum confidence for icon matches
+            max_duration_minutes: Maximum audio duration to process in minutes (default: 30)
             
         Returns:
             AudioIconResult with transcription, subjects, and icon matches
@@ -374,11 +381,17 @@ class AudioIconPipeline:
             if not audio_path.exists():
                 raise AudioIconValidationError(f"Audio file not found: {audio_file}")
                 
-            logger.info(f"Starting audio-to-icon pipeline for: {audio_file}")
+            logger.info("Starting audio-to-icon pipeline for: %s", audio_file)
             
             # Step 1: Extract text from audio
             logger.info("Step 1: Extracting text from audio...")
-            audio_result = self.audio_processor.extract_text(audio_path)
+            
+            # Prepare audio processing options with duration limit
+            audio_options = {
+                'max_duration_minutes': max_duration_minutes
+            }
+            
+            audio_result = self.audio_processor.extract_text(audio_path, audio_options)
             
             if not audio_result or not audio_result.text:
                 raise AudioIconProcessingError("Audio processing failed or produced no text")
@@ -386,13 +399,13 @@ class AudioIconPipeline:
             transcription = audio_result.text
             transcription_confidence = audio_result.confidence
             
-            logger.info(f"Transcription complete (confidence: {transcription_confidence:.2f})")
-            logger.debug(f"Transcribed text: {transcription[:100]}...")
+            logger.info("Transcription complete (confidence: %.2f)", transcription_confidence)
+            logger.debug("Transcribed text: %s...", transcription[:100])
             
             # Step 2: Identify subjects from transcription
             logger.info("Step 2: Identifying subjects...")
             try:
-                subject_result = self.subject_identifier.identify_subjects(transcription)
+                subject_result = self.subject_identifier.identify_subjects(transcription, episode_title=None)
                 
                 if not subject_result or not subject_result.subjects:
                     logger.warning("Subject identification produced no results")
@@ -401,23 +414,23 @@ class AudioIconPipeline:
                     # Convert SubjectAnalysisResult to rich dict format (unified method)
                     subjects = self._convert_subjects_to_rich_dict(subject_result)
                 
-                logger.info(f"Subject identification complete. Found {len(subjects)} subject types")
-                logger.debug(f"Subjects: {subjects}")
+                logger.info("Subject identification complete. Found %d subject types", len(subjects))
+                logger.debug("Subjects: %s", subjects)
                 
-            except Exception as e:
-                logger.error(f"Subject identification failed: {e}")
+            except (AttributeError, ValueError) as e:
+                logger.error("Subject identification failed: %s", e)
                 # Continue with empty subjects rather than failing completely
                 subjects = {}
             
-            # Use common icon matching and ranking logic
+            # Use common icon matching and ranking logic (no episode title for local files)
             ranked_matches = self._match_subjects_to_icons(subjects, max_icons)
             filtered_matches = self._filter_by_confidence(ranked_matches, confidence_threshold)
             
             processing_time = time.time() - start_time
             
             logger.info(
-                f"Local file pipeline complete in {processing_time:.2f}s. "
-                f"Returning {len(filtered_matches)} icon matches"
+                "Local file pipeline complete in %.2fs. Returning %d icon matches",
+                processing_time, len(filtered_matches)
             )
             
             # Create result metadata
@@ -437,13 +450,31 @@ class AudioIconPipeline:
             )
             
         except (AudioIconValidationError, AudioIconProcessingError):
-            # Re-raise validation and audio processing errors
-            raise
-        except Exception as e:
-            logger.error(f"Unexpected error in local file pipeline: {e}")
+            # Intentionally re-raise specific validation and processing errors
+            # These should be handled by the caller, not converted to generic errors
+            raise  # noqa: TRY201
+        except (OSError, IOError) as e:
+            logger.error("File system error in local file pipeline: %s", e)
             processing_time = time.time() - start_time
             
             # Return error result
+            error_metadata = {
+                'source_type': 'local_file',
+                'audio_file': audio_file,
+                'error_type': type(e).__name__,
+                'pipeline_version': '1.1'
+            }
+            
+            return self._create_error_result(
+                f"Local file pipeline failed: {e}",
+                processing_time,
+                error_metadata
+            )
+        except (RuntimeError, TypeError, AttributeError) as e:
+            logger.error("Unexpected error in local file pipeline: %s", e)
+            processing_time = time.time() - start_time
+            
+            # Return error result for unexpected errors
             error_metadata = {
                 'source_type': 'local_file',
                 'audio_file': audio_file,
@@ -469,8 +500,8 @@ class AudioIconPipeline:
         try:
             path = self.audio_processor.validate_file(audio_file)
             return path is not None and path.exists()
-        except Exception as e:
-            logger.error(f"Audio file validation failed: {e}")
+        except (FileNotFoundError, ValueError, OSError, RuntimeError, TypeError) as e:
+            logger.error("Audio file validation failed: %s", e)
             return False
     
     def get_supported_formats(self) -> List[str]:
@@ -570,10 +601,12 @@ class AudioIconPipeline:
             
         try:
             # Use the podcast analyzer to validate the URL
-            connector = self.podcast_analyzer._get_connector_for_url(url)
+            # Note: We access the internal method as it's the only way to validate URLs
+            # This could be improved by adding a public validate_url method to PodcastAnalyzer
+            connector = self.podcast_analyzer._get_connector_for_url(url)  # noqa: SLF001
             return connector is not None
-        except Exception as e:
-            logger.error(f"Podcast URL validation failed: {e}")
+        except (AttributeError, ValueError, TypeError) as e:
+            logger.error("Podcast URL validation failed: %s", e)
             return False
     
     async def cleanup(self):
@@ -581,8 +614,8 @@ class AudioIconPipeline:
         try:
             if hasattr(self.podcast_analyzer, 'cleanup'):
                 await self.podcast_analyzer.cleanup()
-        except Exception as e:
-            logger.warning(f"Error during cleanup: {e}")
+        except (AttributeError, RuntimeError) as e:
+            logger.warning("Error during cleanup: %s", e)
 
     def __del__(self):
         """Cleanup when pipeline is destroyed."""
@@ -599,6 +632,6 @@ class AudioIconPipeline:
             except RuntimeError:
                 # No event loop available - this is common during interpreter shutdown
                 pass
-        except Exception:
-            # Ignore all cleanup errors during destruction to avoid issues during shutdown
+        except (RuntimeError, AttributeError):
+            # Ignore cleanup errors during destruction to avoid issues during shutdown
             pass
