@@ -23,6 +23,7 @@ class TestSubjectIdentifierIntegration:
         """Create a SubjectIdentifier with real dependencies (no mocks)."""
         return SubjectIdentifier(max_workers=2, timeout_ms=2000)
 
+    @pytest.mark.integration
     def test_real_spacy_model_integration(self, subject_identifier):
         """Test integration with real SpaCy model for entity recognition."""
         # Text with clear entities that SpaCy should recognize
@@ -46,6 +47,7 @@ class TestSubjectIdentifierIntegration:
         entity_names = [s.name.lower() for s in entity_subjects]
         assert any('jasmine' in name or 'ali' in name or 'jafar' in name for name in entity_names)
 
+    @pytest.mark.integration
     def test_multilingual_detection_integration(self, subject_identifier):
         """Test language detection with real langdetect library."""
         # Mixed language text
@@ -63,6 +65,7 @@ class TestSubjectIdentifierIntegration:
         assert len(languages) >= 1  # Should detect at least English
         assert any(lang in ['en', 'es'] for lang in languages)
 
+    @pytest.mark.integration
     def test_concurrent_processor_integration(self, subject_identifier):
         """Test real concurrent execution of all processors."""
         # Rich text that should trigger all processors
@@ -91,6 +94,7 @@ class TestSubjectIdentifierIntegration:
         # Processing time should be reasonable (less than timeout)
         assert result.metadata["processing_time_ms"] < subject_identifier.timeout_ms
 
+    @pytest.mark.integration
     def test_real_story_content_extraction(self, subject_identifier):
         """Test with realistic podcast transcript containing story content."""
         # Simulate a Circle Round podcast transcript
@@ -136,6 +140,7 @@ class TestSubjectIdentifierIntegration:
             avg_metadata_conf = sum(s.confidence for s in metadata_subjects) / len(metadata_subjects)
             assert avg_story_conf >= avg_metadata_conf
 
+    @pytest.mark.integration
     def test_context_aware_processing(self, subject_identifier):
         """Test context-aware subject identification."""
         # Create context
@@ -163,6 +168,7 @@ class TestSubjectIdentifierIntegration:
         high_conf_themes = [s for s in theme_subjects if s.confidence > 0.8]
         assert len(high_conf_themes) > 0
 
+    @pytest.mark.integration
     def test_memory_and_performance_integration(self, subject_identifier):
         """Test memory usage and performance with realistic text sizes."""
         # Large text to test memory management
@@ -188,6 +194,7 @@ class TestSubjectIdentifierIntegration:
         # Processing should complete within timeout
         assert result.metadata["processing_time_ms"] < subject_identifier.timeout_ms
 
+    @pytest.mark.integration
     def test_error_handling_integration(self, subject_identifier):
         """Test error handling with real external dependencies."""
         # Very short text that should trigger input validation
@@ -215,6 +222,7 @@ class TestTitleBoostingIntegration:
         """Create a SubjectIdentifier with real dependencies."""
         return SubjectIdentifier(max_workers=2, timeout_ms=3000)
     
+    @pytest.mark.integration
     def test_title_boosting_with_real_nlp(self, subject_identifier):
         """Test title boosting integration with real NLP libraries."""
         # Story text with clear subjects
@@ -264,6 +272,7 @@ class TestTitleBoostingIntegration:
             # Title-boosted version should have higher or equal confidence
             assert princess_with.confidence >= princess_without.confidence
     
+    @pytest.mark.integration
     def test_title_boosting_with_partial_matches(self, subject_identifier):
         """Test title boosting with partial word matches."""
         story_text = """
@@ -287,6 +296,7 @@ class TestTitleBoostingIntegration:
             max_royal_confidence = max(s.confidence for s in royal_subjects)
             assert max_royal_confidence >= 0.4, "Royal subjects should benefit from title matching"
     
+    @pytest.mark.integration
     def test_title_boosting_filtered_generic_titles(self, subject_identifier):
         """Test that generic titles don't provide inappropriate boosting."""
         story_text = "The princess lived in a castle with her pet dragon."
@@ -315,6 +325,7 @@ class TestTitleBoostingIntegration:
                 assert generic_confidence <= baseline_confidence + 0.1, \
                     f"Generic title '{generic_title}' shouldn't boost confidence much"
     
+    @pytest.mark.integration
     def test_title_boosting_with_enhanced_keyword_extraction(self, subject_identifier):
         """Test title boosting works with enhanced NLP keyword extraction."""
         story_text = """
@@ -351,6 +362,7 @@ class TestTitleBoostingIntegration:
 class TestSubjectIdentifierRealProcessors:
     """Integration tests using real processors (moved from unit tests)."""
     
+    @pytest.mark.integration
     def test_tech_discussion(self, tech_discussion_text):
         """Test subject identification with technology-focused text."""
         # Use real processors with the subject identifier
@@ -379,6 +391,7 @@ class TestSubjectIdentifierRealProcessors:
         # Verify processing time meets relaxed requirements for test environment
         assert result.metadata.get("processing_time_ms", float("inf")) < 5000
         
+    @pytest.mark.integration
     def test_mixed_topics(self, mixed_topic_text):
         """Test handling of text with multiple disparate topics."""
         # Use real processors
@@ -406,6 +419,7 @@ class TestSubjectIdentifierRealProcessors:
         assert "keyword" in processor_categories
         assert "entity" in processor_categories
         
+    @pytest.mark.integration
     def test_performance_requirements(self, tech_discussion_text):
         """Test that subject identification meets performance requirements."""
         # Use real processors
@@ -422,6 +436,7 @@ class TestSubjectIdentifierRealProcessors:
         assert processing_time < 5000, f"Processing took {processing_time}ms, exceeding 5000ms limit"
         assert result.metadata.get("memory_usage_mb", float("inf")) < 800, "Memory usage exceeded 800MB limit"
         
+    @pytest.mark.integration
     def test_error_handling_real_processors(self, tech_discussion_text):
         """Test error handling and recovery with real processors."""
         class FailingProcessor(TopicExtractor):
@@ -444,6 +459,7 @@ class TestSubjectIdentifierRealProcessors:
         assert "topic_error" in result.metadata["errors"]
         assert "Processing failed" in result.metadata["errors"]["topic_error"]
 
+    @pytest.mark.integration
     def test_long_text_performance(self, long_text):
         """Test performance with long text (FR-002 requirement: <800ms for 10k words)."""
         # Use real processors
@@ -465,6 +481,7 @@ class TestSubjectIdentifierRealProcessors:
         memory_usage = result.metadata.get("memory_usage_mb", float("inf"))
         assert memory_usage < 800, f"Memory usage {memory_usage}MB exceeds 800MB limit"
 
+    @pytest.mark.integration
     def test_accuracy_validation_story_content(self, childrens_story_text):
         """Test subject identification accuracy with children's story content."""
         # Use story-relevant subjects based on what the system actually identifies
@@ -495,6 +512,7 @@ class TestSubjectIdentifierRealProcessors:
         # Expect at least 4/6 core story subjects to be found (66% threshold for robustness)
         assert accuracy >= 0.66, f"Accuracy {accuracy:.2%} below required 66% for core subjects. Found: {list(identified_subjects)}"
         
+    @pytest.mark.integration
     def test_multilingual_handling_real_processors(self, multilingual_text):
         """Test handling of multilingual content with real processors."""
         # Use real processors
@@ -520,6 +538,7 @@ class TestSubjectIdentifierRealProcessors:
         detected = result.metadata.get("languages_detected", [])
         assert len(detected) >= 2, f"Should detect multiple languages, found: {detected}"
 
+    @pytest.mark.integration
     def test_specialized_domain_real_processors(self, specialized_domain_text):
         """Test handling of specialized story domain content with real processors."""
         context = Context(domain="storytelling", language="en", confidence=1.0)

@@ -689,22 +689,3 @@ class TestPodcastIntegration:
         with patch.object(pipeline.podcast_analyzer, 'cleanup', new_callable=AsyncMock) as mock_cleanup:
             await pipeline.cleanup()
             mock_cleanup.assert_called_once()
-
-
-# Integration tests that require the full pipeline
-class TestAudioIconPipelineIntegration:
-    """Integration tests for the full pipeline."""
-    
-    @pytest.mark.integration
-    def test_full_pipeline_integration(self):
-        """Test full pipeline with real components (mocked external dependencies)."""
-        # This test would require setting up the full pipeline with real components
-        # but mocked external dependencies (Whisper, spaCy models, database)
-        # For now, we'll skip this as it requires more setup
-        pytest.skip("Integration test requires full setup")
-    
-    @pytest.mark.performance
-    def test_pipeline_performance(self):
-        """Test pipeline performance with various input sizes."""
-        # Performance test would measure processing time for different audio lengths
-        pytest.skip("Performance test requires audio samples")

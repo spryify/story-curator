@@ -169,6 +169,7 @@ class TestAudioIconPipelineIntegration:
             # But we should still test the pipeline structure
             pytest.skip(f"External services not available for integration test: {e}")
     
+    @pytest.mark.integration
     def test_pipeline_file_validation(self):
         """Test that pipeline properly validates input files."""
         pipeline = AudioIconPipeline()
@@ -194,6 +195,7 @@ class TestAudioIconPipelineIntegration:
         finally:
             os.unlink(temp_path)
     
+    @pytest.mark.integration
     def test_pipeline_different_audio_formats(self):
         """Test pipeline accepts different audio formats."""
         pipeline = AudioIconPipeline()
@@ -278,6 +280,7 @@ class TestAudioIconPipelineIntegration:
             # External service errors are acceptable in integration tests
             pytest.skip(f"External services not available: {e}")
     
+    @pytest.mark.integration
     def test_pipeline_error_handling_and_recovery(self):
         """Test that pipeline handles errors gracefully and provides useful information."""
         pipeline = AudioIconPipeline()
@@ -849,6 +852,7 @@ class TestPodcastPipelineIntegration:
 class TestEnhancedPipelineIntegration:
     """Integration tests for enhanced pipeline functionality."""
     
+    @pytest.mark.integration
     def test_title_boosting_end_to_end(self):
         """Test that title boosting works in the full pipeline."""
         # Simple story for quick testing
@@ -878,6 +882,7 @@ class TestEnhancedPipelineIntegration:
             if audio_path.exists():
                 audio_path.unlink()
     
+    @pytest.mark.integration
     def test_consolidated_classes_work_together(self):
         """Test that consolidated IconMatcher and KeywordExtractor work in pipeline."""
         # Simple story to test NLP processing
@@ -912,6 +917,7 @@ class TestEnhancedPipelineIntegration:
             if audio_path.exists():
                 audio_path.unlink()
     
+    @pytest.mark.integration
     def test_enhanced_pipeline_robustness(self):
         """Test that enhanced pipeline handles various content types robustly."""
         test_cases = [
