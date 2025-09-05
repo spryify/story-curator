@@ -391,8 +391,8 @@ class TestOutputFormatting:
                 assert data['success'] is True
 
 
-class TestCLIIntegration:
-    """Test CLI integration scenarios."""
+class TestCLIHelp:
+    """Test CLI help and command interface scenarios."""
     
     def setup_method(self):
         """Set up test fixtures."""
