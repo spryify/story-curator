@@ -57,6 +57,11 @@ jobs:
         pip install -r requirements.txt
         # Install development dependencies
         pip install -r requirements-dev.txt
+        # Explicitly ensure ffmpeg-python is installed
+        pip install ffmpeg-python>=0.2.0
+        # Verify critical dependencies
+        python -c "import ffmpeg; print(f'ffmpeg-python installed successfully')"
+        python -c "import pytest_asyncio; print(f'pytest-asyncio installed successfully')"
 
     - name: Lint with flake8
       run: |
