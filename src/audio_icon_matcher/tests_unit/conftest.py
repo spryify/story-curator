@@ -14,22 +14,43 @@ class MockSpacyDoc:
         self.text = text
         self.ents = []
         self._ = {}
+        self.noun_chunks = []
     
     def __iter__(self):
         # Mock tokens
         words = self.text.split()
         return iter([MockSpacyToken(word) for word in words])
+    
+    def __len__(self):
+        return len(self.text.split())
+
+
+class MockSpacySpan:
+    """Mock spaCy span."""
+    def __init__(self, text):
+        self.text = text
+        self.root = MockSpacyToken(text.split()[-1] if text.split() else "")
+        self.label_ = "NOUN_CHUNK"
+
 
 class MockSpacyToken:
     """Mock spaCy token."""
     def __init__(self, text):
         self.text = text
         self.lemma_ = text.lower()
-        self.pos_ = "NOUN"
-        self.tag_ = "NN"
-        self.is_stop = text.lower() in {"the", "a", "an", "and", "or", "but"}
+        self.pos_ = "NOUN" if text.isalpha() else "PUNCT"
+        self.tag_ = "NN" if text.isalpha() else "."
+        self.is_stop = text.lower() in {
+            "the", "a", "an", "and", "or", "but", "in", "on", "at", "to", "for", "of", "with", "by",
+            "is", "are", "was", "were", "be", "been", "being", "have", "has", "had", "do", "does", "did",
+            "will", "would", "could", "should", "may", "might", "can", "shall", "must",
+            "i", "you", "he", "she", "it", "we", "they", "me", "him", "her", "us", "them",
+            "my", "your", "his", "her", "its", "our", "their", "this", "that", "these", "those"
+        }
         self.is_alpha = text.isalpha()
         self.is_punct = not text.isalnum()
+        self.is_space = text.isspace()
+
 
 class MockSpacyNLP:
     """Mock spaCy NLP pipeline."""
@@ -38,11 +59,19 @@ class MockSpacyNLP:
         self.factory = MagicMock()
         
     def __call__(self, text):
-        return MockSpacyDoc(text)
+        doc = MockSpacyDoc(text)
+        # Add noun chunks
+        words = text.split()
+        chunks = []
+        for i in range(len(words)):
+            if words[i].lower() not in {"the", "a", "an", "and", "or", "but"}:
+                chunks.append(MockSpacySpan(words[i]))
+        doc.noun_chunks = chunks
+        return doc
     
     def pipe(self, texts, **_kwargs):
         for text in texts:
-            yield MockSpacyDoc(text)
+            yield self(text)
 
 # Patch spaCy at import time for unit tests
 if 'spacy' not in sys.modules:
