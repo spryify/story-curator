@@ -423,7 +423,7 @@ class TestCLIHelp:
     def test_formats_command_error_handling(self, mock_pipeline_class):
         """Test formats command error handling."""
         mock_pipeline = Mock()
-        mock_pipeline.get_supported_formats.side_effect = Exception("Test error")
+        mock_pipeline.get_supported_formats.side_effect = RuntimeError("Test error")
         mock_pipeline_class.return_value = mock_pipeline
         
         result = self.runner.invoke(audio_icon_matcher_commands, ['formats'])
@@ -435,7 +435,7 @@ class TestCLIHelp:
     def test_validate_command_exception_handling(self, mock_pipeline_class):
         """Test validate command exception handling."""
         mock_pipeline = Mock()
-        mock_pipeline.validate_audio_file.side_effect = Exception("Validation error")
+        mock_pipeline.validate_audio_file.side_effect = ValueError("Validation error")
         mock_pipeline_class.return_value = mock_pipeline
         
         result = self.runner.invoke(audio_icon_matcher_commands, ['validate', 'test.mp3'])

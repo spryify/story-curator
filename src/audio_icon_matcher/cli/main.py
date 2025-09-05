@@ -136,7 +136,7 @@ def validate_audio_source(audio_source):
             click.echo(f"❌ Invalid {source_type}: {audio_source}")
             sys.exit(1)
             
-    except (ValueError, TypeError, AttributeError) as e:
+    except (FileNotFoundError, ValueError, OSError, RuntimeError, TypeError, AttributeError) as e:
         click.echo(f"❌ Validation error: {e}", err=True)
         sys.exit(1)
 
@@ -160,7 +160,7 @@ def list_supported_formats():
         click.echo("  • Direct audio episode URLs")
         click.echo("  • Most major podcast platforms")
             
-    except (AttributeError, RuntimeError) as e:
+    except (AttributeError, RuntimeError, ValueError, OSError, TypeError) as e:
         click.echo(f"❌ Error getting formats: {e}", err=True)
         sys.exit(1)
 
