@@ -1,12 +1,90 @@
 """Test fixtures for subject identification."""
 import pytest
+import sys
+from unittest.mock import Mock, MagicMock
 from typing import Dict, Any
-from media_analyzer.processors.subject.identifier import SubjectIdentifier
-from media_analyzer.models.subject.identification import Context
+
+# Mock spaCy for unit tests to avoid requiring the actual model
+class MockSpacyToken:
+    """Mock spaCy token."""
+    def __init__(self, text):
+        self.text = text
+        self.lemma_ = text.lower()
+        # Make tokens more realistic - proper nouns and technical terms should be NOUN
+        if text.lower() in ['artificial', 'intelligence', 'machine', 'learning', 'technologies', 'fox', 'train']:
+            self.pos_ = "NOUN"
+        elif text.lower() in ['and', 'are', 'key']:
+            self.pos_ = "AUX"
+        else:
+            self.pos_ = "NOUN"  # Default to NOUN for simplicity
+        self.tag_ = "NN"
+        self.is_stop = text.lower() in {"the", "a", "an", "and", "or", "but", "in", "on", "at", "to", "of", "with", "are"}
+        self.is_alpha = text.isalpha()
+        self.is_punct = not text.isalnum()
+        self.is_space = text.isspace()
+        self.is_space = text.isspace()
+
+class MockSpacySpan:
+    """Mock spaCy span (for noun chunks)."""
+    def __init__(self, text):
+        self.text = text
+        words = text.split()
+        self.tokens = [MockSpacyToken(word) for word in words]
+    
+    def __iter__(self):
+        return iter(self.tokens)
+
+class MockSpacyDoc:
+    """Mock spaCy document."""
+    def __init__(self, text=""):
+        self.text = text
+        self.ents = []
+        self._ = {}
+        
+        # Create tokens first
+        words = text.split()
+        self.tokens = [MockSpacyToken(word) for word in words]
+        
+        # Mock noun chunks - create simple noun chunks from text
+        # Group words into simple noun phrases (just individual words for simplicity)
+        self.noun_chunks = [MockSpacySpan(word) for word in words if word.isalpha()]
+    
+    def __iter__(self):
+        # Mock tokens - return the stored tokens
+        return iter(self.tokens)
+    
+    def __len__(self):
+        # Return the number of tokens
+        return len(self.tokens)
+
+class MockSpacyNLP:
+    """Mock spaCy NLP pipeline."""
+    def __init__(self):
+        self.vocab = MagicMock()
+        self.factory = MagicMock()
+        
+    def __call__(self, text):
+        return MockSpacyDoc(text)
+    
+    def pipe(self, texts, **_kwargs):
+        for text in texts:
+            yield MockSpacyDoc(text)
+
+# Patch spaCy and its submodules at import time for unit tests
+if 'spacy' not in sys.modules:
+    mock_spacy = MagicMock()
+    mock_spacy.load.return_value = MockSpacyNLP()
+    
+    # Create mock submodules
+    mock_spacy_language = MagicMock()
+    mock_spacy_language.Language = MagicMock
+    
+    sys.modules['spacy'] = mock_spacy
+    sys.modules['spacy.language'] = mock_spacy_language
 
 
 @pytest.fixture
-def mock_spacy():
+def mock_spacy_fixture():
     """Mock spaCy for tests that need it."""
     import unittest.mock as mock
     
