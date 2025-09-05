@@ -62,6 +62,8 @@ jobs:
         # Verify critical dependencies
         python -c "import ffmpeg; print(f'ffmpeg-python installed successfully')"
         python -c "import pytest_asyncio; print(f'pytest-asyncio installed successfully')"
+        # Install the package in development mode to make all modules discoverable
+        pip install -e .
 
     - name: Lint with flake8
       run: |
