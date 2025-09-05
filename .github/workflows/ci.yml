@@ -53,9 +53,10 @@ jobs:
     - name: Install Python dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -e .[dev]
-        # Install additional test dependencies if needed
-        pip install -r requirements-dev.txt || true
+        # Install main dependencies first
+        pip install -r requirements.txt
+        # Install development dependencies
+        pip install -r requirements-dev.txt
 
     - name: Lint with flake8
       run: |
@@ -96,9 +97,6 @@ jobs:
       run: |
         # Try to set up integration test dependencies
         echo "Setting up integration test dependencies..."
-        
-        # Install additional Python packages for integration tests
-        pip install ffmpeg-python pytest-asyncio || echo "Failed to install some integration test packages"
         
         # Download spaCy model
         python -m spacy download en_core_web_sm || echo "Failed to download spaCy model"
