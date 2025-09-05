@@ -87,12 +87,18 @@ jobs:
           --cov-report=xml \
           --cov-report=term-missing \
           -m "not integration" \
+          --ignore=src/audio_icon_matcher/tests_integration \
+          --ignore=src/icon_extractor/tests_integration \
+          --ignore=src/media_analyzer/tests_integration \
           --durations=10
 
     - name: Setup for integration tests
       run: |
         # Try to set up integration test dependencies
         echo "Setting up integration test dependencies..."
+        
+        # Install additional Python packages for integration tests
+        pip install ffmpeg-python pytest-asyncio || echo "Failed to install some integration test packages"
         
         # Download spaCy model
         python -m spacy download en_core_web_sm || echo "Failed to download spaCy model"
