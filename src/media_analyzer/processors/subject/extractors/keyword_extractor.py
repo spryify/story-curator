@@ -58,20 +58,7 @@ class KeywordExtractor:
             start_time = time.time()
             
             if not text or not text.strip():
-                return {
-                    'results': {}, 
-                    'metadata': {
-                        'processing_time': 0,
-                        'method': 'enhanced_nlp',
-                        'token_count': 0,
-                        'filtered_count': 0,
-                        'compound_phrases_found': 0,
-                        'total_words': 0,
-                        'unique_keywords': 0,
-                        'processor_type': 'KeywordExtractor',
-                        'version': '2.0'
-                    }
-                }
+                return self._create_result({}, 0)
             
             # Use spaCy for tokenization and POS tagging
             doc = self.nlp(text.strip())
@@ -104,20 +91,14 @@ class KeywordExtractor:
             
             # Convert to confidence scores
             if not token_counts:
-                return {
-                    'results': {}, 
-                    'metadata': {
-                        'processing_time': time.time() - start_time,
-                        'method': 'enhanced_nlp',
-                        'token_count': len(meaningful_tokens),
-                        'filtered_count': len(doc) - len(meaningful_tokens),
-                        'compound_phrases_found': len(compound_phrases),
-                        'total_words': len(doc),
-                        'unique_keywords': 0,
-                        'processor_type': 'KeywordExtractor',
-                        'version': '2.0'
-                    }
-                }
+                return self._create_result(
+                    {}, 
+                    time.time() - start_time,
+                    len(meaningful_tokens),
+                    len(doc) - len(meaningful_tokens),
+                    len(compound_phrases),
+                    len(doc)
+                )
             
             max_count = max(token_counts.values())
             keywords = {}
@@ -131,24 +112,49 @@ class KeywordExtractor:
             
             logger.debug(f"Extracted {len(keywords)} keywords in {processing_time:.3f}s")
             
-            return {
-                'results': keywords,
-                'metadata': {
-                    'processing_time': processing_time,
-                    'method': 'enhanced_nlp',
-                    'token_count': len(meaningful_tokens),
-                    'filtered_count': len(doc) - len(meaningful_tokens),
-                    'compound_phrases_found': len(compound_phrases),
-                    'total_words': len(doc),
-                    'unique_keywords': len(keywords),
-                    'processor_type': 'KeywordExtractor',
-                    'version': '2.0'
-                }
-            }
+            return self._create_result(
+                keywords,
+                processing_time,
+                len(meaningful_tokens),
+                len(doc) - len(meaningful_tokens),
+                len(compound_phrases),
+                len(doc)
+            )
             
         except Exception as e:
             logger.error(f"Keyword extraction failed: {e}")
             raise ProcessingError(f"Enhanced keyword extraction failed: {e}")
+
+    def _create_result(self, keywords: Dict[str, float], processing_time: float, 
+                      token_count: int = 0, filtered_count: int = 0, 
+                      compound_phrases_found: int = 0, total_words: int = 0) -> Dict[str, Any]:
+        """Create standardized result structure with metadata.
+        
+        Args:
+            keywords: Dictionary of keywords with confidence scores
+            processing_time: Time taken for processing
+            token_count: Number of meaningful tokens found
+            filtered_count: Number of tokens filtered out
+            compound_phrases_found: Number of compound phrases found
+            total_words: Total number of words in input
+            
+        Returns:
+            Standardized result dictionary with results and metadata
+        """
+        return {
+            'results': keywords,
+            'metadata': {
+                'processing_time': processing_time,
+                'method': 'enhanced_nlp',
+                'token_count': token_count,
+                'filtered_count': filtered_count,
+                'compound_phrases_found': compound_phrases_found,
+                'total_words': total_words,
+                'unique_keywords': len(keywords),
+                'processor_type': 'KeywordExtractor',
+                'version': '2.0'
+            }
+        }
 
     def _extract_compound_phrases(self, doc) -> List[str]:
         """Extract compound phrases that represent distinct entities for icon matching.
