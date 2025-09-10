@@ -58,7 +58,20 @@ class KeywordExtractor:
             start_time = time.time()
             
             if not text or not text.strip():
-                return {'results': {}, 'metadata': {'processing_time': 0}}
+                return {
+                    'results': {}, 
+                    'metadata': {
+                        'processing_time': 0,
+                        'method': 'enhanced_nlp',
+                        'token_count': 0,
+                        'filtered_count': 0,
+                        'compound_phrases_found': 0,
+                        'total_words': 0,
+                        'unique_keywords': 0,
+                        'processor_type': 'KeywordExtractor',
+                        'version': '2.0'
+                    }
+                }
             
             # Use spaCy for tokenization and POS tagging
             doc = self.nlp(text.strip())
@@ -91,7 +104,20 @@ class KeywordExtractor:
             
             # Convert to confidence scores
             if not token_counts:
-                return {'results': {}, 'metadata': {'processing_time': time.time() - start_time}}
+                return {
+                    'results': {}, 
+                    'metadata': {
+                        'processing_time': time.time() - start_time,
+                        'method': 'enhanced_nlp',
+                        'token_count': len(meaningful_tokens),
+                        'filtered_count': len(doc) - len(meaningful_tokens),
+                        'compound_phrases_found': len(compound_phrases),
+                        'total_words': len(doc),
+                        'unique_keywords': 0,
+                        'processor_type': 'KeywordExtractor',
+                        'version': '2.0'
+                    }
+                }
             
             max_count = max(token_counts.values())
             keywords = {}
