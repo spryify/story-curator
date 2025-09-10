@@ -68,6 +68,10 @@ class MockSpacyNLP:
     def pipe(self, texts, **_kwargs):
         for text in texts:
             yield MockSpacyDoc(text)
+    
+    def select_pipes(self, enable=None, disable=None):
+        """Mock select_pipes method used by EntityExtractor."""
+        return self
 
 # Patch spaCy and its submodules at import time for unit tests
 if 'spacy' not in sys.modules:
