@@ -193,19 +193,32 @@ class TestAudioIconPipeline:
     @pytest.fixture(autouse=True)
     def mock_external_dependencies(self):
         """Mock external dependencies for unit tests."""
-        # Mock spaCy at the module level to prevent model loading during initialization
-        with patch('media_analyzer.processors.subject.extractors.keyword_extractor.spacy') as mock_spacy_module:
-            # Mock the spacy.load function to return a mock nlp object
-            mock_nlp = Mock()
-            mock_nlp.return_value = Mock()  # Mock doc object
-            mock_spacy_module.load.return_value = mock_nlp
-            
-            # Also mock NLTK stopwords to avoid dependency
-            with patch('media_analyzer.processors.subject.extractors.keyword_extractor.stopwords') as mock_stopwords:
-                mock_stopwords.words.return_value = {'the', 'a', 'an'}
-                
-                # Mock wordnet
-                with patch('media_analyzer.processors.subject.extractors.keyword_extractor.wordnet'):
+        # For unit tests, mock the entire extractors to avoid spaCy/NLTK dependencies
+        with patch('media_analyzer.processors.subject.extractors.keyword_extractor.KeywordExtractor') as mock_keyword:
+            with patch('media_analyzer.processors.subject.extractors.entity_extractor.EntityExtractor') as mock_entity:
+                with patch('media_analyzer.processors.subject.extractors.topic_extractor.TopicExtractor') as mock_topic:
+                    # Configure mock extractors to return proper structure
+                    mock_keyword_instance = Mock()
+                    mock_keyword_instance.process.return_value = {
+                        'results': {'test': 0.8},
+                        'metadata': {'processor_type': 'KeywordExtractor', 'version': '2.0'}
+                    }
+                    mock_keyword.return_value = mock_keyword_instance
+                    
+                    mock_entity_instance = Mock()
+                    mock_entity_instance.process.return_value = {
+                        'results': {'Test Entity': 0.9},
+                        'metadata': {'processor_type': 'EntityExtractor', 'version': '1.0'}
+                    }
+                    mock_entity.return_value = mock_entity_instance
+                    
+                    mock_topic_instance = Mock()
+                    mock_topic_instance.process.return_value = {
+                        'results': {'test topic': 0.7},
+                        'metadata': {'processor_type': 'TopicExtractor', 'version': '1.0'}
+                    }
+                    mock_topic.return_value = mock_topic_instance
+                    
                     yield
     
     @pytest.fixture
