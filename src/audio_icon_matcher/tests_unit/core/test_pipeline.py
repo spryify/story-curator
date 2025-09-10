@@ -190,6 +190,24 @@ class TestResultRanker:
 class TestAudioIconPipeline:
     """Test cases for AudioIconPipeline."""
     
+    @pytest.fixture(autouse=True)
+    def mock_external_dependencies(self):
+        """Mock external dependencies for unit tests."""
+        # Mock spaCy at the module level to prevent model loading during initialization
+        with patch('media_analyzer.processors.subject.extractors.keyword_extractor.spacy') as mock_spacy_module:
+            # Mock the spacy.load function to return a mock nlp object
+            mock_nlp = Mock()
+            mock_nlp.return_value = Mock()  # Mock doc object
+            mock_spacy_module.load.return_value = mock_nlp
+            
+            # Also mock NLTK stopwords to avoid dependency
+            with patch('media_analyzer.processors.subject.extractors.keyword_extractor.stopwords') as mock_stopwords:
+                mock_stopwords.words.return_value = {'the', 'a', 'an'}
+                
+                # Mock wordnet
+                with patch('media_analyzer.processors.subject.extractors.keyword_extractor.wordnet'):
+                    yield
+    
     @pytest.fixture
     def mock_audio_processor(self):
         """Mock audio processor."""
@@ -265,13 +283,8 @@ class TestAudioIconPipeline:
         
         return pipeline
     
-    @patch('spacy.load')
-    def test_init(self, mock_spacy_load):
+    def test_init(self):
         """Test pipeline initialization."""
-        # Mock spaCy model loading
-        mock_nlp = Mock()
-        mock_spacy_load.return_value = mock_nlp
-        
         pipeline = AudioIconPipeline()
         assert pipeline.audio_processor is not None
         assert pipeline.subject_identifier is not None

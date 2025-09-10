@@ -1,12 +1,43 @@
 """Tests for keyword processor - Unit tests focusing on code structure and logic."""
 import pytest
 import time
+from unittest.mock import Mock, patch
 
 from media_analyzer.processors.subject.extractors.keyword_extractor import KeywordExtractor
 
 
 class TestKeywordExtractor:
     """Test suite for keyword extraction processor structure and logic."""
+    
+    @pytest.fixture(autouse=True)
+    def mock_external_dependencies(self):
+        """Mock external dependencies for unit tests."""
+        # Mock spaCy at the module level to prevent model loading during initialization
+        with patch('media_analyzer.processors.subject.extractors.keyword_extractor.spacy') as mock_spacy_module:
+            # Mock the spacy.load function to return a mock nlp object
+            mock_token = Mock()
+            mock_token.text = "test"
+            mock_token.pos_ = "NOUN"
+            mock_token.is_stop = False
+            mock_token.is_space = False
+            mock_token.is_alpha = True
+            
+            mock_doc = Mock()
+            mock_doc.__iter__ = Mock(return_value=iter([mock_token]))
+            mock_doc.__len__ = Mock(return_value=1)
+            mock_doc.noun_chunks = []
+            
+            mock_nlp = Mock()
+            mock_nlp.return_value = mock_doc
+            mock_spacy_module.load.return_value = mock_nlp
+            
+            # Also mock NLTK stopwords to avoid dependency
+            with patch('media_analyzer.processors.subject.extractors.keyword_extractor.stopwords') as mock_stopwords:
+                mock_stopwords.words.return_value = {'the', 'a', 'an'}
+                
+                # Mock wordnet
+                with patch('media_analyzer.processors.subject.extractors.keyword_extractor.wordnet'):
+                    yield
     
     def test_processor_initialization(self):
         """Test that the processor initializes correctly."""
