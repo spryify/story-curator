@@ -1,6 +1,7 @@
 # Development dependencies
 black>=23.7.0            # Code formatting
 isort>=5.12.0           # Import sorting
+flake8>=6.0.0           # Fast linting
 mypy>=1.5.1             # Type checking
 pylint>=2.17.5          # Code linting
 pre-commit>=3.3.3       # Git hooks
