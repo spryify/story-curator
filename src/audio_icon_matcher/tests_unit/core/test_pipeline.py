@@ -7,20 +7,50 @@ from pathlib import Path
 import tempfile
 import os
 
-from audio_icon_matcher.core.pipeline import AudioIconPipeline
-from audio_icon_matcher.processors.icon_matcher import IconMatcher
-from audio_icon_matcher.processors.result_ranker import ResultRanker
-from audio_icon_matcher.models.results import AudioIconResult, IconMatch
-from audio_icon_matcher.core.exceptions import (
-    AudioIconValidationError, 
-    AudioIconProcessingError
-)
-from media_analyzer.models.audio.transcription import TranscriptionResult
-from media_analyzer.models.subject.identification import (
-    SubjectAnalysisResult, Subject, Category, SubjectType
-)
-from media_analyzer.models.podcast import PodcastEpisode, StreamingAnalysisResult
-from icon_extractor.models.icon import IconData
+# Mock spaCy and NLTK BEFORE importing any modules that use them
+with patch('spacy.load') as mock_spacy_load:
+    # Create comprehensive mock for spaCy
+    mock_token = Mock()
+    mock_token.text = "test"
+    mock_token.pos_ = "NOUN" 
+    mock_token.is_stop = False
+    mock_token.is_space = False
+    mock_token.is_alpha = True
+    mock_token.label_ = "ORG"
+    
+    mock_doc = Mock()
+    mock_doc.__iter__ = Mock(return_value=iter([mock_token]))
+    mock_doc.__len__ = Mock(return_value=1)
+    mock_doc.noun_chunks = []
+    mock_doc.ents = [mock_token]  # For EntityExtractor
+    
+    mock_nlp = Mock()
+    mock_nlp.return_value = mock_doc
+    mock_nlp.select_pipes = Mock()  # For EntityExtractor pipeline configuration
+    mock_spacy_load.return_value = mock_nlp
+    
+    # Mock NLTK dependencies
+    with patch('media_analyzer.processors.subject.extractors.keyword_extractor.stopwords') as mock_kw_stopwords:
+        with patch('media_analyzer.processors.subject.extractors.topic_extractor.stopwords') as mock_topic_stopwords:
+            mock_kw_stopwords.words.return_value = {'the', 'a', 'an'}
+            mock_topic_stopwords.words.return_value = {'the', 'a', 'an'}
+            
+            with patch('media_analyzer.processors.subject.extractors.keyword_extractor.wordnet'):
+                # Now import the modules that depend on spaCy/NLTK
+                from audio_icon_matcher.core.pipeline import AudioIconPipeline
+                from audio_icon_matcher.processors.icon_matcher import IconMatcher
+                from audio_icon_matcher.processors.result_ranker import ResultRanker
+                from audio_icon_matcher.models.results import AudioIconResult, IconMatch
+                from audio_icon_matcher.core.exceptions import (
+                    AudioIconValidationError, 
+                    AudioIconProcessingError
+                )
+                from media_analyzer.models.audio.transcription import TranscriptionResult
+                from media_analyzer.models.subject.identification import (
+                    SubjectAnalysisResult, Subject, Category, SubjectType
+                )
+                from media_analyzer.models.podcast import PodcastEpisode, StreamingAnalysisResult
+                from icon_extractor.models.icon import IconData
 
 
 class TestIconMatcher:
@@ -189,37 +219,6 @@ class TestResultRanker:
 
 class TestAudioIconPipeline:
     """Test cases for AudioIconPipeline."""
-    
-    @pytest.fixture(autouse=True)
-    def mock_external_dependencies(self):
-        """Mock external dependencies for unit tests."""
-        # For unit tests, mock the entire extractors to avoid spaCy/NLTK dependencies
-        with patch('media_analyzer.processors.subject.extractors.keyword_extractor.KeywordExtractor') as mock_keyword:
-            with patch('media_analyzer.processors.subject.extractors.entity_extractor.EntityExtractor') as mock_entity:
-                with patch('media_analyzer.processors.subject.extractors.topic_extractor.TopicExtractor') as mock_topic:
-                    # Configure mock extractors to return proper structure
-                    mock_keyword_instance = Mock()
-                    mock_keyword_instance.process.return_value = {
-                        'results': {'test': 0.8},
-                        'metadata': {'processor_type': 'KeywordExtractor', 'version': '2.0'}
-                    }
-                    mock_keyword.return_value = mock_keyword_instance
-                    
-                    mock_entity_instance = Mock()
-                    mock_entity_instance.process.return_value = {
-                        'results': {'Test Entity': 0.9},
-                        'metadata': {'processor_type': 'EntityExtractor', 'version': '1.0'}
-                    }
-                    mock_entity.return_value = mock_entity_instance
-                    
-                    mock_topic_instance = Mock()
-                    mock_topic_instance.process.return_value = {
-                        'results': {'test topic': 0.7},
-                        'metadata': {'processor_type': 'TopicExtractor', 'version': '1.0'}
-                    }
-                    mock_topic.return_value = mock_topic_instance
-                    
-                    yield
     
     @pytest.fixture
     def mock_audio_processor(self):
