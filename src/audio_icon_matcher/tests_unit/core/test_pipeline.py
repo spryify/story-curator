@@ -241,16 +241,20 @@ class TestAudioIconPipeline:
         return mock_identifier
     
     @pytest.fixture
-    @patch('spacy.load')
-    def pipeline(self, mock_spacy_load, mock_audio_processor, mock_subject_identifier):
+    def pipeline(self, mock_audio_processor, mock_subject_identifier):
         """Create pipeline with mocked dependencies."""
-        # Mock spaCy model loading
-        mock_nlp = Mock()
-        mock_spacy_load.return_value = mock_nlp
-        
-        pipeline = AudioIconPipeline()
-        pipeline.audio_processor = mock_audio_processor
-        pipeline.subject_identifier = mock_subject_identifier
+        with patch('audio_icon_matcher.core.pipeline.SubjectIdentifier') as mock_si_class, \
+             patch('audio_icon_matcher.core.pipeline.AudioProcessor') as mock_ap_class:
+            
+            # Configure the mocked classes to return our fixture instances
+            mock_si_class.return_value = mock_subject_identifier
+            mock_ap_class.return_value = mock_audio_processor
+            
+            pipeline = AudioIconPipeline()
+            
+            # Override the components with our mocks
+            pipeline.audio_processor = mock_audio_processor
+            pipeline.subject_identifier = mock_subject_identifier
         
         # Mock icon matcher
         pipeline.icon_matcher = Mock()
@@ -276,11 +280,18 @@ class TestAudioIconPipeline:
     
     def test_init(self):
         """Test pipeline initialization."""
-        pipeline = AudioIconPipeline()
-        assert pipeline.audio_processor is not None
-        assert pipeline.subject_identifier is not None
-        assert pipeline.icon_matcher is not None
-        assert pipeline.result_ranker is not None
+        with patch('audio_icon_matcher.core.pipeline.SubjectIdentifier') as mock_si_class, \
+             patch('audio_icon_matcher.core.pipeline.AudioProcessor') as mock_ap_class:
+            
+            # Mock the classes to avoid real spaCy/NLTK loading
+            mock_si_class.return_value = Mock()
+            mock_ap_class.return_value = Mock()
+            
+            pipeline = AudioIconPipeline()
+            assert pipeline.audio_processor is not None
+            assert pipeline.subject_identifier is not None
+            assert pipeline.icon_matcher is not None
+            assert pipeline.result_ranker is not None
     
     def test_process_success(self, pipeline):
         """Test successful pipeline processing with mocks."""
