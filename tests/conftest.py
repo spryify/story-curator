@@ -30,25 +30,55 @@ def mock_spacy_for_unit_tests():
     """Mock spaCy for all unit tests to avoid dependency on model downloads."""
     # Only mock for unit tests, not integration tests
     import os
+    import sys
+    
     if os.environ.get("PYTEST_CURRENT_TEST", "").find("unit") != -1 or not os.environ.get("TESTING_INTEGRATION", False):
-        with patch('spacy.load') as mock_spacy_load:
-            # Create a comprehensive mock for spaCy model
-            mock_token = Mock()
-            mock_token.text = "test"
-            mock_token.pos_ = "NOUN"
-            mock_token.is_stop = False
-            mock_token.is_space = False
-            mock_token.is_alpha = True
-            
-            mock_doc = Mock()
-            mock_doc.__iter__ = Mock(return_value=iter([mock_token]))
-            mock_doc.__len__ = Mock(return_value=1)
-            mock_doc.noun_chunks = []
-            
-            mock_nlp = Mock()
-            mock_nlp.return_value = mock_doc
-            mock_spacy_load.return_value = mock_nlp
-            
+        # Create comprehensive spaCy mocks
+        
+        # Create a mock factory decorator that just returns the function
+        def mock_factory(name, **kwargs):
+            def decorator(func):
+                return func
+            return decorator
+        
+        mock_language = Mock()
+        mock_language.factory = mock_factory
+        
+        mock_token = Mock()
+        mock_token.text = "test"
+        mock_token.pos_ = "NOUN"
+        mock_token.is_stop = False
+        mock_token.is_space = False
+        mock_token.is_alpha = True
+        mock_token.label_ = "ORG"
+        
+        mock_doc = Mock()
+        mock_doc.__iter__ = Mock(return_value=iter([mock_token]))
+        mock_doc.__len__ = Mock(return_value=1)
+        mock_doc.noun_chunks = []
+        mock_doc.ents = [mock_token]
+        
+        mock_nlp = Mock()
+        mock_nlp.return_value = mock_doc
+        mock_nlp.select_pipes = Mock()
+        
+        # Create the main spaCy module mock
+        mock_spacy = Mock()
+        mock_spacy.load = Mock(return_value=mock_nlp)
+        mock_spacy.Language = mock_language
+        
+        # Create spacy.language module mock
+        mock_spacy_language = Mock()
+        mock_spacy_language.Language = mock_language
+        
+        # Patch the entire spaCy module ecosystem
+        with patch.dict('sys.modules', {
+            'spacy': mock_spacy,
+            'spacy.language': mock_spacy_language,
+            'spacy.util': Mock(),
+            'spacy.cli': Mock(),
+            'spacy.tokens': Mock()
+        }):
             yield
     else:
         # For integration tests, don't mock spaCy

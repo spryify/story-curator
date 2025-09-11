@@ -7,18 +7,10 @@ from pathlib import Path
 import tempfile
 import os
 
-# Mock the spaCy import in IconMatcher before importing
-with patch('audio_icon_matcher.processors.icon_matcher.spacy') as mock_spacy:
-    # Setup spaCy mock
-    mock_nlp = Mock()
-    mock_spacy.load.return_value = mock_nlp
-    
-    # Now safely import the modules
-    from audio_icon_matcher.core.pipeline import AudioIconPipeline
-    from audio_icon_matcher.processors.icon_matcher import IconMatcher
-    from audio_icon_matcher.processors.result_ranker import ResultRanker
-
-# Import other modules that don't have spaCy issues
+# Import modules - spaCy is mocked globally via conftest.py
+from audio_icon_matcher.core.pipeline import AudioIconPipeline
+from audio_icon_matcher.processors.icon_matcher import IconMatcher
+from audio_icon_matcher.processors.result_ranker import ResultRanker
 from audio_icon_matcher.models.results import AudioIconResult, IconMatch
 from audio_icon_matcher.core.exceptions import (
     AudioIconValidationError, 
@@ -285,12 +277,12 @@ class TestAudioIconPipeline:
         return pipeline
     
     def test_init(self):
-        """Test pipeline initialization."""
+        """Test pipeline initialization with mocked dependencies."""
         with patch('audio_icon_matcher.core.pipeline.SubjectIdentifier') as mock_si_class, \
              patch('audio_icon_matcher.core.pipeline.AudioProcessor') as mock_ap_class, \
              patch('audio_icon_matcher.core.pipeline.PodcastAnalyzer') as mock_pa_class:
             
-            # Mock all the classes to avoid real spaCy/NLTK loading
+            # Mock all the classes to return mock instances
             mock_si_class.return_value = Mock()
             mock_ap_class.return_value = Mock()
             
@@ -300,10 +292,18 @@ class TestAudioIconPipeline:
             mock_pa_class.return_value = mock_podcast_analyzer
             
             pipeline = AudioIconPipeline()
+            
+            # Verify all components are initialized
             assert pipeline.audio_processor is not None
             assert pipeline.subject_identifier is not None
             assert pipeline.icon_matcher is not None
             assert pipeline.result_ranker is not None
+            assert pipeline.podcast_analyzer is not None
+            
+            # Verify the mocked classes were called
+            mock_si_class.assert_called_once()
+            mock_ap_class.assert_called_once()
+            mock_pa_class.assert_called_once()
     
     def test_process_success(self, pipeline):
         """Test successful pipeline processing with mocks."""
@@ -531,15 +531,11 @@ class TestPodcastUnitTests:
     
     def test_is_url_detection(self):
         """Test URL detection logic."""
-        with patch('audio_icon_matcher.core.pipeline.SubjectIdentifier') as mock_si_class, \
-             patch('audio_icon_matcher.core.pipeline.AudioProcessor') as mock_ap_class, \
+        with patch('audio_icon_matcher.core.pipeline.SubjectIdentifier'), \
+             patch('audio_icon_matcher.core.pipeline.AudioProcessor'), \
              patch('audio_icon_matcher.core.pipeline.PodcastAnalyzer') as mock_pa_class:
             
-            # Mock all the classes to avoid real spaCy/NLTK loading
-            mock_si_class.return_value = Mock()
-            mock_ap_class.return_value = Mock()
-            
-            # Mock podcast analyzer with async cleanup method
+            # Mock podcast analyzer with async cleanup to avoid warnings
             mock_podcast_analyzer = Mock()
             mock_podcast_analyzer.cleanup = AsyncMock()
             mock_pa_class.return_value = mock_podcast_analyzer
@@ -557,15 +553,11 @@ class TestPodcastUnitTests:
     
     def test_validate_podcast_url_with_mocks(self):
         """Test podcast URL validation with mocked components."""
-        with patch('audio_icon_matcher.core.pipeline.SubjectIdentifier') as mock_si_class, \
-             patch('audio_icon_matcher.core.pipeline.AudioProcessor') as mock_ap_class, \
+        with patch('audio_icon_matcher.core.pipeline.SubjectIdentifier'), \
+             patch('audio_icon_matcher.core.pipeline.AudioProcessor'), \
              patch('audio_icon_matcher.core.pipeline.PodcastAnalyzer') as mock_pa_class:
             
-            # Mock all the classes to avoid real spaCy/NLTK loading
-            mock_si_class.return_value = Mock()
-            mock_ap_class.return_value = Mock()
-            
-            # Mock podcast analyzer with async cleanup method
+            # Mock podcast analyzer with async cleanup and the method we need to test
             mock_podcast_analyzer = Mock()
             mock_podcast_analyzer.cleanup = AsyncMock()
             mock_pa_class.return_value = mock_podcast_analyzer
@@ -586,15 +578,11 @@ class TestPodcastUnitTests:
     
     def test_convert_subjects_to_rich_dict_unit(self):
         """Test the unified subjects conversion method with mocks."""
-        with patch('audio_icon_matcher.core.pipeline.SubjectIdentifier') as mock_si_class, \
-             patch('audio_icon_matcher.core.pipeline.AudioProcessor') as mock_ap_class, \
+        with patch('audio_icon_matcher.core.pipeline.SubjectIdentifier'), \
+             patch('audio_icon_matcher.core.pipeline.AudioProcessor'), \
              patch('audio_icon_matcher.core.pipeline.PodcastAnalyzer') as mock_pa_class:
             
-            # Mock all the classes to avoid real spaCy/NLTK loading
-            mock_si_class.return_value = Mock()
-            mock_ap_class.return_value = Mock()
-            
-            # Mock podcast analyzer with async cleanup method
+            # Mock podcast analyzer with async cleanup
             mock_podcast_analyzer = Mock()
             mock_podcast_analyzer.cleanup = AsyncMock()
             mock_pa_class.return_value = mock_podcast_analyzer
