@@ -244,11 +244,13 @@ class TestAudioIconPipeline:
     def pipeline(self, mock_audio_processor, mock_subject_identifier):
         """Create pipeline with mocked dependencies."""
         with patch('audio_icon_matcher.core.pipeline.SubjectIdentifier') as mock_si_class, \
-             patch('audio_icon_matcher.core.pipeline.AudioProcessor') as mock_ap_class:
+             patch('audio_icon_matcher.core.pipeline.AudioProcessor') as mock_ap_class, \
+             patch('audio_icon_matcher.core.pipeline.PodcastAnalyzer') as mock_pa_class:
             
             # Configure the mocked classes to return our fixture instances
             mock_si_class.return_value = mock_subject_identifier
             mock_ap_class.return_value = mock_audio_processor
+            mock_pa_class.return_value = Mock()  # Mock podcast analyzer
             
             pipeline = AudioIconPipeline()
             
@@ -281,11 +283,13 @@ class TestAudioIconPipeline:
     def test_init(self):
         """Test pipeline initialization."""
         with patch('audio_icon_matcher.core.pipeline.SubjectIdentifier') as mock_si_class, \
-             patch('audio_icon_matcher.core.pipeline.AudioProcessor') as mock_ap_class:
+             patch('audio_icon_matcher.core.pipeline.AudioProcessor') as mock_ap_class, \
+             patch('audio_icon_matcher.core.pipeline.PodcastAnalyzer') as mock_pa_class:
             
-            # Mock the classes to avoid real spaCy/NLTK loading
+            # Mock all the classes to avoid real spaCy/NLTK loading
             mock_si_class.return_value = Mock()
             mock_ap_class.return_value = Mock()
+            mock_pa_class.return_value = Mock()
             
             pipeline = AudioIconPipeline()
             assert pipeline.audio_processor is not None
@@ -519,56 +523,84 @@ class TestPodcastUnitTests:
     
     def test_is_url_detection(self):
         """Test URL detection logic."""
-        pipeline = AudioIconPipeline()
-        
-        # Valid URLs
-        assert pipeline._is_url("https://example.com/feed.xml")
-        assert pipeline._is_url("http://example.com/podcast.rss")
-        
-        # Invalid URLs
-        assert not pipeline._is_url("/path/to/file.mp3")
-        assert not pipeline._is_url("file.wav")
-        assert not pipeline._is_url("")
+        with patch('audio_icon_matcher.core.pipeline.SubjectIdentifier') as mock_si_class, \
+             patch('audio_icon_matcher.core.pipeline.AudioProcessor') as mock_ap_class, \
+             patch('audio_icon_matcher.core.pipeline.PodcastAnalyzer') as mock_pa_class:
+            
+            # Mock all the classes to avoid real spaCy/NLTK loading
+            mock_si_class.return_value = Mock()
+            mock_ap_class.return_value = Mock()
+            mock_pa_class.return_value = Mock()
+            
+            pipeline = AudioIconPipeline()
+            
+            # Valid URLs
+            assert pipeline._is_url("https://example.com/feed.xml")
+            assert pipeline._is_url("http://example.com/podcast.rss")
+            
+            # Invalid URLs
+            assert not pipeline._is_url("/path/to/file.mp3")
+            assert not pipeline._is_url("file.wav")
+            assert not pipeline._is_url("")
     
     def test_validate_podcast_url_with_mocks(self):
         """Test podcast URL validation with mocked components."""
-        pipeline = AudioIconPipeline()
-        
-        with patch.object(pipeline.podcast_analyzer, '_get_connector_for_url') as mock_get_connector:
-            # Valid URL with connector
-            mock_get_connector.return_value = Mock()
-            assert pipeline.validate_podcast_url("https://example.com/feed.xml")
+        with patch('audio_icon_matcher.core.pipeline.SubjectIdentifier') as mock_si_class, \
+             patch('audio_icon_matcher.core.pipeline.AudioProcessor') as mock_ap_class, \
+             patch('audio_icon_matcher.core.pipeline.PodcastAnalyzer') as mock_pa_class:
             
-            # Invalid URL without connector
-            mock_get_connector.return_value = None
-            assert not pipeline.validate_podcast_url("https://invalid.com/notfeed")
+            # Mock all the classes to avoid real spaCy/NLTK loading
+            mock_si_class.return_value = Mock()
+            mock_ap_class.return_value = Mock()
+            mock_podcast_analyzer = Mock()
+            mock_pa_class.return_value = mock_podcast_analyzer
             
-            # Non-URL
-            assert not pipeline.validate_podcast_url("/path/to/file.mp3")
+            pipeline = AudioIconPipeline()
+            
+            with patch.object(pipeline.podcast_analyzer, '_get_connector_for_url') as mock_get_connector:
+                # Valid URL with connector
+                mock_get_connector.return_value = Mock()
+                assert pipeline.validate_podcast_url("https://example.com/feed.xml")
+                
+                # Invalid URL without connector
+                mock_get_connector.return_value = None
+                assert not pipeline.validate_podcast_url("https://invalid.com/notfeed")
+                
+                # Non-URL
+                assert not pipeline.validate_podcast_url("/path/to/file.mp3")
     
     def test_convert_subjects_to_rich_dict_unit(self):
         """Test the unified subjects conversion method with mocks."""
-        pipeline = AudioIconPipeline()
-        
-        subjects = [
-            Subject(name="cat", confidence=0.8, subject_type=SubjectType.KEYWORD),
-            Subject(name="animal behavior", confidence=0.7, subject_type=SubjectType.TOPIC),
-            Subject(name="Fluffy", confidence=0.6, subject_type=SubjectType.ENTITY)
-        ]
-        
-        result = pipeline._convert_subjects_to_rich_dict(subjects)
-        
-        assert 'keywords' in result
-        assert 'topics' in result  
-        assert 'entities' in result
-        assert 'categories' in result
-        
-        assert len(result['keywords']) == 1
-        assert result['keywords'][0]['name'] == "cat"
-        assert result['keywords'][0]['confidence'] == 0.8
-        
-        assert len(result['topics']) == 1
-        assert result['topics'][0]['name'] == "animal behavior"
-        
-        assert len(result['entities']) == 1
-        assert result['entities'][0]['name'] == "Fluffy"
+        with patch('audio_icon_matcher.core.pipeline.SubjectIdentifier') as mock_si_class, \
+             patch('audio_icon_matcher.core.pipeline.AudioProcessor') as mock_ap_class, \
+             patch('audio_icon_matcher.core.pipeline.PodcastAnalyzer') as mock_pa_class:
+            
+            # Mock all the classes to avoid real spaCy/NLTK loading
+            mock_si_class.return_value = Mock()
+            mock_ap_class.return_value = Mock()
+            mock_pa_class.return_value = Mock()
+            
+            pipeline = AudioIconPipeline()
+            
+            subjects = [
+                Subject(name="cat", confidence=0.8, subject_type=SubjectType.KEYWORD),
+                Subject(name="animal behavior", confidence=0.7, subject_type=SubjectType.TOPIC),
+                Subject(name="Fluffy", confidence=0.6, subject_type=SubjectType.ENTITY)
+            ]
+            
+            result = pipeline._convert_subjects_to_rich_dict(subjects)
+            
+            assert 'keywords' in result
+            assert 'topics' in result  
+            assert 'entities' in result
+            assert 'categories' in result
+            
+            assert len(result['keywords']) == 1
+            assert result['keywords'][0]['name'] == "cat"
+            assert result['keywords'][0]['confidence'] == 0.8
+            
+            assert len(result['topics']) == 1
+            assert result['topics'][0]['name'] == "animal behavior"
+            
+            assert len(result['entities']) == 1
+            assert result['entities'][0]['name'] == "Fluffy"
