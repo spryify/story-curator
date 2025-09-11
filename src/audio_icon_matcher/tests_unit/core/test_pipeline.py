@@ -250,7 +250,11 @@ class TestAudioIconPipeline:
             # Configure the mocked classes to return our fixture instances
             mock_si_class.return_value = mock_subject_identifier
             mock_ap_class.return_value = mock_audio_processor
-            mock_pa_class.return_value = Mock()  # Mock podcast analyzer
+            
+            # Mock podcast analyzer with async cleanup method
+            mock_podcast_analyzer = Mock()
+            mock_podcast_analyzer.cleanup = AsyncMock()
+            mock_pa_class.return_value = mock_podcast_analyzer
             
             pipeline = AudioIconPipeline()
             
@@ -289,7 +293,11 @@ class TestAudioIconPipeline:
             # Mock all the classes to avoid real spaCy/NLTK loading
             mock_si_class.return_value = Mock()
             mock_ap_class.return_value = Mock()
-            mock_pa_class.return_value = Mock()
+            
+            # Mock podcast analyzer with async cleanup method
+            mock_podcast_analyzer = Mock()
+            mock_podcast_analyzer.cleanup = AsyncMock()
+            mock_pa_class.return_value = mock_podcast_analyzer
             
             pipeline = AudioIconPipeline()
             assert pipeline.audio_processor is not None
@@ -530,7 +538,11 @@ class TestPodcastUnitTests:
             # Mock all the classes to avoid real spaCy/NLTK loading
             mock_si_class.return_value = Mock()
             mock_ap_class.return_value = Mock()
-            mock_pa_class.return_value = Mock()
+            
+            # Mock podcast analyzer with async cleanup method
+            mock_podcast_analyzer = Mock()
+            mock_podcast_analyzer.cleanup = AsyncMock()
+            mock_pa_class.return_value = mock_podcast_analyzer
             
             pipeline = AudioIconPipeline()
             
@@ -552,7 +564,10 @@ class TestPodcastUnitTests:
             # Mock all the classes to avoid real spaCy/NLTK loading
             mock_si_class.return_value = Mock()
             mock_ap_class.return_value = Mock()
+            
+            # Mock podcast analyzer with async cleanup method
             mock_podcast_analyzer = Mock()
+            mock_podcast_analyzer.cleanup = AsyncMock()
             mock_pa_class.return_value = mock_podcast_analyzer
             
             pipeline = AudioIconPipeline()
@@ -578,7 +593,11 @@ class TestPodcastUnitTests:
             # Mock all the classes to avoid real spaCy/NLTK loading
             mock_si_class.return_value = Mock()
             mock_ap_class.return_value = Mock()
-            mock_pa_class.return_value = Mock()
+            
+            # Mock podcast analyzer with async cleanup method
+            mock_podcast_analyzer = Mock()
+            mock_podcast_analyzer.cleanup = AsyncMock()
+            mock_pa_class.return_value = mock_podcast_analyzer
             
             pipeline = AudioIconPipeline()
             
