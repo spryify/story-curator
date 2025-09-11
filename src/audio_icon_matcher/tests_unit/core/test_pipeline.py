@@ -2,61 +2,34 @@
 
 import pytest
 import asyncio
-import sys
 from unittest.mock import Mock, patch, MagicMock, AsyncMock
 from pathlib import Path
 import tempfile
 import os
 
-# Mock spaCy and NLTK BEFORE importing any modules that use them
-with patch.dict('sys.modules', {'spacy': Mock()}) as mock_spacy_module:
-    # Create a comprehensive mock spaCy module
-    mock_spacy = Mock()
-    
-    # Mock the load function specifically
-    mock_token = Mock()
-    mock_token.text = "test"
-    mock_token.pos_ = "NOUN" 
-    mock_token.is_stop = False
-    mock_token.is_space = False
-    mock_token.is_alpha = True
-    mock_token.label_ = "ORG"
-    
-    mock_doc = Mock()
-    mock_doc.__iter__ = Mock(return_value=iter([mock_token]))
-    mock_doc.__len__ = Mock(return_value=1)
-    mock_doc.noun_chunks = []
-    mock_doc.ents = [mock_token]  # For EntityExtractor
-    
+# Mock the spaCy import in IconMatcher before importing
+with patch('audio_icon_matcher.processors.icon_matcher.spacy') as mock_spacy:
+    # Setup spaCy mock
     mock_nlp = Mock()
-    mock_nlp.return_value = mock_doc
-    mock_nlp.select_pipes = Mock()  # For EntityExtractor pipeline configuration
+    mock_spacy.load.return_value = mock_nlp
     
-    mock_spacy.load = Mock(return_value=mock_nlp)
-    mock_spacy_module['spacy'] = mock_spacy
-    
-    # Mock NLTK dependencies
-    with patch('media_analyzer.processors.subject.extractors.keyword_extractor.stopwords') as mock_kw_stopwords:
-        with patch('media_analyzer.processors.subject.extractors.topic_extractor.stopwords') as mock_topic_stopwords:
-            mock_kw_stopwords.words.return_value = {'the', 'a', 'an'}
-            mock_topic_stopwords.words.return_value = {'the', 'a', 'an'}
-            
-            with patch('media_analyzer.processors.subject.extractors.keyword_extractor.wordnet'):
-                # Now import the modules that depend on spaCy/NLTK
-                from audio_icon_matcher.core.pipeline import AudioIconPipeline
-                from audio_icon_matcher.processors.icon_matcher import IconMatcher
-                from audio_icon_matcher.processors.result_ranker import ResultRanker
-                from audio_icon_matcher.models.results import AudioIconResult, IconMatch
-                from audio_icon_matcher.core.exceptions import (
-                    AudioIconValidationError, 
-                    AudioIconProcessingError
-                )
-                from media_analyzer.models.audio.transcription import TranscriptionResult
-                from media_analyzer.models.subject.identification import (
-                    SubjectAnalysisResult, Subject, Category, SubjectType
-                )
-                from media_analyzer.models.podcast import PodcastEpisode, StreamingAnalysisResult
-                from icon_extractor.models.icon import IconData
+    # Now safely import the modules
+    from audio_icon_matcher.core.pipeline import AudioIconPipeline
+    from audio_icon_matcher.processors.icon_matcher import IconMatcher
+    from audio_icon_matcher.processors.result_ranker import ResultRanker
+
+# Import other modules that don't have spaCy issues
+from audio_icon_matcher.models.results import AudioIconResult, IconMatch
+from audio_icon_matcher.core.exceptions import (
+    AudioIconValidationError, 
+    AudioIconProcessingError
+)
+from media_analyzer.models.audio.transcription import TranscriptionResult
+from media_analyzer.models.subject.identification import (
+    SubjectAnalysisResult, Subject, Category, SubjectType
+)
+from media_analyzer.models.podcast import PodcastEpisode, StreamingAnalysisResult
+from icon_extractor.models.icon import IconData
 
 
 class TestIconMatcher:
