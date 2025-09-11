@@ -531,6 +531,9 @@ class TestSemanticSimilarity:
     
     def test_semantic_similarity_empty_icon_metadata(self):
         """Test semantic similarity with icon that has no metadata."""
+        # Ensure we have a proper NLP mock so the method doesn't early return
+        mock_nlp = Mock()
+        self.matcher.nlp = mock_nlp
         self.matcher.semantic_matching_enabled = True
         
         empty_icon = IconData(
