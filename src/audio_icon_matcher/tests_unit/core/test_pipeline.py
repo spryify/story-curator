@@ -2,14 +2,18 @@
 
 import pytest
 import asyncio
+import sys
 from unittest.mock import Mock, patch, MagicMock, AsyncMock
 from pathlib import Path
 import tempfile
 import os
 
 # Mock spaCy and NLTK BEFORE importing any modules that use them
-with patch('spacy.load') as mock_spacy_load:
-    # Create comprehensive mock for spaCy
+with patch.dict('sys.modules', {'spacy': Mock()}) as mock_spacy_module:
+    # Create a comprehensive mock spaCy module
+    mock_spacy = Mock()
+    
+    # Mock the load function specifically
     mock_token = Mock()
     mock_token.text = "test"
     mock_token.pos_ = "NOUN" 
@@ -27,7 +31,9 @@ with patch('spacy.load') as mock_spacy_load:
     mock_nlp = Mock()
     mock_nlp.return_value = mock_doc
     mock_nlp.select_pipes = Mock()  # For EntityExtractor pipeline configuration
-    mock_spacy_load.return_value = mock_nlp
+    
+    mock_spacy.load = Mock(return_value=mock_nlp)
+    mock_spacy_module['spacy'] = mock_spacy
     
     # Mock NLTK dependencies
     with patch('media_analyzer.processors.subject.extractors.keyword_extractor.stopwords') as mock_kw_stopwords:
