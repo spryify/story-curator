@@ -25,74 +25,12 @@ def pytest_collection_modifyitems(config, items):
             item.add_marker(pytest.mark.asyncio)
 
 
-@pytest.fixture(scope="session", autouse=True)
+@pytest.fixture(scope="session", autouse=True)  
 def mock_spacy_for_unit_tests():
-    """Mock spaCy for all unit tests to avoid dependency on model downloads."""
-    # Only mock for unit tests, not integration tests
-    import os
-    import sys
-    
-    if os.environ.get("PYTEST_CURRENT_TEST", "").find("unit") != -1 or not os.environ.get("TESTING_INTEGRATION", False):
-        # Create comprehensive spaCy mocks
-        
-        # Create a mock factory decorator that just returns the function
-        def mock_factory(name, **kwargs):
-            def decorator(func):
-                return func
-            return decorator
-        
-        mock_language = Mock()
-        mock_language.factory = mock_factory
-        
-        # Create mock English class with factory method
-        mock_english = Mock()
-        mock_english.factory = mock_factory
-        
-        mock_token = Mock()
-        mock_token.text = "test"
-        mock_token.pos_ = "NOUN"
-        mock_token.is_stop = False
-        mock_token.is_space = False
-        mock_token.is_alpha = True
-        mock_token.label_ = "ORG"
-        
-        mock_doc = Mock()
-        mock_doc.__iter__ = Mock(return_value=iter([mock_token]))
-        mock_doc.__len__ = Mock(return_value=1)
-        mock_doc.noun_chunks = []
-        mock_doc.ents = [mock_token]
-        
-        mock_nlp = Mock()
-        mock_nlp.return_value = mock_doc
-        mock_nlp.select_pipes = Mock()
-        
-        # Create the main spaCy module mock
-        mock_spacy = Mock()
-        mock_spacy.load = Mock(return_value=mock_nlp)
-        mock_spacy.Language = mock_language
-        
-        # Create spacy.language module mock
-        mock_spacy_language = Mock()
-        mock_spacy_language.Language = mock_language
-        
-        # Create spacy.lang.en module mock with English class
-        mock_spacy_lang_en = Mock()
-        mock_spacy_lang_en.English = mock_english
-        
-        # Patch the entire spaCy module ecosystem
-        with patch.dict('sys.modules', {
-            'spacy': mock_spacy,
-            'spacy.language': mock_spacy_language,
-            'spacy.lang': Mock(),
-            'spacy.lang.en': mock_spacy_lang_en,
-            'spacy.util': Mock(),
-            'spacy.cli': Mock(),
-            'spacy.tokens': Mock()
-        }):
-            yield
-    else:
-        # For integration tests, don't mock spaCy
-        yield
+    """Mock spaCy for all unit tests - handled by pytest_spacy_mock plugin."""
+    # The spaCy mocking is now handled by the pytest_spacy_mock plugin
+    # which runs at pytest_configure time, before any imports
+    yield
 
 
 @pytest_asyncio.fixture(scope="session", autouse=True)
