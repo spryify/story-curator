@@ -180,20 +180,26 @@ def test_format_conversion(sample_wav, sample_mp3, sample_m4a, sample_aac, tmp_p
 
 def test_processor_configuration():
     """Test AudioProcessor initialization with different configurations."""
-    # Test default config
-    processor = AudioProcessor()
-    assert processor.config == {}
-    assert processor.model is not None
+    from unittest.mock import patch, Mock
     
-    # Test custom config
-    config = {
-        "model": "base",
-        "device": "cpu",
-        "sample_rate": 16000,
-        "max_duration": 3600
-    }
-    processor = AudioProcessor(config)
-    assert processor.config == config
+    with patch('whisper.load_model') as mock_load_model:
+        mock_model = Mock()
+        mock_load_model.return_value = mock_model
+        
+        # Test default config
+        processor = AudioProcessor()
+        assert processor.config == {}
+        assert processor.model is not None
+        
+        # Test custom config
+        config = {
+            "model": "base",
+            "device": "cpu",
+            "sample_rate": 16000,
+            "max_duration": 3600
+        }
+        processor = AudioProcessor(config)
+        assert processor.config == config
 
 
 
@@ -205,8 +211,14 @@ def test_error_handling(tmp_path):
     Args:
         tmp_path: Temporary directory from pytest
     """
+    from unittest.mock import patch, Mock
+    
     validator = AudioFileValidator()
-    processor = AudioProcessor()
+    
+    with patch('whisper.load_model') as mock_load_model:
+        mock_model = Mock()
+        mock_load_model.return_value = mock_model
+        processor = AudioProcessor()
     
     # Test non-existent file
     non_existent = tmp_path / "non_existent.wav"

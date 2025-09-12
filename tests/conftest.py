@@ -44,6 +44,10 @@ def mock_spacy_for_unit_tests():
         mock_language = Mock()
         mock_language.factory = mock_factory
         
+        # Create mock English class with factory method
+        mock_english = Mock()
+        mock_english.factory = mock_factory
+        
         mock_token = Mock()
         mock_token.text = "test"
         mock_token.pos_ = "NOUN"
@@ -71,10 +75,16 @@ def mock_spacy_for_unit_tests():
         mock_spacy_language = Mock()
         mock_spacy_language.Language = mock_language
         
+        # Create spacy.lang.en module mock with English class
+        mock_spacy_lang_en = Mock()
+        mock_spacy_lang_en.English = mock_english
+        
         # Patch the entire spaCy module ecosystem
         with patch.dict('sys.modules', {
             'spacy': mock_spacy,
             'spacy.language': mock_spacy_language,
+            'spacy.lang': Mock(),
+            'spacy.lang.en': mock_spacy_lang_en,
             'spacy.util': Mock(),
             'spacy.cli': Mock(),
             'spacy.tokens': Mock()
