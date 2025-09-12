@@ -21,6 +21,7 @@ PROJECT_ROOT = Path(__file__).parent.parent.parent.parent.parent
 class TestMainCLIIntegration:
     """Integration tests for the main CLI entry point."""
     
+    @pytest.mark.integration
     def test_cli_help_command(self):
         """Test that the CLI help command works."""
         result = subprocess.run(
@@ -36,6 +37,7 @@ class TestMainCLIIntegration:
         assert "audio" in result.stdout  # Should show audio subcommand
         assert "podcast" in result.stdout  # Should show podcast subcommand
     
+    @pytest.mark.integration
     def test_cli_version_or_basic_info(self):
         """Test that the CLI shows basic information when run without args."""
         result = subprocess.run(
@@ -50,6 +52,7 @@ class TestMainCLIIntegration:
         output = result.stdout + result.stderr
         assert "Usage:" in output or "Media Analyzer CLI" in output
     
+    @pytest.mark.integration
     def test_audio_subcommand_help(self):
         """Test that the audio subcommand help works."""
         result = subprocess.run(
@@ -62,6 +65,7 @@ class TestMainCLIIntegration:
         assert result.returncode == 0
         assert "audio" in result.stdout.lower()
     
+    @pytest.mark.integration
     def test_podcast_subcommand_help(self):
         """Test that the podcast subcommand help works."""
         result = subprocess.run(
@@ -124,6 +128,7 @@ class TestMainCLIIntegration:
                 # If audio creation fails, skip the test
                 pytest.skip(f"Could not create test audio file: {e}")
     
+    @pytest.mark.integration
     def test_analyze_command_with_nonexistent_file(self):
         """Test the analyze command with a file that doesn't exist."""
         result = subprocess.run(
@@ -142,6 +147,7 @@ class TestMainCLIIntegration:
         error_output = result.stdout + result.stderr
         assert "does not exist" in error_output.lower() or "no such file" in error_output.lower()
     
+    @pytest.mark.integration
     def test_analyze_command_with_invalid_options(self):
         """Test the analyze command with invalid options."""
         result = subprocess.run(
@@ -209,6 +215,7 @@ class TestMainCLIIntegration:
             except Exception as e:
                 pytest.skip(f"Could not create test audio file: {e}")
     
+    @pytest.mark.integration
     def test_cli_module_can_be_imported(self):
         """Test that the CLI module can be imported without errors."""
         result = subprocess.run(
@@ -224,6 +231,7 @@ class TestMainCLIIntegration:
         assert "ImportError" not in result.stderr
         assert "ModuleNotFoundError" not in result.stderr
     
+    @pytest.mark.integration
     def test_cli_entry_point_accessible(self):
         """Test that the CLI entry point is accessible."""
         # Test that we can run the module
@@ -238,6 +246,7 @@ class TestMainCLIIntegration:
         assert result.returncode == 0
         assert len(result.stdout) > 0
     
+    @pytest.mark.integration
     def test_cli_error_handling(self):
         """Test that CLI handles errors gracefully."""
         # Test with a text file instead of audio file

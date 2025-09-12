@@ -38,11 +38,18 @@ Usage:
 """
 
 import pytest
+import os
 from pathlib import Path
 
 from media_analyzer.core.analyzer import Analyzer
 from media_analyzer.core.exceptions import ValidationError
 from media_analyzer.models.audio import TranscriptionResult
+
+# Skip tests that require 'say' command only in CI environments
+skip_audio_tests = pytest.mark.skipif(
+    os.getenv('CI') == 'true' or os.getenv('GITHUB_ACTIONS') == 'true',
+    reason="Requires macOS 'say' command for audio generation - skipped in CI environments"
+)
 
 
 def test_analyzer_initialization():
@@ -75,6 +82,7 @@ def test_process_file_invalid_format(tmp_path):
         analyzer.process_file(str(invalid_file))
 
 
+@skip_audio_tests
 def test_successful_transcription(test_audio_file, mock_whisper):
     """Test successful transcription of an audio file."""
     # Create analyzer with mock config to prevent real whisper loading
@@ -94,6 +102,7 @@ def test_successful_transcription(test_audio_file, mock_whisper):
     assert "duration" in result.metadata
 
 
+@skip_audio_tests
 def test_transcription_with_options(test_audio_file, mock_whisper):
     """Test transcription with custom options."""
     options = {
@@ -118,6 +127,7 @@ def test_transcription_with_options(test_audio_file, mock_whisper):
 
 
 @pytest.mark.parametrize("audio_format", ["wav", "mp3"])
+@skip_audio_tests
 def test_supported_formats(test_formats, audio_format, mock_whisper):
     """Test that analyzer supports different audio formats."""
     test_file = test_formats[audio_format]
@@ -137,6 +147,7 @@ def test_supported_formats(test_formats, audio_format, mock_whisper):
     assert "format testing" in result.text.lower()
 
 
+@skip_audio_tests
 def test_analyzer_error_handling(test_audio_file, mock_whisper):
     """Test that analyzer properly handles and logs errors."""
     analyzer = Analyzer()
@@ -152,6 +163,7 @@ def test_analyzer_error_handling(test_audio_file, mock_whisper):
     assert "Invalid summary length" in str(exc_info.value)
 
 
+@skip_audio_tests
 def test_analyzer_performance_metrics(test_audio_file, mock_whisper):
     """Test that analyzer captures performance metrics."""
     # Create analyzer with mock config to prevent real whisper loading
@@ -182,6 +194,7 @@ def test_analyzer_performance_metrics(test_audio_file, mock_whisper):
     assert result.metadata["duration"] > 0
 
 
+@skip_audio_tests
 def test_analyzer_security_validation(test_audio_file, mock_whisper):
     """Test that analyzer validates inputs for security."""
     analyzer = Analyzer()

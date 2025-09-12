@@ -11,6 +11,7 @@ from src.icon_extractor.processors.scraper import YotoIconScraper
 class TestIconCuratorBasicFunctionality:
     """Basic integration tests for icon curator functionality."""
     
+    @pytest.mark.integration
     def test_icon_data_creation(self):
         """Test creating IconData objects with all fields."""
         icon = IconData(
@@ -31,12 +32,14 @@ class TestIconCuratorBasicFunctionality:
         assert isinstance(icon.updated_at, datetime)
         assert icon.metadata == {"source": "integration_test", "version": "1.0"}
     
+    @pytest.mark.integration
     def test_icon_data_validation(self):
         """Test IconData validation with invalid data."""
         # Test with missing required fields
         with pytest.raises(TypeError):
             IconData()  # Missing required name, url, tags
     
+    @pytest.mark.integration
     def test_scraping_result_creation(self):
         """Test creating ScrapingResult objects."""
         result = ScrapingResult(
@@ -57,6 +60,7 @@ class TestIconCuratorBasicFunctionality:
         # Check success rate is approximately 66.7% (2/3 * 100)
         assert abs(result.success_rate - 66.7) < 0.1
     
+    @pytest.mark.integration
     def test_scraper_initialization(self):
         """Test YotoIconScraper initialization and configuration."""
         # Test default initialization
@@ -78,6 +82,7 @@ class TestIconCuratorBasicFunctionality:
         assert custom_scraper.max_retries == 5
         assert custom_scraper.timeout == 60
     
+    @pytest.mark.integration
     def test_icon_data_equality_and_hashing(self):
         """Test IconData equality and hashing for collections."""
         icon1 = IconData(
@@ -108,6 +113,7 @@ class TestIconCuratorBasicFunctionality:
         unique_urls = {icon.url for icon in icon_list}
         assert len(unique_urls) == 2
     
+    @pytest.mark.integration
     def test_icon_data_string_representation(self):
         """Test IconData string representation for debugging."""
         icon = IconData(
@@ -122,6 +128,7 @@ class TestIconCuratorBasicFunctionality:
         assert "Debug Icon" in icon_str
         assert "Debug" in icon_str or "debug" in icon_str.lower()
     
+    @pytest.mark.integration
     def test_scraping_result_edge_cases(self):
         """Test ScrapingResult with edge cases."""
         # Test with zero total icons

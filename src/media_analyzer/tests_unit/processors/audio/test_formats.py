@@ -26,12 +26,19 @@ from media_analyzer.core.validator import AudioFileValidator, AudioFormat
 from media_analyzer.processors.audio.audio_processor import AudioProcessor
 from media_analyzer.core.exceptions import AudioProcessingError
 
+# Skip tests that require 'say' command only in CI environments
+skip_audio_tests = pytest.mark.skipif(
+    os.getenv('CI') == 'true' or os.getenv('GITHUB_ACTIONS') == 'true',
+    reason="Requires macOS 'say' command for audio generation - skipped in CI environments"
+)
+
 # Audio fixtures are automatically imported from tests.fixtures.audio.samples
 
 
 
 
 
+@skip_audio_tests
 def test_format_detection(sample_wav, sample_mp3, sample_m4a, sample_aac):
     """Test detection of different audio formats.
     
@@ -59,6 +66,7 @@ def test_format_detection(sample_wav, sample_mp3, sample_m4a, sample_aac):
     assert AudioFormat.from_extension(".xyz") is None
 
 
+@skip_audio_tests
 def test_format_validation(sample_wav, sample_mp3, sample_m4a, sample_aac):
     """Test validation of different audio formats.
     
@@ -90,6 +98,7 @@ def test_format_validation(sample_wav, sample_mp3, sample_m4a, sample_aac):
         assert error is not None and "Unsupported audio format" in error
 
 
+@skip_audio_tests
 def test_audio_loading(sample_wav, sample_mp3, sample_m4a, sample_aac):
     """Test loading of different audio formats.
     
@@ -114,6 +123,7 @@ def test_audio_loading(sample_wav, sample_mp3, sample_m4a, sample_aac):
             processor.load_audio(Path(tmp.name))
 
 
+@skip_audio_tests
 def test_audio_info(sample_wav):
     """Test getting audio file information.
     
@@ -136,6 +146,7 @@ def test_audio_info(sample_wav):
     assert info["duration"] > 0
 
 
+@skip_audio_tests
 def test_format_conversion(sample_wav, sample_mp3, sample_m4a, sample_aac, tmp_path):
     """Test conversion between different audio formats.
     
@@ -169,17 +180,24 @@ def test_format_conversion(sample_wav, sample_mp3, sample_m4a, sample_aac, tmp_p
 
 def test_processor_configuration():
     """Test AudioProcessor initialization with different configurations."""
-    # Test default config
-    processor = AudioProcessor()
-    assert processor.config == {}
-    assert processor.model is not None
+    from unittest.mock import patch, Mock
     
-    # Test custom config
+    # Test default config with Whisper model mocking
+    with patch('whisper.load_model') as mock_load_model:
+        mock_model = Mock()
+        mock_load_model.return_value = mock_model
+        
+        processor = AudioProcessor()
+        assert processor.config == {}
+        assert processor.model is not None
+        
+    # Test custom config with mock_model flag
     config = {
         "model": "base",
-        "device": "cpu",
+        "device": "cpu", 
         "sample_rate": 16000,
-        "max_duration": 3600
+        "max_duration": 3600,
+        "mock_model": True  # Use the built-in mock mechanism
     }
     processor = AudioProcessor(config)
     assert processor.config == config
@@ -194,8 +212,14 @@ def test_error_handling(tmp_path):
     Args:
         tmp_path: Temporary directory from pytest
     """
+    from unittest.mock import patch, Mock
+    
     validator = AudioFileValidator()
-    processor = AudioProcessor()
+    
+    with patch('whisper.load_model') as mock_load_model:
+        mock_model = Mock()
+        mock_load_model.return_value = mock_model
+        processor = AudioProcessor()
     
     # Test non-existent file
     non_existent = tmp_path / "non_existent.wav"
@@ -228,6 +252,7 @@ def test_error_handling(tmp_path):
             corrupt_file.unlink()
 
 
+@skip_audio_tests
 def test_extract_text_unit(sample_wav):
     """Unit test for text extraction logic without Whisper dependency.
     

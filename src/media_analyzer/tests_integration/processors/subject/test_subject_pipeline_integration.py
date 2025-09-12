@@ -71,6 +71,7 @@ def create_mock_subject_result(context=None):
 class TestSubjectPipeline:
     """Integration test suite for audio subject identification."""
     
+    @pytest.mark.integration
     def test_audio_to_subjects_pipeline(self, audio_analyzer, audio_file_path):
         """Test the complete pipeline from audio to subject identification."""
         # Process audio file
@@ -87,6 +88,7 @@ class TestSubjectPipeline:
         assert subject_result.metadata is not None
         assert subject_result.metadata.get("processing_time_ms") is not None
         
+    @pytest.mark.integration
     def test_performance_full_pipeline(self, audio_analyzer, audio_file_path):
         """Test performance of the complete pipeline."""
         import time
@@ -104,6 +106,7 @@ class TestSubjectPipeline:
         # Full pipeline should complete within reasonable time
         assert subject_result.metadata.get("processing_time_ms") == 100  # mock value
         
+    @pytest.mark.integration
     def test_error_propagation(self, audio_analyzer, audio_file_path):
         """Test error handling across the pipeline."""
         # Test with invalid audio file
@@ -115,6 +118,7 @@ class TestSubjectPipeline:
         with pytest.raises(Exception) as exc_info:
             subject_identifier.identify_subjects("")
             
+    @pytest.mark.integration
     def test_context_preservation(self, audio_analyzer, audio_file_path):
         """Test that context is preserved throughout the pipeline."""
         from media_analyzer.models.subject.identification import Context
@@ -138,6 +142,7 @@ class TestSubjectPipeline:
         assert all(s.context is not None and s.context.domain == "technology" 
                   for s in subject_result.subjects)
         
+    @pytest.mark.integration
     def test_metadata_aggregation(self, audio_analyzer, audio_file_path):
         """Test that metadata is properly aggregated through the pipeline."""
         # Process audio
