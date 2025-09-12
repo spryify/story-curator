@@ -182,24 +182,25 @@ def test_processor_configuration():
     """Test AudioProcessor initialization with different configurations."""
     from unittest.mock import patch, Mock
     
+    # Test default config with Whisper model mocking
     with patch('whisper.load_model') as mock_load_model:
         mock_model = Mock()
         mock_load_model.return_value = mock_model
         
-        # Test default config
         processor = AudioProcessor()
         assert processor.config == {}
         assert processor.model is not None
         
-        # Test custom config
-        config = {
-            "model": "base",
-            "device": "cpu",
-            "sample_rate": 16000,
-            "max_duration": 3600
-        }
-        processor = AudioProcessor(config)
-        assert processor.config == config
+    # Test custom config with mock_model flag
+    config = {
+        "model": "base",
+        "device": "cpu", 
+        "sample_rate": 16000,
+        "max_duration": 3600,
+        "mock_model": True  # Use the built-in mock mechanism
+    }
+    processor = AudioProcessor(config)
+    assert processor.config == config
 
 
 
