@@ -46,6 +46,11 @@ def _setup_ci_mocks():
 
 def _setup_spacy_mocks():
     """Set up comprehensive spaCy mocks."""
+    # First, remove any existing spaCy modules from sys.modules to force our mocks
+    spacy_modules_to_remove = [key for key in sys.modules.keys() if key.startswith('spacy') or key == 'en_core_web_sm']
+    for module_name in spacy_modules_to_remove:
+        sys.modules.pop(module_name, None)
+    
     # Create a mock factory decorator that just returns the function
     def mock_factory(name, **kwargs):  # pylint: disable=unused-argument
         def decorator(func):
@@ -81,6 +86,7 @@ def _setup_spacy_mocks():
     mock_spacy = Mock()
     mock_spacy.load = Mock(return_value=mock_nlp)
     mock_spacy.Language = mock_language
+    mock_spacy.__version__ = "3.8.7"  # Add version for compatibility
     
     # Create spacy.language module mock
     mock_spacy_language = Mock()
@@ -109,11 +115,17 @@ def _setup_spacy_mocks():
 
 def _setup_whisper_mocks():
     """Set up comprehensive Whisper mocks."""
+    # First, remove any existing Whisper modules from sys.modules to force our mocks
+    whisper_modules_to_remove = [key for key in sys.modules.keys() if key.startswith('whisper')]
+    for module_name in whisper_modules_to_remove:
+        sys.modules.pop(module_name, None)
+    
     mock_whisper_model = Mock()
     mock_whisper_model.transcribe = Mock(return_value={'text': 'test transcription'})
     
     mock_whisper = Mock()
     mock_whisper.load_model = Mock(return_value=mock_whisper_model)
+    mock_whisper.__version__ = "20231117"  # Add version for compatibility
     
     # Pre-populate sys.modules to prevent real Whisper imports
     sys.modules['whisper'] = mock_whisper
@@ -124,14 +136,6 @@ def pytest_collection_modifyitems(config, items):
     for item in items:
         if asyncio.iscoroutinefunction(item.function):
             item.add_marker(pytest.mark.asyncio)
-
-
-@pytest.fixture(scope="session", autouse=True)  
-def mock_spacy_for_unit_tests():
-    """Mock spaCy for all unit tests - handled by pytest_configure hook."""
-    # The spaCy mocking is now handled by the pytest_configure hook in this file
-    # which runs before any imports
-    yield
 
 
 @pytest_asyncio.fixture(scope="session", autouse=True)
@@ -150,3 +154,23 @@ def _ensure_test_dirs():
 
 # Create test directories on import
 _ensure_test_dirs()
+
+
+def _setup_ci_mocks_at_import():
+    """Set up CI environment mocks at import time - earliest possible."""
+    # In CI environments, always mock dependencies unless explicitly running integration tests
+    is_ci = os.environ.get("CI") == "true" or os.environ.get("GITHUB_ACTIONS") == "true"
+    explicit_integration = os.environ.get("TESTING_INTEGRATION") == "true"
+    
+    # Mock in CI unless it's explicitly an integration test
+    should_mock = is_ci and not explicit_integration
+    
+    if not should_mock:
+        return
+    
+    _setup_spacy_mocks()
+    _setup_whisper_mocks()
+
+
+# Set up CI mocks immediately at import time, before any other imports
+_setup_ci_mocks_at_import()
