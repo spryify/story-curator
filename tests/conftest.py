@@ -16,9 +16,10 @@ AUDIO_DATA_DIR = TEST_DATA_DIR / "audio"
 
 def pytest_configure(config):
     """Configure pytest before test collection.
-    
+
     Args:
-        config: pytest configuration object
+        config (pytest.Config): The pytest configuration object representing the test session's configuration and state.
+            This object can be used to access and modify pytest's configuration, plugins, and command-line options.
     """
     # Ensure test data directories exist
     AUDIO_DATA_DIR.mkdir(parents=True, exist_ok=True)
