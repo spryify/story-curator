@@ -1,6 +1,7 @@
 """Unit tests for the audio processor module."""
 
 import pytest
+import os
 from pathlib import Path
 from pydub import AudioSegment
 from pydub.generators import Sine
@@ -9,6 +10,12 @@ from unittest.mock import Mock, patch
 from media_analyzer.processors.audio.audio_processor import AudioProcessor
 from media_analyzer.core.exceptions import AudioProcessingError
 from media_analyzer.models.audio import TranscriptionResult
+
+# Skip tests that require 'say' command only in CI environments
+skip_audio_tests = pytest.mark.skipif(
+    os.getenv('CI') == 'true' or os.getenv('GITHUB_ACTIONS') == 'true',
+    reason="Requires macOS 'say' command for audio generation - skipped in CI environments"
+)
 
 @pytest.fixture
 def test_config():
@@ -36,6 +43,7 @@ def test_audio_processor_initialization_with_config(test_config):
     assert processor.config == test_config.get("audio", {})
 
 
+@skip_audio_tests
 def test_validate_file_format(test_audio_file):
     """Test audio format validation."""
     processor = AudioProcessor()
@@ -49,6 +57,7 @@ def test_validate_file_format(test_audio_file):
     assert "Unsupported audio format" in str(exc_info.value)
 
 
+@skip_audio_tests
 def test_load_audio(test_audio_file):
     """Test loading audio file."""
     processor = AudioProcessor()
@@ -63,6 +72,7 @@ def test_load_audio(test_audio_file):
         processor.load_audio(Path("nonexistent.wav"))
 
 
+@skip_audio_tests
 def test_get_audio_info(test_audio_file):
     """Test retrieving audio metadata."""
     processor = AudioProcessor()
@@ -81,6 +91,7 @@ def test_get_audio_info(test_audio_file):
     assert info["duration"] > 0
 
 
+@skip_audio_tests
 def test_extract_text(test_audio_file, mock_whisper):
     """Test text extraction from audio with mocked Whisper model."""
     # Create processor with mock configuration
@@ -113,6 +124,7 @@ def test_extract_text(test_audio_file, mock_whisper):
     assert result.metadata.get("language") == "en"
 
 
+@skip_audio_tests
 def test_error_handling(test_audio_file, mock_whisper):
     """Test error handling in audio processing."""
     # Create a processor with mock model config

@@ -1,7 +1,11 @@
-"""Icon matcher processor for matching subjects to icons."""
+"""Icon matcher processor for matching subjects to icons with semantic similarity."""
 
 import logging
+import re
 from typing import Dict, List, Any, Optional
+
+import spacy
+import numpy as np
 
 from ..core.exceptions import IconMatchingError
 from ..models.results import IconMatch
@@ -14,11 +18,48 @@ logger = logging.getLogger(__name__)
 
 
 class IconMatcher:
-    """Matches subjects to icons using the icon database."""
+    """Matches subjects to icons using the icon database with semantic similarity.
+    
+    Enhanced with spaCy semantic similarity for better matching quality.
+    """
     
     def __init__(self):
-        """Initialize the icon matcher with icon service."""
+        """Initialize the icon matcher with icon service and NLP capabilities."""
         self.icon_service = IconService()
+        
+        try:
+            # Load spaCy model with word vectors for semantic similarity
+            self.nlp = spacy.load("en_core_web_md")  # Medium model with vectors
+            self.semantic_matching_enabled = True
+            logger.info("Icon matcher initialized with spaCy semantic similarity")
+        except Exception as e:
+            logger.warning(f"Could not load spaCy model: {e}. Falling back to literal matching.")
+            self.nlp = None
+            self.semantic_matching_enabled = False
+        
+        # Minimum similarity threshold for semantic matches
+        self.min_similarity = 0.5
+
+    def _is_word_match(self, term: str, text: str) -> bool:
+        """Check if term matches as a complete word in text.
+        
+        This prevents substring matches like 'king' matching 'drinking' or 'puking',
+        which was causing inappropriate matches (e.g., beer icons matching royal stories).
+        
+        Args:
+            term: The search term
+            text: The text to search in
+            
+        Returns:
+            True if term appears as a complete word in text
+        """
+        if not term or not text:
+            return False
+            
+        # Create regex pattern for word boundaries
+        # \b ensures we match complete words only
+        pattern = r'\b' + re.escape(term.lower()) + r'\b'
+        return bool(re.search(pattern, text.lower()))
         
     def find_matching_icons(
         self, 
@@ -97,12 +138,23 @@ class IconMatcher:
                     # Combine results
                     all_icons = icons + category_icons
                     
-                    # Create IconMatch objects
+                    # Create IconMatch objects with semantic matching enhancement
                     for icon in all_icons:
-                        # Calculate confidence with rich metadata support
+                        # Calculate base confidence with rich metadata support
                         confidence = self._calculate_confidence(
                             term, icon, term_type, base_confidence, subject_type, context
                         )
+                        
+                        # Enhance with semantic matching if available
+                        if self.semantic_matching_enabled:
+                            semantic_confidence = self._calculate_semantic_similarity(term, icon)
+                            if semantic_confidence >= self.min_similarity:
+                                # Combine literal and semantic confidence
+                                confidence = confidence * semantic_confidence
+                                
+                                # Boost compound phrases
+                                if ' ' in term:
+                                    confidence *= 1.5
                         
                         # Avoid duplicates
                         existing_match = next(
@@ -164,19 +216,19 @@ class IconMatcher:
         """
         confidence = base_confidence * 0.8  # Start with 80% of base confidence
         
-        # Core matching boosts
+        # Core matching boosts with word boundary protection
         term_lower = term.lower()
         
-        # Boost for exact name matches
-        if term_lower in icon.name.lower():
+        # Boost for exact name matches (using word boundaries to prevent substring matches)
+        if self._is_word_match(term, icon.name):
             confidence += 0.2
             
-        # Boost for tag matches
-        if icon.tags and any(term_lower in tag.lower() for tag in icon.tags):
+        # Boost for tag matches (using word boundaries to prevent substring matches)
+        if icon.tags and any(self._is_word_match(term, tag) for tag in icon.tags):
             confidence += 0.15
             
-        # Boost for description matches
-        if icon.description and term_lower in icon.description.lower():
+        # Boost for description matches (using word boundaries to prevent substring matches)
+        if icon.description and self._is_word_match(term, icon.description):
             confidence += 0.1
             
         # Enhanced subject type scoring (if rich metadata available)
@@ -214,8 +266,8 @@ class IconMatcher:
         # Enhanced exact matching
         if icon.name.lower() == term_lower:
             confidence += 0.15  # Exact name match is very strong
-        elif term_lower in icon.name.lower().split():
-            confidence += 0.12  # Word match in name
+        elif term_lower in [word.lower() for word in icon.name.split()]:
+            confidence += 0.12  # Word match in name (exact word boundaries)
         
         # Enhanced tag matching
         if icon.tags:
@@ -223,8 +275,8 @@ class IconMatcher:
             if exact_tag_matches > 0:
                 confidence += 0.10 * min(exact_tag_matches, 3)  # Cap at 3 tag matches
             else:
-                # Partial tag matches
-                partial_matches = sum(1 for tag in icon.tags if term_lower in tag.lower())
+                # Partial tag matches (using word boundaries to prevent 'king' matching 'drinking')
+                partial_matches = sum(1 for tag in icon.tags if self._is_word_match(term, tag))
                 if partial_matches > 0:
                     confidence += 0.05 * min(partial_matches, 2)  # Cap at 2 partial matches
         
@@ -243,3 +295,63 @@ class IconMatcher:
         
         # Cap at 1.0
         return min(confidence, 1.0)
+
+    def _calculate_semantic_similarity(self, keyword: str, icon: IconData) -> float:
+        """Calculate semantic similarity between keyword and icon metadata.
+        
+        Args:
+            keyword: Keyword to match
+            icon: Icon data to compare against
+            
+        Returns:
+            Similarity score between 0 and 1
+        """
+        if not self.semantic_matching_enabled or not self.nlp:
+            return 1.0  # Default to full confidence if no semantic matching
+            
+        try:
+            # Process keyword and icon metadata with spaCy
+            keyword_doc = self.nlp(keyword)
+            
+            # Combine icon metadata for comparison
+            icon_text_parts = []
+            if hasattr(icon, 'tags') and icon.tags:
+                icon_text_parts.extend(icon.tags)
+            if hasattr(icon, 'name') and icon.name:
+                icon_text_parts.append(icon.name)
+            if hasattr(icon, 'description') and icon.description:
+                icon_text_parts.append(icon.description)
+            
+            if not icon_text_parts:
+                return 0.0  # No metadata to compare against
+            
+            # Calculate maximum similarity across all icon metadata
+            max_similarity = 0.0
+            
+            for icon_text in icon_text_parts:
+                if not icon_text or not icon_text.strip():
+                    continue
+                    
+                try:
+                    icon_doc = self.nlp(icon_text.lower())
+                    
+                    # Skip if either document has no vector representation
+                    if not keyword_doc.has_vector or not icon_doc.has_vector:
+                        continue
+                    
+                    # Calculate semantic similarity
+                    similarity = keyword_doc.similarity(icon_doc)
+                    
+                    # Update maximum similarity
+                    if similarity > max_similarity:
+                        max_similarity = similarity
+                        
+                except Exception as e:
+                    logger.debug(f"Failed to calculate similarity for icon text '{icon_text}': {e}")
+                    continue
+            
+            return max_similarity
+            
+        except Exception as e:
+            logger.debug(f"Semantic similarity calculation failed for keyword '{keyword}': {e}")
+            return 1.0  # Fall back to full confidence to avoid breaking the pipeline

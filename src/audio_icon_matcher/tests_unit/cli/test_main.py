@@ -125,7 +125,10 @@ class TestCLICommands:
             self.mock_pipeline.process.assert_called_once_with(
                 'test.wav',
                 max_icons=5,
-                confidence_threshold=0.5
+                confidence_threshold=0.5,
+                episode_index=0,
+                episode_title=None,
+                max_duration_minutes=30
             )
     
     @patch('audio_icon_matcher.cli.main.AudioIconPipeline')
@@ -388,8 +391,8 @@ class TestOutputFormatting:
                 assert data['success'] is True
 
 
-class TestCLIIntegration:
-    """Test CLI integration scenarios."""
+class TestCLIHelp:
+    """Test CLI help and command interface scenarios."""
     
     def setup_method(self):
         """Set up test fixtures."""
@@ -420,7 +423,7 @@ class TestCLIIntegration:
     def test_formats_command_error_handling(self, mock_pipeline_class):
         """Test formats command error handling."""
         mock_pipeline = Mock()
-        mock_pipeline.get_supported_formats.side_effect = Exception("Test error")
+        mock_pipeline.get_supported_formats.side_effect = RuntimeError("Test error")
         mock_pipeline_class.return_value = mock_pipeline
         
         result = self.runner.invoke(audio_icon_matcher_commands, ['formats'])
@@ -432,7 +435,7 @@ class TestCLIIntegration:
     def test_validate_command_exception_handling(self, mock_pipeline_class):
         """Test validate command exception handling."""
         mock_pipeline = Mock()
-        mock_pipeline.validate_audio_file.side_effect = Exception("Validation error")
+        mock_pipeline.validate_audio_file.side_effect = ValueError("Validation error")
         mock_pipeline_class.return_value = mock_pipeline
         
         result = self.runner.invoke(audio_icon_matcher_commands, ['validate', 'test.mp3'])

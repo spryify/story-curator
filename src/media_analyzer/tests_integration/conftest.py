@@ -50,9 +50,9 @@ def children_story_texts():
             Let's Learn About the Weather! Today we're going to explore different types of weather. 
             When the sun is shining, we call it a sunny day. Sometimes clouds fill the sky, and it 
             might rain. Rain helps plants grow and gives us water to drink. In winter, it gets cold 
-            and sometimes snows.
+            and sometimes snows. Snowflakes are like tiny ice stars falling from the sky!
         """,
-        
+
         "sharing_story": """
             The Tale of Two Friends. Once upon a time, there were two little mice named Hoppy and Squeaky. 
             They found a big piece of cheese in the garden. Hoppy wanted to share it with all their 
@@ -67,6 +67,88 @@ def children_story_texts():
             flower to flower. Nature is full of wonderful surprises for those who take time to explore.
         """
     }
+
+
+# Subject identification test fixtures
+
+@pytest.fixture
+def tech_discussion_text():
+    """Provide technology-focused text for testing."""
+    return """
+    Google, Microsoft and OpenAI are at the forefront of artificial intelligence development.
+    Their machine learning models are becoming increasingly sophisticated, with applications
+    in natural language processing, computer vision, and autonomous systems. Recent advances
+    in deep learning have enabled breakthroughs in these areas.
+    """
+
+@pytest.fixture
+def mixed_topic_text():
+    """Sample text with multiple topics."""
+    return """
+    The latest climate report discusses environmental impacts of industrialization. Meanwhile, 
+    SpaceX announced new rocket launches for their Mars mission. In economic news, the Federal 
+    Reserve maintained current interest rates.
+    """
+
+@pytest.fixture
+def multilingual_text():
+    """Text with mixed languages."""
+    return """
+    The machine learning conference was excellent. Les présentations étaient fascinantes. 
+    Die Technologie entwickelt sich schnell.
+    """
+
+@pytest.fixture
+def long_text():
+    """Provide a long text for performance testing."""
+    # Generate a text with 10,000+ words
+    base_text = """
+    In the rapidly evolving landscape of artificial intelligence, companies are racing
+    to develop cutting-edge technologies. Machine learning algorithms continue to improve,
+    while deep learning networks become more sophisticated. Cloud computing infrastructure
+    enables processing of massive datasets, leading to breakthroughs in natural language
+    processing and computer vision.
+    """
+    return base_text * 200  # Multiply to get >10,000 words
+
+@pytest.fixture
+def specialized_domain_text():
+    """Provide text from a specialized story domain."""
+    return """
+    In the enchanted kingdom of Eldoria, brave Princess Luna discovered an ancient treasure
+    map hidden deep within the palace library. The courageous princess embarked on a grand
+    quest through the magical forest, where she encountered wise woodland creatures who
+    taught her valuable lessons about persistence and friendship.
+
+    The ancient legend spoke of a golden crown hidden in a crystal cave, protected by
+    mystical guardians. With unwavering courage and the power of kindness, Princess Luna
+    overcame many challenges on her heroic journey to restore peace to all the lands
+    and fulfill the prophecy of the ages.
+    """
+
+@pytest.fixture
+def childrens_story_text():
+    """Sample children's story text for testing."""
+    return """
+    The Magic Garden Adventure
+
+    In a colorful garden lived a curious butterfly named Flutter. Flutter loved to explore 
+    and learn about all the flowers. One sunny morning, Flutter met a wise old owl named 
+    Professor Hoot.
+
+    "Would you like to learn about the special magic of the garden?" asked Professor Hoot.
+    "Oh yes, please!" Flutter replied excitedly.
+
+    Professor Hoot taught Flutter about how bees make honey, how flowers grow from tiny 
+    seeds, and how the rain and sunshine help everything in the garden thrive. Flutter 
+    learned that the real magic was in understanding how nature works together.
+
+    At the end of the day, Flutter was so happy to have made a new friend and learned 
+    so many wonderful things. Flutter promised to share these lessons with all the other 
+    garden creatures.
+
+    The End
+    """
 
 
 @pytest.fixture

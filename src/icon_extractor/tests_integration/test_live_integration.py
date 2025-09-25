@@ -77,6 +77,7 @@ class TestLiveYotoIconsScraping:
         print(f"✅ Successfully discovered {len(successful_categories)} categories")
     
     @skip_live
+    @pytest.mark.integration
     def test_extract_real_icon_image_urls(self):
         """Test extracting actual icon image URLs from yotoicons.com."""
         test_categories = ["food", "weather"]
@@ -190,6 +191,7 @@ class TestLiveYotoIconsScraping:
             pytest.skip(f"Scraper integration test skipped due to site changes: {e}")
     
     @skip_live
+    @pytest.mark.integration
     def test_verify_image_url_accessibility(self):
         """Test that discovered image URLs are actually accessible and return valid images."""
         # Test a few known working URLs from previous runs
@@ -270,6 +272,7 @@ class TestLiveYotoIconsScraping:
 class TestLiveScrapingConfiguration:
     """Test configuration and setup for live scraping."""
     
+    @pytest.mark.integration
     def test_live_test_skip_configuration(self):
         """Test that live tests can be properly skipped via environment variable."""
         # This test always runs to verify the skip configuration
@@ -285,6 +288,7 @@ class TestLiveScrapingConfiguration:
             print("   Live tests will RUN (ensure internet connection)")
     
     @skip_live
+    @pytest.mark.integration
     def test_scraper_configuration_for_live_testing(self, yoto_scraper):
         """Test that the scraper is configured correctly for live testing."""
         scraper = yoto_scraper

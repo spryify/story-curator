@@ -1,0 +1,670 @@
+{
+  "evaluation_info": {
+    "timestamp": "2025-09-04T11:45:41.619517",
+    "rss_url": "https://rss.wbur.org/circleround/podcast",
+    "total_episodes": 5,
+    "successful_episodes": 5
+  },
+  "episodes": [
+    {
+      "episode_index": 20,
+      "success": true,
+      "processing_time": 15.569787979125977,
+      "episode_metadata": {
+        "title": "The Donkey’s Tail",
+        "show_name": "Circle Round"
+      },
+      "transcription_analysis": {
+        "length": 2620,
+        "confidence": 0.8426833579117428,
+        "word_count": 476,
+        "has_story_elements": true
+      },
+      "icon_analysis": {
+        "num_matches": 12,
+        "avg_confidence": 1.0,
+        "max_confidence": 1.0,
+        "min_confidence": 1.0,
+        "confidence_distribution": {
+          "high": 12,
+          "medium": 0,
+          "low": 0
+        }
+      },
+      "subject_analysis": {
+        "num_subject_types": 4,
+        "subject_types": [
+          "keywords",
+          "topics",
+          "entities",
+          "categories"
+        ],
+        "total_subjects": 20
+      },
+      "content_relevance": {
+        "story_themed_icons": 5,
+        "character_icons": 1,
+        "educational_icons": 0,
+        "general_relevance_score": 0.5,
+        "total_analyzed": 12
+      },
+      "icon_matches": [
+        {
+          "name": "Lotr, Lord Of The Rings Samwise (#20152)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: wise",
+          "category": "people",
+          "tags": [
+            "Samwise",
+            "LOTR, Lord of the Rings",
+            "people"
+          ]
+        },
+        {
+          "name": "Camel, Desert, Travel, Wisemen, Isrealites Bible (#10495)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: wise",
+          "category": "animals",
+          "tags": [
+            "Bible",
+            "animals",
+            "Camel, desert, travel, wisemen, Isrealites"
+          ]
+        },
+        {
+          "name": "Feet Body (#6716)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: feet",
+          "category": "people",
+          "tags": [
+            "body",
+            "feet",
+            "people"
+          ]
+        },
+        {
+          "name": "Chocolate Bunny The Bunny Candy Bunny Veggietales Veggie Tales (#13593)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: tale",
+          "category": "food",
+          "tags": [
+            "veggietales veggie tales",
+            "food",
+            "chocolate bunny the bunny candy bunny"
+          ]
+        },
+        {
+          "name": "Veggietales (#4724)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: tale",
+          "category": "food",
+          "tags": [
+            "Veggietales",
+            "food"
+          ]
+        },
+        {
+          "name": "Veggietales Veggie Tales Junior Asparagus (#961)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: tale",
+          "category": "people",
+          "tags": [
+            "veggietales",
+            "veggie tales junior asparagus",
+            "people"
+          ]
+        },
+        {
+          "name": "Bob And Larry Veggietales Veggie Tales (#13597)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: tale",
+          "category": "people",
+          "tags": [
+            "veggietales veggie tales",
+            "bob and larry",
+            "people"
+          ]
+        },
+        {
+          "name": "Larry Veggietales (#2881)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: tale",
+          "category": "people",
+          "tags": [
+            "veggietales",
+            "larry",
+            "people"
+          ]
+        }
+      ]
+    },
+    {
+      "episode_index": 3,
+      "success": true,
+      "processing_time": 14.338835000991821,
+      "episode_metadata": {
+        "title": "Milk from a Bull",
+        "show_name": "Circle Round"
+      },
+      "transcription_analysis": {
+        "length": 2422,
+        "confidence": 0.36676116517324764,
+        "word_count": 425,
+        "has_story_elements": true
+      },
+      "icon_analysis": {
+        "num_matches": 12,
+        "avg_confidence": 1.0,
+        "max_confidence": 1.0,
+        "min_confidence": 1.0,
+        "confidence_distribution": {
+          "high": 12,
+          "medium": 0,
+          "low": 0
+        }
+      },
+      "subject_analysis": {
+        "num_subject_types": 4,
+        "subject_types": [
+          "keywords",
+          "topics",
+          "entities",
+          "categories"
+        ],
+        "total_subjects": 20
+      },
+      "content_relevance": {
+        "story_themed_icons": 1,
+        "character_icons": 5,
+        "educational_icons": 0,
+        "general_relevance_score": 0.5,
+        "total_analyzed": 12
+      },
+      "icon_matches": [
+        {
+          "name": "Lotr, Lord Of The Rings Samwise (#20152)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: wise",
+          "category": "people",
+          "tags": [
+            "Samwise",
+            "LOTR, Lord of the Rings",
+            "people"
+          ]
+        },
+        {
+          "name": "Camel, Desert, Travel, Wisemen, Isrealites Bible (#10495)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: wise",
+          "category": "animals",
+          "tags": [
+            "Bible",
+            "animals",
+            "Camel, desert, travel, wisemen, Isrealites"
+          ]
+        },
+        {
+          "name": "Papa Maurice Inventor Grandpa Grandfather Dad Father Old Man Elderly Disney Princess Beauty And The Beast (#11533)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: father",
+          "category": "people",
+          "tags": [
+            "Disney Princess Beauty and the beast",
+            "Papa Maurice Inventor Grandpa Grandfather Dad Father Old Man Elderly",
+            "people"
+          ]
+        },
+        {
+          "name": "Family A United Family Grandpa Grandfather Kids Grandkids Mom Dad Children The Box-Car Children Box Car (#7958)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: father",
+          "category": "people",
+          "tags": [
+            "family a united family grandpa grandfather kids grandkids mom dad children",
+            "the box-car children box car",
+            "people"
+          ]
+        },
+        {
+          "name": "Boy Brother Uncle Dad Father Papa Grandpa Brown Hair Green Shirt Family Members Relatives Friends People Parents Grandparents  Cousins Siblings (#12550)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: father",
+          "category": "people",
+          "tags": [
+            "Family Members Relatives Friends People Parents Grandparents  Cousins Siblings",
+            "Boy Brother Uncle Dad Father Papa Grandpa brown hair green shirt",
+            "people"
+          ]
+        },
+        {
+          "name": "Old Man Boy Brother Uncle Dad Father Papa Grandpa Older Man Adult Family Members Relatives Friends People Parents Grandparents  Cousins Siblings (#12551)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: father",
+          "category": "people",
+          "tags": [
+            "old man Boy Brother Uncle Dad Father Papa Grandpa older man adult",
+            "Family Members Relatives Friends People Parents Grandparents  Cousins Siblings",
+            "people"
+          ]
+        },
+        {
+          "name": "Bamse Swedish Classic (#22585)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: class",
+          "category": "people",
+          "tags": [
+            "Bamse",
+            "Swedish classic",
+            "people"
+          ]
+        },
+        {
+          "name": "Piano Keys Song Music Classical Notes (#4263)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: class",
+          "category": "music",
+          "tags": [
+            "music",
+            "Piano keys song music classical notes"
+          ]
+        }
+      ]
+    },
+    {
+      "episode_index": 0,
+      "success": true,
+      "processing_time": 11.475301265716553,
+      "episode_metadata": {
+        "title": "The First Councilor",
+        "show_name": "Circle Round"
+      },
+      "transcription_analysis": {
+        "length": 2567,
+        "confidence": 0.7004403301036102,
+        "word_count": 464,
+        "has_story_elements": true
+      },
+      "icon_analysis": {
+        "num_matches": 12,
+        "avg_confidence": 0.9327924290851285,
+        "max_confidence": 1.0,
+        "min_confidence": 0.7887171985809683,
+        "confidence_distribution": {
+          "high": 12,
+          "medium": 0,
+          "low": 0
+        }
+      },
+      "subject_analysis": {
+        "num_subject_types": 4,
+        "subject_types": [
+          "keywords",
+          "topics",
+          "entities",
+          "categories"
+        ],
+        "total_subjects": 14
+      },
+      "content_relevance": {
+        "story_themed_icons": 1,
+        "character_icons": 5,
+        "educational_icons": 2,
+        "general_relevance_score": 0.6666666666666666,
+        "total_analyzed": 12
+      },
+      "icon_matches": [
+        {
+          "name": "Grumpy Monkey Play All Day (#13815)",
+          "confidence": 1.0,
+          "match_reason": "Matched entity: all day",
+          "category": "animals",
+          "tags": [
+            "animals",
+            "Grumpy monkey",
+            "Play all day"
+          ]
+        },
+        {
+          "name": "Harry Potter Puking Pastilles Candy (#4746)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: king",
+          "category": "food",
+          "tags": [
+            "Harry Potter",
+            "food",
+            "Puking Pastilles Candy"
+          ]
+        },
+        {
+          "name": "Beer Beer, Alcohol, Drinking, Drinks (#8393)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: king",
+          "category": "food",
+          "tags": [
+            "Beer",
+            "food",
+            "Beer, alcohol, drinking, drinks"
+          ]
+        },
+        {
+          "name": "Happy Clean Teeth Toothbrush Tooth Fairy Dentist Toothpaste Brush Words Toothfairy Brush Your Teeth Healthy Habits Toothbrush Timer (#10667)",
+          "confidence": 1.0,
+          "match_reason": "Matched topic: happy",
+          "category": "health",
+          "tags": [
+            "Brush your teeth Healthy Habits Toothbrush timer",
+            "health",
+            "Happy Clean Teeth Toothbrush Tooth Fairy Dentist Toothpaste Brush Words Toothfairy "
+          ]
+        },
+        {
+          "name": "One Fish Two Fish Red Fish Blue Fish Seuss (#7075)",
+          "confidence": 1.0,
+          "match_reason": "Matched entity: two",
+          "category": "animals",
+          "tags": [
+            "seuss",
+            "animals",
+            "one fish two fish red fish blue fish"
+          ]
+        },
+        {
+          "name": "Numberblocks Two (#227)",
+          "confidence": 1.0,
+          "match_reason": "Matched entity: two",
+          "category": "people",
+          "tags": [
+            "numberblocks",
+            "two",
+            "people"
+          ]
+        },
+        {
+          "name": "Two Boys Dads Uncles Brothers Twins Friends Blonde Hair Brunette Family Members Relatives Friends People Parents Grandparents  Cousins Siblings (#16519)",
+          "confidence": 1.0,
+          "match_reason": "Matched entity: two",
+          "category": "people",
+          "tags": [
+            "Family Members Relatives Friends People Parents Grandparents  Cousins Siblings",
+            "two boys dads uncles brothers twins friends blonde hair brunette",
+            "people"
+          ]
+        },
+        {
+          "name": "Numberblocks Two Number Block (#4936)",
+          "confidence": 1.0,
+          "match_reason": "Matched entity: two",
+          "category": "people",
+          "tags": [
+            "Number Block",
+            "NumberBlocks Two",
+            "people"
+          ]
+        }
+      ]
+    },
+    {
+      "episode_index": 8,
+      "success": true,
+      "processing_time": 18.512107133865356,
+      "episode_metadata": {
+        "title": "Encore: Of Beans and Bunnies",
+        "show_name": "Circle Round"
+      },
+      "transcription_analysis": {
+        "length": 3068,
+        "confidence": 0.8021630764554787,
+        "word_count": 580,
+        "has_story_elements": true
+      },
+      "icon_analysis": {
+        "num_matches": 12,
+        "avg_confidence": 1.0,
+        "max_confidence": 1.0,
+        "min_confidence": 1.0,
+        "confidence_distribution": {
+          "high": 12,
+          "medium": 0,
+          "low": 0
+        }
+      },
+      "subject_analysis": {
+        "num_subject_types": 4,
+        "subject_types": [
+          "keywords",
+          "topics",
+          "entities",
+          "categories"
+        ],
+        "total_subjects": 20
+      },
+      "content_relevance": {
+        "story_themed_icons": 0,
+        "character_icons": 0,
+        "educational_icons": 0,
+        "general_relevance_score": 0.0,
+        "total_analyzed": 12
+      },
+      "icon_matches": [
+        {
+          "name": "Daniel Tiger Every Day Can Be A Thank You Day (#22738)",
+          "confidence": 1.0,
+          "match_reason": "Matched entity: every day",
+          "category": "people",
+          "tags": [
+            "Every Day Can Be a Thank You Day",
+            "daniel tiger",
+            "people"
+          ]
+        },
+        {
+          "name": "Golden_Apple Mythology (#4027)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: gold",
+          "category": "food",
+          "tags": [
+            "golden_apple",
+            "food",
+            "mythology"
+          ]
+        },
+        {
+          "name": "Goldilocks (#7906)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: gold",
+          "category": "people",
+          "tags": [
+            "Goldilocks",
+            "people"
+          ]
+        },
+        {
+          "name": "Kpop Demon Hunters Kdh Golden (#22312)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: gold",
+          "category": "people",
+          "tags": [
+            "golden",
+            "kpop demon hunters kdh",
+            "people"
+          ]
+        },
+        {
+          "name": "Goldilocks And The Three Dinosaurs Mo Willems (#9490)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: gold",
+          "category": "people",
+          "tags": [
+            "Mo Willems",
+            "Goldilocks and the three dinosaurs",
+            "people"
+          ]
+        },
+        {
+          "name": "Kpop Demon Hunters Kdh Golden (#22318)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: gold",
+          "category": "people",
+          "tags": [
+            "golden",
+            "kpop demon hunters kdh",
+            "people"
+          ]
+        },
+        {
+          "name": "Day Week (#7267)",
+          "confidence": 1.0,
+          "match_reason": "Matched topic: week",
+          "category": "sports",
+          "tags": [
+            "sports",
+            "Day",
+            "Week"
+          ]
+        },
+        {
+          "name": "Weeknd Blinding Lights (#390)",
+          "confidence": 1.0,
+          "match_reason": "Matched topic: week",
+          "category": "people",
+          "tags": [
+            "blinding lights",
+            "weeknd",
+            "people"
+          ]
+        }
+      ]
+    },
+    {
+      "episode_index": 7,
+      "success": true,
+      "processing_time": 11.876800060272217,
+      "episode_metadata": {
+        "title": "Encore: The Mountain Guardian",
+        "show_name": "Circle Round"
+      },
+      "transcription_analysis": {
+        "length": 3096,
+        "confidence": 0.8587683543676323,
+        "word_count": 555,
+        "has_story_elements": true
+      },
+      "icon_analysis": {
+        "num_matches": 12,
+        "avg_confidence": 1.0,
+        "max_confidence": 1.0,
+        "min_confidence": 1.0,
+        "confidence_distribution": {
+          "high": 12,
+          "medium": 0,
+          "low": 0
+        }
+      },
+      "subject_analysis": {
+        "num_subject_types": 4,
+        "subject_types": [
+          "keywords",
+          "topics",
+          "entities",
+          "categories"
+        ],
+        "total_subjects": 19
+      },
+      "content_relevance": {
+        "story_themed_icons": 5,
+        "character_icons": 0,
+        "educational_icons": 0,
+        "general_relevance_score": 0.4166666666666667,
+        "total_analyzed": 12
+      },
+      "icon_matches": [
+        {
+          "name": "Chocolate Bunny The Bunny Candy Bunny Veggietales Veggie Tales (#13593)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: tale",
+          "category": "food",
+          "tags": [
+            "veggietales veggie tales",
+            "food",
+            "chocolate bunny the bunny candy bunny"
+          ]
+        },
+        {
+          "name": "Veggietales (#4724)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: tale",
+          "category": "food",
+          "tags": [
+            "Veggietales",
+            "food"
+          ]
+        },
+        {
+          "name": "Veggietales Veggie Tales Junior Asparagus (#961)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: tale",
+          "category": "people",
+          "tags": [
+            "veggietales",
+            "veggie tales junior asparagus",
+            "people"
+          ]
+        },
+        {
+          "name": "Bob And Larry Veggietales Veggie Tales (#13597)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: tale",
+          "category": "people",
+          "tags": [
+            "veggietales veggie tales",
+            "bob and larry",
+            "people"
+          ]
+        },
+        {
+          "name": "Larry Veggietales (#2881)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: tale",
+          "category": "people",
+          "tags": [
+            "veggietales",
+            "larry",
+            "people"
+          ]
+        },
+        {
+          "name": "Circle (#20873)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: circle",
+          "category": "people",
+          "tags": [
+            "Circle",
+            "people"
+          ]
+        },
+        {
+          "name": "Circle Shape (#1453)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: circle",
+          "category": "objects",
+          "tags": [
+            "objects",
+            "circle",
+            "shape"
+          ]
+        },
+        {
+          "name": "Shapes Shapes, Triangle, Square, Circle, Diamond (#13241)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: circle",
+          "category": "objects",
+          "tags": [
+            "objects",
+            "shapes",
+            "shapes, triangle, square, circle, diamond "
+          ]
+        }
+      ]
+    }
+  ]
+}

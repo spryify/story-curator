@@ -11,6 +11,7 @@ from src.icon_extractor.processors.scraper import YotoIconScraper
 class TestIconDataIntegration:
     """Integration tests for IconData functionality."""
     
+    @pytest.mark.integration
     def test_icon_data_creation_with_all_fields(self, sample_icon_data):
         """Test creating IconData objects with all fields."""
         icon = IconData(
@@ -32,6 +33,7 @@ class TestIconDataIntegration:
         assert isinstance(icon.updated_at, datetime)
         assert icon.metadata == {"source": "integration_test", "version": "2.0", "author": "test"}
     
+    @pytest.mark.integration
     def test_icon_data_validation_errors(self):
         """Test IconData validation with invalid data."""
         # Test with missing required fields
@@ -41,6 +43,7 @@ class TestIconDataIntegration:
         with pytest.raises(TypeError):
             IconData(name="Test")  # Missing url, tags
     
+    @pytest.mark.integration
     def test_icon_data_defaults(self):
         """Test IconData default values."""
         icon = IconData(
@@ -56,6 +59,7 @@ class TestIconDataIntegration:
         assert isinstance(icon.updated_at, datetime)
         assert icon.metadata == {}
     
+    @pytest.mark.integration
     def test_icon_data_collections_and_deduplication(self):
         """Test IconData in collections for deduplication scenarios."""
         icon1 = IconData(
@@ -85,6 +89,7 @@ class TestIconDataIntegration:
         same_url_icons = [icon for icon in icon_list if icon.url == "https://yotoicons.com/dup"]
         assert len(same_url_icons) == 2
     
+    @pytest.mark.integration
     def test_icon_data_string_representations(self):
         """Test IconData string representation for debugging and logging."""
         icon = IconData(
@@ -106,6 +111,7 @@ class TestIconDataIntegration:
 class TestScrapingResultIntegration:
     """Integration tests for ScrapingResult functionality."""
     
+    @pytest.mark.integration
     def test_scraping_result_creation_and_calculations(self):
         """Test creating ScrapingResult objects and success rate calculations."""
         result = ScrapingResult(
@@ -126,6 +132,7 @@ class TestScrapingResultIntegration:
         assert len(result.errors) == 2
         assert result.success_rate == 90.0  # 18/20 * 100
     
+    @pytest.mark.integration
     def test_scraping_result_edge_cases(self):
         """Test ScrapingResult with edge cases and boundary conditions."""
         # Test with zero total icons
@@ -168,6 +175,7 @@ class TestScrapingResultIntegration:
 class TestScraperIntegration:
     """Integration tests for YotoIconScraper functionality."""
     
+    @pytest.mark.integration
     def test_scraper_default_initialization(self, yoto_scraper):
         """Test YotoIconScraper initialization with default values."""
         scraper = yoto_scraper
@@ -177,6 +185,7 @@ class TestScraperIntegration:
         assert scraper.max_retries == 3
         assert scraper.timeout == 30
     
+    @pytest.mark.integration
     def test_scraper_custom_configuration(self, custom_scraper):
         """Test YotoIconScraper with custom configuration."""
         scraper = custom_scraper
@@ -186,6 +195,7 @@ class TestScraperIntegration:
         assert scraper.max_retries == 2
         assert scraper.timeout == 15
     
+    @pytest.mark.integration
     def test_scraper_parameter_validation(self):
         """Test scraper parameter validation and edge cases."""
         # Test with minimum valid parameters
@@ -212,6 +222,7 @@ class TestScraperIntegration:
 class TestIntegratedWorkflow:
     """Integration tests for complete icon curator workflows."""
     
+    @pytest.mark.integration
     def test_icon_creation_to_result_workflow(self, sample_icon_data_list):
         """Test complete workflow from icon creation to scraping result."""
         # Simulate creating icons from scraping
@@ -240,6 +251,7 @@ class TestIntegratedWorkflow:
         assert len(result.errors) == result.failed_scraped
         assert result.successful_scraped == len(icons)
     
+    @pytest.mark.integration
     def test_multi_scraper_scenario(self):
         """Test scenario with multiple scraper configurations for different sources."""
         # Main scraper for yoto icons
@@ -267,6 +279,7 @@ class TestIntegratedWorkflow:
             assert scraper.timeout > 0
             assert scraper.max_retries >= 1
     
+    @pytest.mark.integration
     def test_error_handling_integration(self):
         """Test integrated error handling across components."""
         # Test that we can handle various error scenarios
@@ -290,6 +303,7 @@ class TestIntegratedWorkflow:
         assert len(error_result.errors) == 1
         assert error_result.failed_scraped == 1
     
+    @pytest.mark.integration
     def test_data_consistency_across_components(self, sample_icon_data):
         """Test data consistency when passing data between components."""
         # Start with icon data

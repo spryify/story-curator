@@ -1,0 +1,470 @@
+{
+  "overall_metrics": {
+    "total_episodes": 5,
+    "success_rate": 100.0,
+    "avg_processing_time": 10.823152256011962,
+    "processing_time_std": 0.6742945789965052,
+    "avg_confidence": 0.8677488186080441,
+    "confidence_std": 0.05705787563718616,
+    "avg_relevance": 0.39666666666666667,
+    "relevance_std": 0.196638416050035,
+    "high_quality_episodes": 2
+  },
+  "relevance_analysis": {
+    "story_themed_percentage": 14.285714285714285,
+    "character_percentage": 24.489795918367346,
+    "educational_percentage": 0.0,
+    "icon_categories": {
+      "food": 17,
+      "animals": 7,
+      "sports": 6,
+      "weather": 5,
+      "health": 2
+    },
+    "problematic_matches": [
+      {
+        "episode": "The Donkey’s Tail",
+        "icon_name": "Curious George Monkey (#2139)",
+        "confidence": 1.0,
+        "reason": "Matched keyword: org",
+        "issue": "Match based on very short keyword - potentially spurious"
+      },
+      {
+        "episode": "Milk from a Bull",
+        "icon_name": "Curious George Monkey (#2139)",
+        "confidence": 1.0,
+        "reason": "Matched keyword: org",
+        "issue": "Match based on very short keyword - potentially spurious"
+      },
+      {
+        "episode": "Encore: Of Beans and Bunnies",
+        "icon_name": "Golden_Apple Mythology (#4027)",
+        "confidence": 1.0,
+        "reason": "Matched keyword: gold",
+        "issue": "High confidence but low relevance - possible overfitting"
+      },
+      {
+        "episode": "Encore: Of Beans and Bunnies",
+        "icon_name": "Chocolate Bar (#4062)",
+        "confidence": 1.0,
+        "reason": "Matched keyword: late",
+        "issue": "High confidence but low relevance - possible overfitting"
+      }
+    ],
+    "relevance_distribution": [
+      0.7,
+      0.3,
+      0.4,
+      0.16666666666666666,
+      0.4166666666666667
+    ]
+  },
+  "quality_analysis": {
+    "total_matches": 37,
+    "match_type_distribution": {
+      "keyword_matches": 26,
+      "topic_matches": 5,
+      "entity_matches": 6
+    },
+    "confidence_distribution": {
+      "high": 34,
+      "medium": 3,
+      "low": 0
+    },
+    "avg_match_confidence": 0.9262727400045865,
+    "top_performing_icons": [
+      {
+        "name": "Soccer Game Score Shot Kick Ball Cleats Shoes Soccer Ball Kicking Playing Scoring Shooting Passing Sports Soccer Futbol (#12225)",
+        "count": 3,
+        "avg_confidence": 1.0,
+        "confidences": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "name": "Curious George Monkey (#2139)",
+        "count": 2,
+        "avg_confidence": 1.0,
+        "confidences": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "name": "Chocolate Bunny The Bunny Candy Bunny Veggietales Veggie Tales (#13593)",
+        "count": 2,
+        "avg_confidence": 1.0,
+        "confidences": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "name": "Madam Blueberry Veggie Tales (#9418)",
+        "count": 2,
+        "avg_confidence": 1.0,
+        "confidences": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "name": "Veggietales (#4724)",
+        "count": 2,
+        "avg_confidence": 1.0,
+        "confidences": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "name": "Harry Potter Puking Pastilles Candy (#4746)",
+        "count": 2,
+        "avg_confidence": 1.0,
+        "confidences": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "name": "Beer Beer, Alcohol, Drinking, Drinks (#8393)",
+        "count": 2,
+        "avg_confidence": 1.0,
+        "confidences": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "name": "Hat, Ball Cap, Cap, Baseball Hat, Baseball Cap, Pokemon, Sports Hat Healthy Habits Get Dressed Routine Timer (#20207)",
+        "count": 2,
+        "avg_confidence": 0.8574033807759034,
+        "confidences": [
+          0.8574033807759034,
+          0.8574033807759034
+        ]
+      },
+      {
+        "name": "Pumba The Lion King (#2954)",
+        "count": 2,
+        "avg_confidence": 0.7240085330111469,
+        "confidences": [
+          0.7240085330111469,
+          0.7240085330111469
+        ]
+      },
+      {
+        "name": "Honey Pooh Bear (#2405)",
+        "count": 2,
+        "avg_confidence": 0.6809720864659933,
+        "confidences": [
+          0.6809720864659933,
+          0.6809720864659933
+        ]
+      }
+    ],
+    "matching_strategy_effectiveness": {
+      "keyword": {
+        "count": 26,
+        "avg_confidence": 0.9425047237108167,
+        "min_confidence": 0.7240085330111469,
+        "max_confidence": 1.0
+      },
+      "topic": {
+        "count": 5,
+        "avg_confidence": 1.0,
+        "min_confidence": 1.0,
+        "max_confidence": 1.0
+      },
+      "entity": {
+        "count": 6,
+        "avg_confidence": 0.7944947606147439,
+        "min_confidence": 0.6750243907564769,
+        "max_confidence": 1.0
+      },
+      "other": {
+        "count": 0
+      }
+    }
+  },
+  "transcription_correlation": {
+    "transcription_icon_correlation": -0.02835315458511812,
+    "avg_transcription_confidence": 0.7798475976897213,
+    "avg_transcription_length": 2907.2,
+    "story_element_percentage": 100.0,
+    "length_quality_correlation": -0.35003161035413316
+  },
+  "episode_analysis": [
+    {
+      "title": "The Donkey’s Tail",
+      "index": 20,
+      "overall_score": 0.803079753253832,
+      "confidence_score": 0.9114667225610256,
+      "relevance_score": 0.7,
+      "transcription_score": 0.7924653211471082,
+      "num_matches": 10,
+      "processing_time": 11.533490180969238,
+      "key_strengths": [
+        "High confidence icon matches",
+        "Good content relevance",
+        "Clear story structure detected",
+        "Multiple story-relevant icons found"
+      ],
+      "key_weaknesses": [],
+      "best_matches": [
+        {
+          "name": "Curious George Monkey (#2139)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: org",
+          "category": "animals",
+          "tags": [
+            "animals",
+            "monkey",
+            "curious george"
+          ]
+        },
+        {
+          "name": "Soccer Game Score Shot Kick Ball Cleats Shoes Soccer Ball Kicking Playing Scoring Shooting Passing Sports Soccer Futbol (#12225)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: shoes",
+          "category": "sports",
+          "tags": [
+            "Sports Soccer Futbol",
+            "sports",
+            "soccer game score shot kick ball cleats shoes soccer ball kicking playing scoring shooting passing"
+          ]
+        },
+        {
+          "name": "Chocolate Bunny The Bunny Candy Bunny Veggietales Veggie Tales (#13593)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: tale",
+          "category": "food",
+          "tags": [
+            "chocolate bunny the bunny candy bunny",
+            "veggietales veggie tales",
+            "food"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Encore: The Mountain Guardian",
+      "index": 7,
+      "overall_score": 0.66525757720859,
+      "confidence_score": 0.8501162089237614,
+      "relevance_score": 0.4166666666666667,
+      "transcription_score": 0.7927221348620936,
+      "num_matches": 12,
+      "processing_time": 10.637064933776855,
+      "key_strengths": [
+        "High confidence icon matches",
+        "Clear story structure detected",
+        "Multiple story-relevant icons found"
+      ],
+      "key_weaknesses": [],
+      "best_matches": [
+        {
+          "name": "Chocolate Bunny The Bunny Candy Bunny Veggietales Veggie Tales (#13593)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: tale",
+          "category": "food",
+          "tags": [
+            "chocolate bunny the bunny candy bunny",
+            "veggietales veggie tales",
+            "food"
+          ]
+        },
+        {
+          "name": "Madam Blueberry Veggie Tales (#9418)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: tale",
+          "category": "food",
+          "tags": [
+            "veggie tales",
+            "madam blueberry",
+            "food"
+          ]
+        },
+        {
+          "name": "Veggietales (#4724)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: tale",
+          "category": "food",
+          "tags": [
+            "Veggietales",
+            "food"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "The First Councilor",
+      "index": 0,
+      "overall_score": 0.6648941709696687,
+      "confidence_score": 0.8896034132044588,
+      "relevance_score": 0.4,
+      "transcription_score": 0.7452640284394259,
+      "num_matches": 5,
+      "processing_time": 10.11194109916687,
+      "key_strengths": [
+        "High confidence icon matches",
+        "Clear story structure detected"
+      ],
+      "key_weaknesses": [
+        "No story-themed icons found"
+      ],
+      "best_matches": [
+        {
+          "name": "Harry Potter Puking Pastilles Candy (#4746)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: king",
+          "category": "food",
+          "tags": [
+            "Harry Potter",
+            "Puking Pastilles Candy",
+            "food"
+          ]
+        },
+        {
+          "name": "Beer Beer, Alcohol, Drinking, Drinks (#8393)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: king",
+          "category": "food",
+          "tags": [
+            "Beer",
+            "Beer, alcohol, drinking, drinks",
+            "food"
+          ]
+        },
+        {
+          "name": "Soccer Game Score Shot Kick Ball Cleats Shoes Soccer Ball Kicking Playing Scoring Shooting Passing Sports Soccer Futbol (#12225)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: king",
+          "category": "sports",
+          "tags": [
+            "Sports Soccer Futbol",
+            "sports",
+            "soccer game score shot kick ball cleats shoes soccer ball kicking playing scoring shooting passing"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Milk from a Bull",
+      "index": 3,
+      "overall_score": 0.6368985884202678,
+      "confidence_score": 0.9115044264486903,
+      "relevance_score": 0.3,
+      "transcription_score": 0.7614840892039578,
+      "num_matches": 10,
+      "processing_time": 10.301739931106567,
+      "key_strengths": [
+        "High confidence icon matches",
+        "Clear story structure detected"
+      ],
+      "key_weaknesses": [
+        "No story-themed icons found"
+      ],
+      "best_matches": [
+        {
+          "name": "Curious George Monkey (#2139)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: org",
+          "category": "animals",
+          "tags": [
+            "animals",
+            "monkey",
+            "curious george"
+          ]
+        },
+        {
+          "name": "Harry Potter Puking Pastilles Candy (#4746)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: king",
+          "category": "food",
+          "tags": [
+            "Harry Potter",
+            "Puking Pastilles Candy",
+            "food"
+          ]
+        },
+        {
+          "name": "Beer Beer, Alcohol, Drinking, Drinks (#8393)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: king",
+          "category": "food",
+          "tags": [
+            "Beer",
+            "Beer, alcohol, drinking, drinks",
+            "food"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Encore: Of Beans and Bunnies",
+      "index": 8,
+      "overall_score": 0.5385484783867847,
+      "confidence_score": 0.7760533219022845,
+      "relevance_score": 0.16666666666666666,
+      "transcription_score": 0.8073024147960209,
+      "num_matches": 12,
+      "processing_time": 11.531525135040283,
+      "key_strengths": [
+        "High quality transcription",
+        "Clear story structure detected"
+      ],
+      "key_weaknesses": [
+        "Poor content relevance",
+        "No story-themed icons found"
+      ],
+      "best_matches": [
+        {
+          "name": "Golden_Apple Mythology (#4027)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: gold",
+          "category": "food",
+          "tags": [
+            "mythology",
+            "golden_apple",
+            "food"
+          ]
+        },
+        {
+          "name": "Chocolate Bar (#4062)",
+          "confidence": 1.0,
+          "match_reason": "Matched keyword: late",
+          "category": "food",
+          "tags": [
+            "chocolate bar",
+            "food"
+          ]
+        },
+        {
+          "name": "Lizard Bluey Creek (#4920)",
+          "confidence": 0.89,
+          "match_reason": "Matched entity: 20",
+          "category": "animals",
+          "tags": [
+            "Lizard ",
+            "animals",
+            "Bluey creek"
+          ]
+        }
+      ]
+    }
+  ],
+  "recommendations": {
+    "algorithm_improvements": [
+      "Improve semantic matching algorithms - current relevance score is low"
+    ],
+    "data_quality_improvements": [
+      "Expand story-themed icon database - current coverage is insufficient for children's stories",
+      "Improve audio preprocessing or use higher-quality Whisper model for better transcription"
+    ],
+    "evaluation_improvements": [],
+    "system_optimizations": []
+  }
+}

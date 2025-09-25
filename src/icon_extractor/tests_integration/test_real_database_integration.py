@@ -137,6 +137,7 @@ class TestDatabaseIntegration:
         assert len(cat_icons) == 1
         assert cat_icons[0].name == "Cat Icon"
 
+    @pytest.mark.integration
     def test_database_url_consistency(self, test_db_session):
         """Test that database correctly stores single URL field (no image_url)."""
         # Create icon directly with database model
@@ -183,6 +184,7 @@ class TestDatabaseIntegration:
             ).fetchone()
             assert result is not None
 
+    @pytest.mark.integration
     def test_repository_error_handling(self, icon_repository, test_db_session):
         """Test error handling in repository operations."""
         # Test retrieving non-existent icon
