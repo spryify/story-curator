@@ -28,69 +28,73 @@ def pytest_configure(config):
 
 
 def _setup_spacy_mocks():
-    """Set up comprehensive spaCy mocks before any imports."""
-    # Mock for unit tests, not integration tests
-    is_unit_test = os.environ.get("PYTEST_CURRENT_TEST", "").find("unit") != -1
-    is_integration_test = os.environ.get("PYTEST_CURRENT_TEST", "").find("integration") != -1
-    explicit_integration = os.environ.get("TESTING_INTEGRATION", False)
+    """Set up spaCy mocks if needed."""
+    # Check if we should mock based on test context
+    current_test = os.environ.get("PYTEST_CURRENT_TEST", "")
+    is_unit_test = current_test.find("unit") != -1
+    is_integration_test = current_test.find("integration") != -1
+    explicit_integration = os.environ.get("TESTING_INTEGRATION") == "true"
     
-    # Only mock for unit tests, NOT for integration tests
+    # Only mock for unit tests, not integration tests
     should_mock = is_unit_test and not is_integration_test and not explicit_integration
     
-    if should_mock and 'spacy' not in sys.modules:
-        # Create a mock factory decorator that just returns the function
-        def mock_factory(name, **kwargs):  # pylint: disable=unused-argument
-            def decorator(func):
-                return func
-            return decorator
-        
-        mock_language = Mock()
-        mock_language.factory = mock_factory
-        
-        # Create mock English class with factory method
-        mock_english = Mock()
-        mock_english.factory = mock_factory
-        
-        mock_token = Mock()
-        mock_token.text = "test"
-        mock_token.pos_ = "NOUN"
-        mock_token.is_stop = False
-        mock_token.is_space = False
-        mock_token.is_alpha = True
-        mock_token.label_ = "ORG"
-        
-        mock_doc = Mock()
-        mock_doc.__iter__ = Mock(return_value=iter([mock_token]))
-        mock_doc.__len__ = Mock(return_value=1)
-        mock_doc.noun_chunks = []
-        mock_doc.ents = [mock_token]
-        
-        mock_nlp = Mock()
-        mock_nlp.return_value = mock_doc
-        mock_nlp.select_pipes = Mock()
-        
-        # Create the main spaCy module mock
-        mock_spacy = Mock()
-        mock_spacy.load = Mock(return_value=mock_nlp)
-        mock_spacy.Language = mock_language
-        
-        # Create spacy.language module mock
-        mock_spacy_language = Mock()
-        mock_spacy_language.Language = mock_language
-        
-        # Create spacy.lang.en module mock with English class
-        mock_spacy_lang_en = Mock()
-        mock_spacy_lang_en.English = mock_english
-        
-        # Pre-populate sys.modules to prevent real imports
-        sys.modules['spacy'] = mock_spacy
-        sys.modules['spacy.language'] = mock_spacy_language
-        sys.modules['spacy.lang'] = Mock()
-        sys.modules['spacy.lang.en'] = mock_spacy_lang_en
-        sys.modules['spacy.util'] = Mock()
-        sys.modules['spacy.cli'] = Mock()
-        sys.modules['spacy.tokens'] = Mock()
-        sys.modules['en_core_web_sm'] = Mock()
+    if not should_mock:
+        return
+    
+    # Create comprehensive spaCy mocks
+    # Create a mock factory decorator that just returns the function
+    def mock_factory(name, **kwargs):  # pylint: disable=unused-argument
+        def decorator(func):
+            return func
+        return decorator
+    
+    mock_language = Mock()
+    mock_language.factory = mock_factory
+    
+    # Create mock English class with factory method
+    mock_english = Mock()
+    mock_english.factory = mock_factory
+    
+    mock_token = Mock()
+    mock_token.text = "test"
+    mock_token.pos_ = "NOUN"
+    mock_token.is_stop = False
+    mock_token.is_space = False
+    mock_token.is_alpha = True
+    mock_token.label_ = "ORG"
+    
+    mock_doc = Mock()
+    mock_doc.__iter__ = Mock(return_value=iter([mock_token]))
+    mock_doc.__len__ = Mock(return_value=1)
+    mock_doc.noun_chunks = []
+    mock_doc.ents = [mock_token]
+    
+    mock_nlp = Mock()
+    mock_nlp.return_value = mock_doc
+    mock_nlp.select_pipes = Mock()
+    
+    # Create the main spaCy module mock
+    mock_spacy = Mock()
+    mock_spacy.load = Mock(return_value=mock_nlp)
+    mock_spacy.Language = mock_language
+    
+    # Create spacy.language module mock
+    mock_spacy_language = Mock()
+    mock_spacy_language.Language = mock_language
+    
+    # Create spacy.lang.en module mock with English class
+    mock_spacy_lang_en = Mock()
+    mock_spacy_lang_en.English = mock_english
+    
+    # Pre-populate sys.modules to prevent real imports
+    sys.modules['spacy'] = mock_spacy
+    sys.modules['spacy.language'] = mock_spacy_language
+    sys.modules['spacy.lang'] = Mock()
+    sys.modules['spacy.lang.en'] = mock_spacy_lang_en
+    sys.modules['spacy.util'] = Mock()
+    sys.modules['spacy.cli'] = Mock()
+    sys.modules['spacy.tokens'] = Mock()
+    sys.modules['en_core_web_sm'] = Mock()
 
 
 def pytest_collection_modifyitems(config, items):
