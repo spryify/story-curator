@@ -14,36 +14,6 @@ TEST_DATA_DIR = Path(__file__).parent / "data"
 AUDIO_DATA_DIR = TEST_DATA_DIR / "audio"
 
 
-def pytest_configure(config):
-    """Configure pytest before test collection.
-
-    Args:
-        config (pytest.Config): The pytest configuration object representing the test session's configuration and state.
-            This object can be used to access and modify pytest's configuration, plugins, and command-line options.
-    """
-    # Ensure test data directories exist
-    AUDIO_DATA_DIR.mkdir(parents=True, exist_ok=True)
-    
-    # Set up mocking for CI environments
-    _setup_ci_mocks()
-
-
-def _setup_ci_mocks():
-    """Set up CI environment mocks for external dependencies."""
-    # In CI environments, always mock dependencies unless explicitly running integration tests
-    is_ci = os.environ.get("CI") == "true" or os.environ.get("GITHUB_ACTIONS") == "true"
-    explicit_integration = os.environ.get("TESTING_INTEGRATION") == "true"
-    
-    # Mock in CI unless it's explicitly an integration test
-    should_mock = is_ci and not explicit_integration
-    
-    if not should_mock:
-        return
-    
-    _setup_spacy_mocks()
-    _setup_whisper_mocks()
-
-
 def _setup_spacy_mocks():
     """Set up comprehensive spaCy mocks."""
     # First, remove any existing spaCy modules from sys.modules to force our mocks
