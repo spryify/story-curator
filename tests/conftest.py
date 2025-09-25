@@ -23,13 +23,13 @@ def pytest_configure(config):
     # Ensure test data directories exist
     AUDIO_DATA_DIR.mkdir(parents=True, exist_ok=True)
     
-    # Set up spaCy mocking for unit tests
-    _setup_spacy_mocks()
+    # Set up mocking for CI environments
+    _setup_ci_mocks()
 
 
-def _setup_spacy_mocks():
-    """Set up spaCy mocks if needed."""
-    # In CI environments, always mock spaCy unless explicitly running integration tests
+def _setup_ci_mocks():
+    """Set up CI environment mocks for external dependencies."""
+    # In CI environments, always mock dependencies unless explicitly running integration tests
     is_ci = os.environ.get("CI") == "true" or os.environ.get("GITHUB_ACTIONS") == "true"
     explicit_integration = os.environ.get("TESTING_INTEGRATION") == "true"
     
@@ -39,7 +39,12 @@ def _setup_spacy_mocks():
     if not should_mock:
         return
     
-    # Create comprehensive spaCy mocks
+    _setup_spacy_mocks()
+    _setup_whisper_mocks()
+
+
+def _setup_spacy_mocks():
+    """Set up comprehensive spaCy mocks."""
     # Create a mock factory decorator that just returns the function
     def mock_factory(name, **kwargs):  # pylint: disable=unused-argument
         def decorator(func):
@@ -84,7 +89,7 @@ def _setup_spacy_mocks():
     mock_spacy_lang_en = Mock()
     mock_spacy_lang_en.English = mock_english
     
-    # Pre-populate sys.modules to prevent real imports
+    # Pre-populate sys.modules to prevent real spaCy imports
     sys.modules['spacy'] = mock_spacy
     sys.modules['spacy.language'] = mock_spacy_language
     sys.modules['spacy.lang'] = Mock()
@@ -99,6 +104,18 @@ def _setup_spacy_mocks():
     
     # Also add the English class to the language module directly
     mock_spacy_lang_en.English.factory = mock_factory
+
+
+def _setup_whisper_mocks():
+    """Set up comprehensive Whisper mocks."""
+    mock_whisper_model = Mock()
+    mock_whisper_model.transcribe = Mock(return_value={'text': 'test transcription'})
+    
+    mock_whisper = Mock()
+    mock_whisper.load_model = Mock(return_value=mock_whisper_model)
+    
+    # Pre-populate sys.modules to prevent real Whisper imports
+    sys.modules['whisper'] = mock_whisper
 
 
 def pytest_collection_modifyitems(config, items):
