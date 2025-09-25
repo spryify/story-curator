@@ -29,14 +29,12 @@ def pytest_configure(config):
 
 def _setup_spacy_mocks():
     """Set up spaCy mocks if needed."""
-    # Check if we should mock based on test context
-    current_test = os.environ.get("PYTEST_CURRENT_TEST", "")
-    is_unit_test = current_test.find("unit") != -1
-    is_integration_test = current_test.find("integration") != -1
+    # In CI environments, always mock spaCy unless explicitly running integration tests
+    is_ci = os.environ.get("CI") == "true" or os.environ.get("GITHUB_ACTIONS") == "true"
     explicit_integration = os.environ.get("TESTING_INTEGRATION") == "true"
     
-    # Only mock for unit tests, not integration tests
-    should_mock = is_unit_test and not is_integration_test and not explicit_integration
+    # Mock in CI unless it's explicitly an integration test
+    should_mock = is_ci and not explicit_integration
     
     if not should_mock:
         return
@@ -94,7 +92,13 @@ def _setup_spacy_mocks():
     sys.modules['spacy.util'] = Mock()
     sys.modules['spacy.cli'] = Mock()
     sys.modules['spacy.tokens'] = Mock()
+    sys.modules['spacy.pipeline'] = Mock()
+    sys.modules['spacy.training'] = Mock()
+    sys.modules['spacy.scorer'] = Mock()
     sys.modules['en_core_web_sm'] = Mock()
+    
+    # Also add the English class to the language module directly
+    mock_spacy_lang_en.English.factory = mock_factory
 
 
 def pytest_collection_modifyitems(config, items):
